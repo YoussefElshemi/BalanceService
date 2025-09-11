@@ -1782,5 +1782,345 @@ BEGIN
     VALUES ('20250911140436_TransactionHistoryTrigger', '9.0.8');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142603_HoldHistoryTable') THEN
+    CREATE TABLE "HoldHistory" (
+        "HoldHistoryId" uuid NOT NULL,
+        "HistoryTypeId" integer NOT NULL,
+        "Timestamp" timestamp with time zone NOT NULL,
+        "HoldId" uuid NOT NULL,
+        "AccountId" uuid NOT NULL,
+        "Amount" numeric NOT NULL,
+        "CurrencyCode" text NOT NULL,
+        "IdempotencyKey" uuid NOT NULL,
+        "HoldTypeId" integer NOT NULL,
+        "HoldStatusId" integer NOT NULL,
+        "HoldSourceId" integer NOT NULL,
+        "SettledTransactionId" uuid,
+        "ExpiresAt" timestamp with time zone,
+        "Description" text,
+        "Reference" text,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        "CreatedBy" text NOT NULL,
+        "UpdatedAt" timestamp with time zone NOT NULL,
+        "UpdatedBy" text NOT NULL,
+        "IsDeleted" boolean NOT NULL,
+        "DeletedAt" timestamp with time zone,
+        "DeletedBy" text,
+        CONSTRAINT "PK_HoldHistory" PRIMARY KEY ("HoldHistoryId"),
+        CONSTRAINT "FK_HoldHistory_Accounts_AccountId" FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("AccountId") ON DELETE CASCADE,
+        CONSTRAINT "FK_HoldHistory_HistoryTypes_HistoryTypeId" FOREIGN KEY ("HistoryTypeId") REFERENCES "HistoryTypes" ("HistoryTypeId") ON DELETE CASCADE,
+        CONSTRAINT "FK_HoldHistory_HoldSources_HoldSourceId" FOREIGN KEY ("HoldSourceId") REFERENCES "HoldSources" ("HoldSourceId") ON DELETE CASCADE,
+        CONSTRAINT "FK_HoldHistory_HoldStatuses_HoldStatusId" FOREIGN KEY ("HoldStatusId") REFERENCES "HoldStatuses" ("HoldStatusId") ON DELETE CASCADE,
+        CONSTRAINT "FK_HoldHistory_HoldTypes_HoldTypeId" FOREIGN KEY ("HoldTypeId") REFERENCES "HoldTypes" ("HoldTypeId") ON DELETE CASCADE,
+        CONSTRAINT "FK_HoldHistory_Transactions_SettledTransactionId" FOREIGN KEY ("SettledTransactionId") REFERENCES "Transactions" ("TransactionId") ON DELETE SET NULL
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142603_HoldHistoryTable') THEN
+    CREATE INDEX "IX_HoldHistory_AccountId" ON "HoldHistory" ("AccountId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142603_HoldHistoryTable') THEN
+    CREATE INDEX "IX_HoldHistory_HistoryTypeId" ON "HoldHistory" ("HistoryTypeId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142603_HoldHistoryTable') THEN
+    CREATE INDEX "IX_HoldHistory_HoldId" ON "HoldHistory" ("HoldId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142603_HoldHistoryTable') THEN
+    CREATE INDEX "IX_HoldHistory_HoldSourceId" ON "HoldHistory" ("HoldSourceId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142603_HoldHistoryTable') THEN
+    CREATE INDEX "IX_HoldHistory_HoldStatusId" ON "HoldHistory" ("HoldStatusId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142603_HoldHistoryTable') THEN
+    CREATE INDEX "IX_HoldHistory_HoldTypeId" ON "HoldHistory" ("HoldTypeId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142603_HoldHistoryTable') THEN
+    CREATE UNIQUE INDEX "IX_HoldHistory_SettledTransactionId" ON "HoldHistory" ("SettledTransactionId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142603_HoldHistoryTable') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20250911142603_HoldHistoryTable', '9.0.8');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142731_HoldHistoryTrigger') THEN
+
+                    create or replace function hold_history()
+                    returns trigger as
+                    $$
+                    begin
+                        if TG_OP = 'INSERT' then
+                            
+                    insert into "HoldHistory" (
+                        "HoldHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "HoldId",
+    "AccountId",
+    "Amount",
+    "CurrencyCode",
+    "IdempotencyKey",
+    "HoldTypeId",
+    "HoldStatusId",
+    "HoldSourceId",
+    "SettledTransactionId",
+    "ExpiresAt",
+    "Description",
+    "Reference",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    values (
+                        gen_random_uuid(),
+    1,
+    (now() at time zone 'utc'),
+    new."HoldId",
+    new."AccountId",
+    new."Amount",
+    new."CurrencyCode",
+    new."IdempotencyKey",
+    new."HoldTypeId",
+    new."HoldStatusId",
+    new."HoldSourceId",
+    new."SettledTransactionId",
+    new."ExpiresAt",
+    new."Description",
+    new."Reference",
+    new."IsDeleted",
+    new."DeletedAt",
+    new."DeletedBy",
+    new."CreatedAt",
+    new."CreatedBy",
+    new."UpdatedAt",
+    new."UpdatedBy"
+                    );
+                            return new;
+
+                        elsif TG_OP = 'UPDATE' then
+                            
+                    insert into "HoldHistory" (
+                        "HoldHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "HoldId",
+    "AccountId",
+    "Amount",
+    "CurrencyCode",
+    "IdempotencyKey",
+    "HoldTypeId",
+    "HoldStatusId",
+    "HoldSourceId",
+    "SettledTransactionId",
+    "ExpiresAt",
+    "Description",
+    "Reference",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    values (
+                        gen_random_uuid(),
+    2,
+    (now() at time zone 'utc'),
+    new."HoldId",
+    new."AccountId",
+    new."Amount",
+    new."CurrencyCode",
+    new."IdempotencyKey",
+    new."HoldTypeId",
+    new."HoldStatusId",
+    new."HoldSourceId",
+    new."SettledTransactionId",
+    new."ExpiresAt",
+    new."Description",
+    new."Reference",
+    new."IsDeleted",
+    new."DeletedAt",
+    new."DeletedBy",
+    new."CreatedAt",
+    new."CreatedBy",
+    new."UpdatedAt",
+    new."UpdatedBy"
+                    );
+                            return new;
+
+                        elsif TG_OP = 'DELETE' then
+                            
+                    insert into "HoldHistory" (
+                        "HoldHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "HoldId",
+    "AccountId",
+    "Amount",
+    "CurrencyCode",
+    "IdempotencyKey",
+    "HoldTypeId",
+    "HoldStatusId",
+    "HoldSourceId",
+    "SettledTransactionId",
+    "ExpiresAt",
+    "Description",
+    "Reference",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    values (
+                        gen_random_uuid(),
+    3,
+    (now() at time zone 'utc'),
+    old."HoldId",
+    old."AccountId",
+    old."Amount",
+    old."CurrencyCode",
+    old."IdempotencyKey",
+    old."HoldTypeId",
+    old."HoldStatusId",
+    old."HoldSourceId",
+    old."SettledTransactionId",
+    old."ExpiresAt",
+    old."Description",
+    old."Reference",
+    old."IsDeleted",
+    old."DeletedAt",
+    old."DeletedBy",
+    old."CreatedAt",
+    old."CreatedBy",
+    old."UpdatedAt",
+    old."UpdatedBy"
+                    );
+                            return old;
+                        end if;
+                    end;
+                    $$ language plpgsql;
+                
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142731_HoldHistoryTrigger') THEN
+
+                    create trigger tr_hold_history
+                    after insert or update or delete
+                    on "Holds"
+                    for each row
+                    execute function hold_history();
+                
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142731_HoldHistoryTrigger') THEN
+
+                    insert into "HoldHistory" (
+                        "HoldHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "HoldId",
+    "AccountId",
+    "Amount",
+    "CurrencyCode",
+    "IdempotencyKey",
+    "HoldTypeId",
+    "HoldStatusId",
+    "HoldSourceId",
+    "SettledTransactionId",
+    "ExpiresAt",
+    "Description",
+    "Reference",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    select
+                        gen_random_uuid(),
+    1,
+    (now() at time zone 'utc'),
+    t."HoldId",
+    t."AccountId",
+    t."Amount",
+    t."CurrencyCode",
+    t."IdempotencyKey",
+    t."HoldTypeId",
+    t."HoldStatusId",
+    t."HoldSourceId",
+    t."SettledTransactionId",
+    t."ExpiresAt",
+    t."Description",
+    t."Reference",
+    t."IsDeleted",
+    t."DeletedAt",
+    t."DeletedBy",
+    t."CreatedAt",
+    t."CreatedBy",
+    t."UpdatedAt",
+    t."UpdatedBy"
+                    from "Holds" t;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911142731_HoldHistoryTrigger') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20250911142731_HoldHistoryTrigger', '9.0.8');
+    END IF;
+END $EF$;
 COMMIT;
 

@@ -1,20 +1,20 @@
 namespace Infrastructure.Entities;
 
-public record TransactionHistoryEntity
+public record HoldHistoryEntity
 {
-    public required Guid TransactionHistoryId { get; init; }
+    public required Guid HoldHistoryId { get; init; }
     public required int HistoryTypeId { get; init; }
     public required DateTimeOffset Timestamp { get; init; }
-    public required Guid TransactionId { get; init; }
+    public required Guid HoldId { get; init; }
     public required Guid AccountId { get; init; }
     public required decimal Amount { get; init; }
     public required string CurrencyCode { get; init; }
-    public required int TransactionDirectionId { get; init; }
-    public required DateOnly? PostedDate  { get; init; }
     public required Guid IdempotencyKey { get; init; }
-    public required int TransactionTypeId { get; init; }
-    public required int TransactionStatusId { get; init; }
-    public required int TransactionSourceId { get; init; }
+    public required int HoldTypeId { get; init; }
+    public required int HoldStatusId { get; init; }
+    public required int HoldSourceId { get; init; }
+    public required Guid? SettledTransactionId  { get; init; }
+    public required DateTimeOffset? ExpiresAt { get; init; }
     public required string? Description { get; init; }
     public required string? Reference { get; init; }
 
@@ -27,10 +27,10 @@ public record TransactionHistoryEntity
     public required string? DeletedBy { get; init; }
 
     public AccountEntity AccountEntity { get; init; } = null!;
-    public TransactionDirectionEntity TransactionDirectionEntity { get; init; } = null!;
-    public TransactionTypeEntity TransactionTypeEntity { get; init; } = null!;
-    public TransactionStatusEntity TransactionStatusEntity { get; init; } = null!;
-    public TransactionSourceEntity TransactionSourceEntity { get; init; } = null!;
+    public TransactionEntity? SettledTransactionEntity { get; init; }
+    public HoldTypeEntity HoldTypeEntity { get; init; } = null!;
+    public HoldStatusEntity HoldStatusEntity { get; init; } = null!;
+    public HoldSourceEntity HoldSourceEntity { get; init; } = null!;
     public HistoryTypeEntity HistoryTypeEntity { get; init; } = null!;
 
 }
