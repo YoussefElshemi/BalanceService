@@ -95,4 +95,14 @@ public static class SeedData
                 Name = x.ToString()
             })
     ];
+    
+    public static readonly ImmutableArray<HistoryTypeEntity> HistoryTypes =
+    [
+        ..Enum.GetValues<HistoryType>()
+            .Select(x => new HistoryTypeEntity
+            {
+                HistoryTypeId = (int)x,
+                Name = x.ToString()
+            })
+    ];
 }

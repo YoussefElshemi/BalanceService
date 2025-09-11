@@ -1,4 +1,4 @@
-# locust -f single_balance_test.py --host http://localhost:5000 --headless --skip-log-setup --users 300 --spawn-rate 30 --run-time 600s --stop-timeout 60s
+# locust -f single_balance_test.py --headless --skip-log-setup --users 30 --spawn-rate 10 --run-time 60s --stop-timeout 60s
 
 from locust import HttpUser, task, between, events
 import uuid

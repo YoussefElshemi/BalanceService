@@ -13,16 +13,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public const string DatabaseConnectionName = "AborDb";
 
     public DbSet<AccountEntity> Accounts { get; init; }
-    public DbSet<AccountTypeEntity> AccountTypes { get; init; }
     public DbSet<TransactionEntity> Transactions { get; init; }
-    public DbSet<TransactionTypeEntity> TransactionTypes { get; init; }
-    public DbSet<TransactionDirectionEntity> TransactionDirections { get; init; }
-    public DbSet<TransactionStatusEntity> TransactionStatuses { get; init; }
-    public DbSet<TransactionSourceEntity> TransactionSources { get; init; }
     public DbSet<HoldEntity> Holds { get; init; }
-    public DbSet<HoldTypeEntity> HoldTypes { get; init; }
-    public DbSet<HoldStatusEntity> HoldStatuses { get; init; }
-    public DbSet<HoldSourceEntity> HoldSources { get; init; }
 
     async Task IUnitOfWork.SaveChangesAsync(CancellationToken cancellationToken)
     {
