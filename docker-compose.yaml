@@ -1,0 +1,26 @@
+services:
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard
+    container_name: abor-aspire-dashboard
+    ports:
+      - "18888:18888"
+      - "4317:18889"
+    environment:
+      - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
+
+  postgres:
+    image: postgres:15.4-bullseye
+    container_name: abor-postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=abor
+    logging:
+      options:
+        max-size: 10m
+        max-file: 3
+    ports:
+      - 35433:5432
+    volumes:
+      - ./src/Infrastructure/Scripts/Migration.sql:/docker-entrypoint-initdb.d/init.sql
