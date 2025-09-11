@@ -9,7 +9,6 @@ namespace Core.Services;
 public class HoldService(
     IHoldRepository holdRepository,
     ITransactionRepository transactionRepository,
-    IAccountRepository accountRepository,
     IAccountRulesService accountRulesService,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : IHoldService

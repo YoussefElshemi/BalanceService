@@ -8,7 +8,6 @@ namespace Core.Services;
 
 public class TransactionService(
     ITransactionRepository transactionRepository,
-    IAccountRepository accountRepository,
     IAccountRulesService accountRulesService,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : ITransactionService
