@@ -57,7 +57,6 @@ public class TransactionService(
             };
 
             await transactionRepository.CreateAsync(transaction, cancellationToken);
-            await accountRepository.MarkAsUpdatedAsync(transaction.AccountId, transaction.CreatedBy, cancellationToken);
             transactions.Add(transaction);
         }
 
@@ -93,7 +92,6 @@ public class TransactionService(
         }
 
         var updatedTransaction = await transactionRepository.UpdateAsync(transactionId, updateTransactionRequest, cancellationToken);
-        await accountRepository.MarkAsUpdatedAsync(updatedTransaction.AccountId, updatedTransaction.UpdatedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return updatedTransaction;
@@ -138,7 +136,6 @@ public class TransactionService(
 
         await transactionRepository.CreateAsync(reversedTransaction, cancellationToken);
         await transactionRepository.ReverseAsync(transaction.TransactionId, reversedBy, cancellationToken);
-        await accountRepository.MarkAsUpdatedAsync(reversedTransaction.AccountId, reversedTransaction.UpdatedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return reversedTransaction;
@@ -178,7 +175,6 @@ public class TransactionService(
         await accountRulesService.ThrowIfNotAllowedAsync(transaction.AccountId, operationType, cancellationToken);
 
         await transactionRepository.PostAsync(transaction.TransactionId, postedBy, cancellationToken);
-        await accountRepository.MarkAsUpdatedAsync(transaction.AccountId, postedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -192,7 +188,6 @@ public class TransactionService(
         }
         
         await transactionRepository.DeleteAsync(transactionId, deletedBy, cancellationToken);
-        await accountRepository.MarkAsUpdatedAsync(transaction.AccountId, deletedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

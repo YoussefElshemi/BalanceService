@@ -16,5 +16,4 @@ public interface IAccountRepository
     Task<AccountBalance?> GetBalancesByIdAsync(AccountId accountId, CancellationToken cancellationToken);
     Task UpdateStatusAsync(UpdateAccountStatusRequest updateAccountStatusRequest, CancellationToken cancellationToken);
     Task<AccountStatus?> GetStatusByIdAsync(AccountId accountId, CancellationToken cancellationToken);
-    Task MarkAsUpdatedAsync(AccountId accountId, Username updatedBy, CancellationToken cancellationToken);
 }

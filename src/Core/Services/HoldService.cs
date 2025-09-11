@@ -45,7 +45,6 @@ public class HoldService(
         };
 
         await holdRepository.CreateAsync(hold, cancellationToken);
-        await accountRepository.MarkAsUpdatedAsync(hold.AccountId, hold.CreatedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return hold;
@@ -75,7 +74,6 @@ public class HoldService(
         await accountRulesService.ThrowIfNotAllowedAsync(hold.AccountId, AccountOperationType.ReleaseHold, cancellationToken);
 
         await holdRepository.ReleaseAsync(hold.HoldId, releasedBy, cancellationToken);
-        await accountRepository.MarkAsUpdatedAsync(hold.AccountId, releasedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -89,7 +87,6 @@ public class HoldService(
         }
 
         await holdRepository.DeleteAsync(holdId, deletedBy, cancellationToken);
-        await accountRepository.MarkAsUpdatedAsync(hold.AccountId, deletedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -135,7 +132,6 @@ public class HoldService(
 
         await transactionRepository.CreateAsync(transaction, cancellationToken);
         await holdRepository.SettleAsync(hold.HoldId, transaction.TransactionId, settledBy, cancellationToken);
-        await accountRepository.MarkAsUpdatedAsync(hold.AccountId, settledBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return transaction;
@@ -151,7 +147,6 @@ public class HoldService(
         }
 
         var updatedHold = await holdRepository.UpdateAsync(holdId, updateHoldRequest, cancellationToken);
-        await accountRepository.MarkAsUpdatedAsync(updatedHold.AccountId, updatedHold.UpdatedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         
         return updatedHold;
@@ -177,7 +172,6 @@ public class HoldService(
 
     public async Task ExpireHoldsAsync(CancellationToken cancellationToken)
     {
-        // TODO: mark accounts as updated
         await holdRepository.ExpireHoldsAsync(cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }

@@ -125,18 +125,6 @@ public class AccountRepository(
         return (AccountStatus)statusId;
     }
 
-    public Task MarkAsUpdatedAsync(AccountId accountId, Username updatedBy, CancellationToken cancellationToken)
-    {
-        // var utcDateTime = timeProvider.GetUtcNow();
-        // var accountEntity = await dbContext.Accounts
-        //     .AsTracking()
-        //     .FirstAsync(x => x.AccountId == accountId, cancellationToken);
-        //
-        // accountEntity.UpdatedBy = updatedBy;
-        // accountEntity.UpdatedAt = utcDateTime;
-        return Task.CompletedTask;
-    }
-
     private IQueryable<AccountEntity> BuildSearchQuery(QueryAccountsRequest queryAccountsRequest)
     {
         var query = dbContext.Accounts
