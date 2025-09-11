@@ -18,13 +18,13 @@ public record AccountHistoryEntity
     public required string? Metadata { get; init; }
     public required Guid? ParentAccountId { get; init; }
 
-    public required bool IsDeleted { get; init; }
-    public required DateTimeOffset? DeletedAt { get; init; }
-    public required string? DeletedBy { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
     public required string CreatedBy { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }
     public required string UpdatedBy { get; init; }
+    public required bool IsDeleted { get; init; }
+    public required DateTimeOffset? DeletedAt { get; init; }
+    public required string? DeletedBy { get; init; }
 
     public AccountEntity? ParentAccountEntity { get; init; }
     public AccountTypeEntity AccountTypeEntity { get; init; } = null!;

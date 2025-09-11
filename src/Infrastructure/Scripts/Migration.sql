@@ -1201,161 +1201,164 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911135257_AccountHistoryTrigger') THEN
 
-                    create or replace function account_history() 
+                    create or replace function account_history()
                     returns trigger as
                     $$
                     begin
                         if TG_OP = 'INSERT' then
-                            insert into "AccountHistory" (
-                                "AccountHistoryId",
-                                "HistoryTypeId",
-                                "Timestamp",
-                                "AccountId",
-                                "AccountName",
-                                "CurrencyCode",
-                                "LedgerBalance",
-                                "AvailableBalance",
-                                "PendingBalance",
-                                "HoldBalance",
-                                "MinimumRequiredBalance",
-                                "AccountTypeId",
-                                "AccountStatusId",
-                                "Metadata",
-                                "ParentAccountId",
-                                "IsDeleted",
-                                "DeletedAt",
-                                "DeletedBy",
-                                "CreatedAt",
-                                "CreatedBy",
-                                "UpdatedAt",
-                                "UpdatedBy"
-                            )
-                            values (
-                                gen_random_uuid(),
-                                1,
-                                (now() at time zone 'utc'),
-                                new."AccountId",
-                                new."AccountName",
-                                new."CurrencyCode",
-                                new."LedgerBalance",
-                                new."AvailableBalance",
-                                new."PendingBalance",
-                                new."HoldBalance",
-                                new."MinimumRequiredBalance",
-                                new."AccountTypeId",
-                                new."AccountStatusId",
-                                new."Metadata",
-                                new."ParentAccountId",
-                                new."IsDeleted",
-                                new."DeletedAt",
-                                new."DeletedBy",
-                                new."CreatedAt",
-                                new."CreatedBy",
-                                new."UpdatedAt",
-                                new."UpdatedBy"
-                            );
+                            
+                    insert into "AccountHistory" (
+                        "AccountHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "AccountId",
+    "AccountName",
+    "CurrencyCode",
+    "LedgerBalance",
+    "AvailableBalance",
+    "PendingBalance",
+    "HoldBalance",
+    "MinimumRequiredBalance",
+    "AccountTypeId",
+    "AccountStatusId",
+    "Metadata",
+    "ParentAccountId",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    values (
+                        gen_random_uuid(),
+    1,
+    (now() at time zone 'utc'),
+    new."AccountId",
+    new."AccountName",
+    new."CurrencyCode",
+    new."LedgerBalance",
+    new."AvailableBalance",
+    new."PendingBalance",
+    new."HoldBalance",
+    new."MinimumRequiredBalance",
+    new."AccountTypeId",
+    new."AccountStatusId",
+    new."Metadata",
+    new."ParentAccountId",
+    new."IsDeleted",
+    new."DeletedAt",
+    new."DeletedBy",
+    new."CreatedAt",
+    new."CreatedBy",
+    new."UpdatedAt",
+    new."UpdatedBy"
+                    );
                             return new;
 
                         elsif TG_OP = 'UPDATE' then
-                            insert into "AccountHistory" (
-                                "AccountHistoryId",
-                                "HistoryTypeId",
-                                "Timestamp",
-                                "AccountId",
-                                "AccountName",
-                                "CurrencyCode",
-                                "LedgerBalance",
-                                "AvailableBalance",
-                                "PendingBalance",
-                                "HoldBalance",
-                                "MinimumRequiredBalance",
-                                "AccountTypeId",
-                                "AccountStatusId",
-                                "Metadata",
-                                "ParentAccountId",
-                                "IsDeleted",
-                                "DeletedAt",
-                                "DeletedBy",
-                                "CreatedAt",
-                                "CreatedBy",
-                                "UpdatedAt",
-                                "UpdatedBy"
-                            )
-                            values (
-                                gen_random_uuid(),
-                                2,
-                                (now() at time zone 'utc'),
-                                new."AccountId",
-                                new."AccountName",
-                                new."CurrencyCode",
-                                new."LedgerBalance",
-                                new."AvailableBalance",
-                                new."PendingBalance",
-                                new."HoldBalance",
-                                new."MinimumRequiredBalance",
-                                new."AccountTypeId",
-                                new."AccountStatusId",
-                                new."Metadata",
-                                new."ParentAccountId",
-                                new."IsDeleted",
-                                new."DeletedAt",
-                                new."DeletedBy",
-                                new."CreatedAt",
-                                new."CreatedBy",
-                                new."UpdatedAt",
-                                new."UpdatedBy"
-                            );
+                            
+                    insert into "AccountHistory" (
+                        "AccountHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "AccountId",
+    "AccountName",
+    "CurrencyCode",
+    "LedgerBalance",
+    "AvailableBalance",
+    "PendingBalance",
+    "HoldBalance",
+    "MinimumRequiredBalance",
+    "AccountTypeId",
+    "AccountStatusId",
+    "Metadata",
+    "ParentAccountId",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    values (
+                        gen_random_uuid(),
+    2,
+    (now() at time zone 'utc'),
+    new."AccountId",
+    new."AccountName",
+    new."CurrencyCode",
+    new."LedgerBalance",
+    new."AvailableBalance",
+    new."PendingBalance",
+    new."HoldBalance",
+    new."MinimumRequiredBalance",
+    new."AccountTypeId",
+    new."AccountStatusId",
+    new."Metadata",
+    new."ParentAccountId",
+    new."IsDeleted",
+    new."DeletedAt",
+    new."DeletedBy",
+    new."CreatedAt",
+    new."CreatedBy",
+    new."UpdatedAt",
+    new."UpdatedBy"
+                    );
                             return new;
 
                         elsif TG_OP = 'DELETE' then
-                            insert into "AccountHistory" (
-                                "AccountHistoryId",
-                                "HistoryTypeId",
-                                "Timestamp",
-                                "AccountId",
-                                "AccountName",
-                                "CurrencyCode",
-                                "LedgerBalance",
-                                "AvailableBalance",
-                                "PendingBalance",
-                                "HoldBalance",
-                                "MinimumRequiredBalance",
-                                "AccountTypeId",
-                                "AccountStatusId",
-                                "Metadata",
-                                "ParentAccountId",
-                                "IsDeleted",
-                                "DeletedAt",
-                                "DeletedBy",
-                                "CreatedAt",
-                                "CreatedBy",
-                                "UpdatedAt",
-                                "UpdatedBy"
-                            )
-                            values (
-                                gen_random_uuid(),
-                                3,
-                                (now() at time zone 'utc'),
-                                old."AccountId",
-                                old."AccountName",
-                                old."CurrencyCode",
-                                old."LedgerBalance",
-                                old."AvailableBalance",
-                                old."PendingBalance",
-                                old."HoldBalance",
-                                old."MinimumRequiredBalance",
-                                old."AccountTypeId",
-                                old."AccountStatusId",
-                                old."Metadata",
-                                old."ParentAccountId",
-                                old."IsDeleted",
-                                old."DeletedAt",
-                                old."DeletedBy",
-                                old."CreatedAt",
-                                old."CreatedBy",
-                                old."UpdatedAt",
-                                old."UpdatedBy"
-                            );
+                            
+                    insert into "AccountHistory" (
+                        "AccountHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "AccountId",
+    "AccountName",
+    "CurrencyCode",
+    "LedgerBalance",
+    "AvailableBalance",
+    "PendingBalance",
+    "HoldBalance",
+    "MinimumRequiredBalance",
+    "AccountTypeId",
+    "AccountStatusId",
+    "Metadata",
+    "ParentAccountId",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    values (
+                        gen_random_uuid(),
+    3,
+    (now() at time zone 'utc'),
+    old."AccountId",
+    old."AccountName",
+    old."CurrencyCode",
+    old."LedgerBalance",
+    old."AvailableBalance",
+    old."PendingBalance",
+    old."HoldBalance",
+    old."MinimumRequiredBalance",
+    old."AccountTypeId",
+    old."AccountStatusId",
+    old."Metadata",
+    old."ParentAccountId",
+    old."IsDeleted",
+    old."DeletedAt",
+    old."DeletedBy",
+    old."CreatedAt",
+    old."CreatedBy",
+    old."UpdatedAt",
+    old."UpdatedBy"
+                    );
                             return old;
                         end if;
                     end;
@@ -1383,53 +1386,52 @@ BEGIN
 
                     insert into "AccountHistory" (
                         "AccountHistoryId",
-                        "HistoryTypeId",
-                        "Timestamp",
-                        "AccountId",
-                        "AccountName",
-                        "CurrencyCode",
-                        "LedgerBalance",
-                        "AvailableBalance",
-                        "PendingBalance",
-                        "HoldBalance",
-                        "MinimumRequiredBalance",
-                        "AccountTypeId",
-                        "AccountStatusId",
-                        "Metadata",
-                        "ParentAccountId",
-                        "IsDeleted",
-                        "DeletedAt",
-                        "DeletedBy",
-                        "CreatedAt",
-                        "CreatedBy",
-                        "UpdatedAt",
-                        "UpdatedBy"
+    "HistoryTypeId",
+    "Timestamp",
+    "AccountId",
+    "AccountName",
+    "CurrencyCode",
+    "LedgerBalance",
+    "AvailableBalance",
+    "PendingBalance",
+    "HoldBalance",
+    "MinimumRequiredBalance",
+    "AccountTypeId",
+    "AccountStatusId",
+    "Metadata",
+    "ParentAccountId",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
                     )
                     select
                         gen_random_uuid(),
-                        1,
-                        (now() at time zone 'utc'),
-                        a."AccountId",
-                        a."AccountName",
-                        a."CurrencyCode",
-                        a."LedgerBalance",
-                        a."AvailableBalance",
-                        a."PendingBalance",
-                        a."HoldBalance",
-                        a."MinimumRequiredBalance",
-                        a."AccountTypeId",
-                        a."AccountStatusId",
-                        a."Metadata",
-                        a."ParentAccountId",
-                        a."IsDeleted",
-                        a."DeletedAt",
-                        a."DeletedBy",
-                        a."CreatedAt",
-                        a."CreatedBy",
-                        a."UpdatedAt",
-                        a."UpdatedBy"
+    1,
+    (now() at time zone 'utc'),
+    a."AccountId",
+    a."AccountName",
+    a."CurrencyCode",
+    a."LedgerBalance",
+    a."AvailableBalance",
+    a."PendingBalance",
+    a."HoldBalance",
+    a."MinimumRequiredBalance",
+    a."AccountTypeId",
+    a."AccountStatusId",
+    a."Metadata",
+    a."ParentAccountId",
+    a."IsDeleted",
+    a."DeletedAt",
+    a."DeletedBy",
+    a."CreatedAt",
+    a."CreatedBy",
+    a."UpdatedAt",
+    a."UpdatedBy"
                     from "Accounts" a;
-                
     END IF;
 END $EF$;
 
@@ -1438,6 +1440,346 @@ BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911135257_AccountHistoryTrigger') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
     VALUES ('20250911135257_AccountHistoryTrigger', '9.0.8');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140152_TransactionHistoryTable') THEN
+    CREATE TABLE "TransactionHistory" (
+        "TransactionHistoryId" uuid NOT NULL,
+        "HistoryTypeId" integer NOT NULL,
+        "Timestamp" timestamp with time zone NOT NULL,
+        "TransactionId" uuid NOT NULL,
+        "AccountId" uuid NOT NULL,
+        "Amount" numeric NOT NULL,
+        "CurrencyCode" text NOT NULL,
+        "TransactionDirectionId" integer NOT NULL,
+        "PostedDate" date,
+        "IdempotencyKey" uuid NOT NULL,
+        "TransactionTypeId" integer NOT NULL,
+        "TransactionStatusId" integer NOT NULL,
+        "TransactionSourceId" integer NOT NULL,
+        "Description" text,
+        "Reference" text,
+        "IsDeleted" boolean NOT NULL,
+        "DeletedAt" timestamp with time zone,
+        "DeletedBy" text,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        "CreatedBy" text NOT NULL,
+        "UpdatedAt" timestamp with time zone NOT NULL,
+        "UpdatedBy" text NOT NULL,
+        CONSTRAINT "PK_TransactionHistory" PRIMARY KEY ("TransactionHistoryId"),
+        CONSTRAINT "FK_TransactionHistory_Accounts_AccountId" FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("AccountId") ON DELETE CASCADE,
+        CONSTRAINT "FK_TransactionHistory_HistoryTypes_HistoryTypeId" FOREIGN KEY ("HistoryTypeId") REFERENCES "HistoryTypes" ("HistoryTypeId") ON DELETE CASCADE,
+        CONSTRAINT "FK_TransactionHistory_TransactionDirections_TransactionDirecti~" FOREIGN KEY ("TransactionDirectionId") REFERENCES "TransactionDirections" ("TransactionDirectionId") ON DELETE CASCADE,
+        CONSTRAINT "FK_TransactionHistory_TransactionSources_TransactionSourceId" FOREIGN KEY ("TransactionSourceId") REFERENCES "TransactionSources" ("TransactionSourceId") ON DELETE CASCADE,
+        CONSTRAINT "FK_TransactionHistory_TransactionStatuses_TransactionStatusId" FOREIGN KEY ("TransactionStatusId") REFERENCES "TransactionStatuses" ("TransactionStatusId") ON DELETE CASCADE,
+        CONSTRAINT "FK_TransactionHistory_TransactionTypes_TransactionTypeId" FOREIGN KEY ("TransactionTypeId") REFERENCES "TransactionTypes" ("TransactionTypeId") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140152_TransactionHistoryTable') THEN
+    CREATE INDEX "IX_TransactionHistory_AccountId" ON "TransactionHistory" ("AccountId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140152_TransactionHistoryTable') THEN
+    CREATE INDEX "IX_TransactionHistory_HistoryTypeId" ON "TransactionHistory" ("HistoryTypeId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140152_TransactionHistoryTable') THEN
+    CREATE INDEX "IX_TransactionHistory_TransactionDirectionId" ON "TransactionHistory" ("TransactionDirectionId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140152_TransactionHistoryTable') THEN
+    CREATE INDEX "IX_TransactionHistory_TransactionId" ON "TransactionHistory" ("TransactionId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140152_TransactionHistoryTable') THEN
+    CREATE INDEX "IX_TransactionHistory_TransactionSourceId" ON "TransactionHistory" ("TransactionSourceId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140152_TransactionHistoryTable') THEN
+    CREATE INDEX "IX_TransactionHistory_TransactionStatusId" ON "TransactionHistory" ("TransactionStatusId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140152_TransactionHistoryTable') THEN
+    CREATE INDEX "IX_TransactionHistory_TransactionTypeId" ON "TransactionHistory" ("TransactionTypeId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140152_TransactionHistoryTable') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20250911140152_TransactionHistoryTable', '9.0.8');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140436_TransactionHistoryTrigger') THEN
+
+                    create or replace function transaction_history()
+                    returns trigger as
+                    $$
+                    begin
+                        if TG_OP = 'INSERT' then
+                            
+                    insert into "TransactionHistory" (
+                        "TransactionHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "TransactionId",
+    "AccountId",
+    "Amount",
+    "CurrencyCode",
+    "TransactionDirectionId",
+    "PostedDate",
+    "IdempotencyKey",
+    "TransactionTypeId",
+    "TransactionStatusId",
+    "TransactionSourceId",
+    "Description",
+    "Reference",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    values (
+                        gen_random_uuid(),
+    1,
+    (now() at time zone 'utc'),
+    new."TransactionId",
+    new."AccountId",
+    new."Amount",
+    new."CurrencyCode",
+    new."TransactionDirectionId",
+    new."PostedDate",
+    new."IdempotencyKey",
+    new."TransactionTypeId",
+    new."TransactionStatusId",
+    new."TransactionSourceId",
+    new."Description",
+    new."Reference",
+    new."IsDeleted",
+    new."DeletedAt",
+    new."DeletedBy",
+    new."CreatedAt",
+    new."CreatedBy",
+    new."UpdatedAt",
+    new."UpdatedBy"
+                    );
+                            return new;
+
+                        elsif TG_OP = 'UPDATE' then
+                            
+                    insert into "TransactionHistory" (
+                        "TransactionHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "TransactionId",
+    "AccountId",
+    "Amount",
+    "CurrencyCode",
+    "TransactionDirectionId",
+    "PostedDate",
+    "IdempotencyKey",
+    "TransactionTypeId",
+    "TransactionStatusId",
+    "TransactionSourceId",
+    "Description",
+    "Reference",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    values (
+                        gen_random_uuid(),
+    2,
+    (now() at time zone 'utc'),
+    new."TransactionId",
+    new."AccountId",
+    new."Amount",
+    new."CurrencyCode",
+    new."TransactionDirectionId",
+    new."PostedDate",
+    new."IdempotencyKey",
+    new."TransactionTypeId",
+    new."TransactionStatusId",
+    new."TransactionSourceId",
+    new."Description",
+    new."Reference",
+    new."IsDeleted",
+    new."DeletedAt",
+    new."DeletedBy",
+    new."CreatedAt",
+    new."CreatedBy",
+    new."UpdatedAt",
+    new."UpdatedBy"
+                    );
+                            return new;
+
+                        elsif TG_OP = 'DELETE' then
+                            
+                    insert into "TransactionHistory" (
+                        "TransactionHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "TransactionId",
+    "AccountId",
+    "Amount",
+    "CurrencyCode",
+    "TransactionDirectionId",
+    "PostedDate",
+    "IdempotencyKey",
+    "TransactionTypeId",
+    "TransactionStatusId",
+    "TransactionSourceId",
+    "Description",
+    "Reference",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    values (
+                        gen_random_uuid(),
+    3,
+    (now() at time zone 'utc'),
+    old."TransactionId",
+    old."AccountId",
+    old."Amount",
+    old."CurrencyCode",
+    old."TransactionDirectionId",
+    old."PostedDate",
+    old."IdempotencyKey",
+    old."TransactionTypeId",
+    old."TransactionStatusId",
+    old."TransactionSourceId",
+    old."Description",
+    old."Reference",
+    old."IsDeleted",
+    old."DeletedAt",
+    old."DeletedBy",
+    old."CreatedAt",
+    old."CreatedBy",
+    old."UpdatedAt",
+    old."UpdatedBy"
+                    );
+                            return old;
+                        end if;
+                    end;
+                    $$ language plpgsql;
+                
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140436_TransactionHistoryTrigger') THEN
+
+                    create trigger tr_transaction_history
+                    after insert or update or delete
+                    on "Transactions"
+                    for each row
+                    execute function transaction_history();
+                
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140436_TransactionHistoryTrigger') THEN
+
+                    insert into "TransactionHistory" (
+                        "TransactionHistoryId",
+    "HistoryTypeId",
+    "Timestamp",
+    "TransactionId",
+    "AccountId",
+    "Amount",
+    "CurrencyCode",
+    "TransactionDirectionId",
+    "PostedDate",
+    "IdempotencyKey",
+    "TransactionTypeId",
+    "TransactionStatusId",
+    "TransactionSourceId",
+    "Description",
+    "Reference",
+    "IsDeleted",
+    "DeletedAt",
+    "DeletedBy",
+    "CreatedAt",
+    "CreatedBy",
+    "UpdatedAt",
+    "UpdatedBy"
+                    )
+                    select
+                        gen_random_uuid(),
+    1,
+    (now() at time zone 'utc'),
+    t."TransactionId",
+    t."AccountId",
+    t."Amount",
+    t."CurrencyCode",
+    t."TransactionDirectionId",
+    t."PostedDate",
+    t."IdempotencyKey",
+    t."TransactionTypeId",
+    t."TransactionStatusId",
+    t."TransactionSourceId",
+    t."Description",
+    t."Reference",
+    t."IsDeleted",
+    t."DeletedAt",
+    t."DeletedBy",
+    t."CreatedAt",
+    t."CreatedBy",
+    t."UpdatedAt",
+    t."UpdatedBy"
+                    from "Transactions" t;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250911140436_TransactionHistoryTrigger') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20250911140436_TransactionHistoryTrigger', '9.0.8');
     END IF;
 END $EF$;
 COMMIT;
