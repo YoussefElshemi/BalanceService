@@ -49,7 +49,7 @@ def on_test_start(environment, **kwargs):
     global account_id, expected_balances
 
     # 1. Create account
-    res = requests.post("http://localhost:5000/accounts", json={
+    res = requests.post(f"{environment.host}/accounts", json={
         "accountName": "Locust Shared Account",
         "accountType": "Revenue",
         "currencyCode": "GBP",
@@ -58,10 +58,10 @@ def on_test_start(environment, **kwargs):
     account_id = res.json()["accountId"]
 
     # 2. Activate
-    requests.post(f"http://localhost:5000/accounts/{account_id}/activate", headers=new_headers())
+    requests.post(f"{environment.host}/accounts/{account_id}/activate", headers=new_headers())
 
     # 3. Prefund with 100k
-    res = requests.post("http://localhost:5000/transactions", json={
+    res = requests.post(f"{environment.host}/transactions", json={
         "accountId": account_id,
         "amount": 100000,
         "currencyCode": "GBP",
@@ -74,7 +74,7 @@ def on_test_start(environment, **kwargs):
     }, headers=new_headers())
     tx_id = res.json()["transactionId"]
 
-    requests.post(f"http://localhost:5000/transactions/{tx_id}/post", headers=new_headers())
+    requests.post(f"{environment.host}/transactions/{tx_id}/post", headers=new_headers())
 
     with lock:
         expected_balances["ledgerBalance"] += 100000
@@ -92,7 +92,7 @@ def on_test_stop(environment, **kwargs):
     global account_id, expected_balances
 
     # --- API balances ---
-    res = requests.get(f"http://localhost:5000/accounts/{account_id}/balances", headers=new_headers())
+    res = requests.get(f"{environment.host}/accounts/{account_id}/balances", headers=new_headers())
     actual = res.json()
     actual_balances = {
         "ledgerBalance": actual["ledgerBalance"],

@@ -47,7 +47,7 @@ class BalanceUser(HttpUser):
         self.account_id = None
 
         # 1. Create account
-        res = requests.post("http://localhost:5000/accounts", json={
+        res = requests.post(f"{environment.host}/accounts", json={
             "accountName": "Locust Account",
             "accountType": "Revenue",
             "currencyCode": "GBP",
@@ -56,10 +56,10 @@ class BalanceUser(HttpUser):
         self.account_id = res.json()["accountId"]
 
         # 2. Activate account
-        requests.post(f"http://localhost:5000/accounts/{self.account_id}/activate", headers=new_headers())
+        requests.post(f"{environment.host}/accounts/{self.account_id}/activate", headers=new_headers())
 
         # 3. Prefund with 100k credit
-        res = requests.post("http://localhost:5000/transactions", json={
+        res = requests.post(f"{environment.host}/transactions", json={
             "accountId": self.account_id,
             "amount": 100000,
             "currencyCode": "GBP",
@@ -72,7 +72,7 @@ class BalanceUser(HttpUser):
         }, headers=new_headers())
         tx_id = res.json()["transactionId"]
 
-        requests.post(f"http://localhost:5000/transactions/{tx_id}/post", headers=new_headers())
+        requests.post(f"{environment.host}/transactions/{tx_id}/post", headers=new_headers())
 
         with self.lock:
             self.expected_balances["ledgerBalance"] += 100000
@@ -85,7 +85,7 @@ class BalanceUser(HttpUser):
         Teardown for each VU: fetch balances and compare with expected and DB values
         """
         # --- API balances ---
-        res = requests.get(f"http://localhost:5000/accounts/{self.account_id}/balances", headers=new_headers())
+        res = requests.get(f"{environment.host}/accounts/{self.account_id}/balances", headers=new_headers())
         actual = res.json()
 
         actual_balances = {

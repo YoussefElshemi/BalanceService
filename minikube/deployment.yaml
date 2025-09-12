@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: abor-api
+  namespace: abor
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: abor-api
+  template:
+    metadata:
+      labels:
+        app: abor-api
+    spec:
+      containers:
+        - name: abor-api
+          image: abor-api:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "768Mi"
+          envFrom:
+            - secretRef:
+                name: abor-secrets
+            - configMapRef:
+                name: abor-config
+          livenessProbe:
+            httpGet:
+              path: /healthz/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
