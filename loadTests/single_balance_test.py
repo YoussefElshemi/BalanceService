@@ -1,6 +1,6 @@
 # locust -f single_balance_test.py --host http://localhost:5000 --headless --skip-log-setup --users 30 --spawn-rate 10 --run-time 60s --stop-timeout 60s
 
-from locust import HttpUser, task, between, events
+from locust import FastHttpUser, task, constant, events
 import uuid
 import random
 import threading
@@ -162,9 +162,14 @@ def on_test_stop(environment, **kwargs):
         print("Database:", db_balances)
         print("Checks:", checks)
 
+    transactions_created = environment.stats.get('/transactions', 'POST').num_requests
+    holds_created = environment.stats.get('/holds', 'POST').num_requests
+    total_created = transactions_created + holds_created
 
-class BalanceUser(HttpUser):
-    wait_time = between(0.1, 0.5)
+    print(f"\n[SUMMARY] Total entities created: {total_created}")
+
+class BalanceUser(FastHttpUser):
+    wait_time = constant(0)
 
     @task
     def random_operation(self):

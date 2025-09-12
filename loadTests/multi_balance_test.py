@@ -1,6 +1,6 @@
 # locust -f multi_balance_test.py --host http://localhost:5000 --headless --skip-log-setup --users 30 --spawn-rate 10 --run-time 60s --stop-timeout 60s
 
-from locust import HttpUser, task, between
+from locust import FastHttpUser, task, constant, events, stats
 import uuid
 import random
 import threading
@@ -27,8 +27,8 @@ def new_headers():
     return headers
 
 
-class BalanceUser(HttpUser):
-    wait_time = between(0.1, 0.5)
+class BalanceUser(FastHttpUser):
+    wait_time = constant(0)
 
     def on_start(self):
         """
@@ -47,7 +47,7 @@ class BalanceUser(HttpUser):
         self.account_id = None
 
         # 1. Create account
-        res = requests.post(f"{environment.host}/accounts", json={
+        res = requests.post(f"{self.environment.host}/accounts", json={
             "accountName": "Locust Account",
             "accountType": "Revenue",
             "currencyCode": "GBP",
@@ -56,10 +56,10 @@ class BalanceUser(HttpUser):
         self.account_id = res.json()["accountId"]
 
         # 2. Activate account
-        requests.post(f"{environment.host}/accounts/{self.account_id}/activate", headers=new_headers())
+        requests.post(f"{self.environment.host}/accounts/{self.account_id}/activate", headers=new_headers())
 
         # 3. Prefund with 100k credit
-        res = requests.post(f"{environment.host}/transactions", json={
+        res = requests.post(f"{self.environment.host}/transactions", json={
             "accountId": self.account_id,
             "amount": 100000,
             "currencyCode": "GBP",
@@ -72,7 +72,7 @@ class BalanceUser(HttpUser):
         }, headers=new_headers())
         tx_id = res.json()["transactionId"]
 
-        requests.post(f"{environment.host}/transactions/{tx_id}/post", headers=new_headers())
+        requests.post(f"{self.environment.host}/transactions/{tx_id}/post", headers=new_headers())
 
         with self.lock:
             self.expected_balances["ledgerBalance"] += 100000
@@ -85,7 +85,7 @@ class BalanceUser(HttpUser):
         Teardown for each VU: fetch balances and compare with expected and DB values
         """
         # --- API balances ---
-        res = requests.get(f"{environment.host}/accounts/{self.account_id}/balances", headers=new_headers())
+        res = requests.get(f"{self.environment.host}/accounts/{self.account_id}/balances", headers=new_headers())
         actual = res.json()
 
         actual_balances = {
@@ -237,3 +237,12 @@ class BalanceUser(HttpUser):
                 else:
                     # Do nothing
                     pass
+
+
+@events.test_stop.add_listener
+def _(environment, **kwargs):
+    transactions_created = environment.stats.get('/transactions', 'POST').num_requests
+    holds_created = environment.stats.get('/holds', 'POST').num_requests
+    total_created = transactions_created + holds_created
+
+    print(f"\n[SUMMARY] Total entities created: {total_created}")
