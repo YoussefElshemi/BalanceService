@@ -14,6 +14,8 @@ public record QueryHoldsRequestDto
     public decimal? Amount { get; init; }
     public Guid? SettledTransactionId { get; init; }
     public DateTimeOffset? ExpiresAt { get; init; }
+    public DateTimeOffset? FromCreatedAt { get; init; }
+    public DateTimeOffset? ToCreatedAt { get; init; }
     public HoldType? Type { get; init; }
     public HoldStatus? Status { get; init; }
     public HoldSource? Source { get; init; }

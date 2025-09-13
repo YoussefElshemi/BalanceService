@@ -2,16 +2,16 @@ using Core.Constants;
 
 namespace Core.ValueObjects;
 
-public readonly record struct PostedDate
+public readonly record struct StatementDate
 {
-    public PostedDate(DateOnly value)
+    public StatementDate(DateOnly value)
     {
         Value = value;
     }
 
     private DateOnly Value { get; }
 
-    public static implicit operator DateOnly(PostedDate valueObject)
+    public static implicit operator DateOnly(StatementDate valueObject)
     {
         return valueObject.Value;
     }

@@ -12,8 +12,9 @@ public record QueryHoldsRequest
     public required HoldAmount? Amount { get; init; }
     public required TransactionId? SettledTransactionId { get; init; }
     public required ExpiresAt? ExpiresAt { get; init; }
+    public required Range<CreatedAt?>? CreatedAtRange { get; init; }
     public required HoldType? Type { get; init; }
-    public required HoldStatus? Status { get; init; }
+    public required HoldStatus[]? Statuses { get; init; }
     public required HoldSource? Source { get; init; }
     public required HoldDescription? Description { get; init; }
     public required HoldReference? Reference { get; init; }

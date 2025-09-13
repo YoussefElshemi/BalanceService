@@ -20,11 +20,18 @@ public static class QueryTransactionsRequestDtoMapper
                 new TransactionAmount(queryTransactionsRequestDto.Amount.Value)
                 : null,
             Direction = queryTransactionsRequestDto.Direction,
-            PostedDate = queryTransactionsRequestDto.PostedDate.HasValue
-                ? new PostedDate(queryTransactionsRequestDto.PostedDate.Value)
+            PostedDateRange = queryTransactionsRequestDto.FromPostedDate.HasValue ||
+                              queryTransactionsRequestDto.ToPostedDate.HasValue
+                ? new Range<DateOnly?>
+                {
+                    From = queryTransactionsRequestDto.FromPostedDate,
+                    To = queryTransactionsRequestDto.ToPostedDate,
+                }
                 : null,
             Type = queryTransactionsRequestDto.Type,
-            Status = queryTransactionsRequestDto.Status,
+            Statuses = queryTransactionsRequestDto.Status.HasValue
+                ? [queryTransactionsRequestDto.Status.Value]
+                : null,
             Source = queryTransactionsRequestDto.Source,
             Description =  !string.IsNullOrWhiteSpace(queryTransactionsRequestDto.Description)
                 ? new TransactionDescription(queryTransactionsRequestDto.Description)

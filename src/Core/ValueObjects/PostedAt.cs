@@ -1,0 +1,30 @@
+using Core.Constants;
+
+namespace Core.ValueObjects;
+
+public readonly record struct PostedAt
+{
+    public PostedAt(DateTimeOffset value)
+    {
+        Value = value;
+    }
+
+    private DateTimeOffset Value { get; }
+
+    private DateOnly ToDateOnly() => DateOnly.FromDateTime(Value.UtcDateTime);
+
+    public static implicit operator DateTimeOffset(PostedAt valueObject)
+    {
+        return valueObject.Value;
+    }
+
+    public static implicit operator DateOnly(PostedAt valueObject)
+    {
+        return valueObject.ToDateOnly();
+    }
+
+    public override string ToString()
+    {
+        return Value.ToString(DateTimeConstants.DateTimeFormat);
+    }
+}

@@ -109,7 +109,7 @@ public class HoldService(
             Amount = new TransactionAmount(hold.Amount),
             CurrencyCode = hold.CurrencyCode,
             Direction = TransactionDirection.Debit,
-            PostedDate = new PostedDate(DateOnly.FromDateTime(utcDateTime.UtcDateTime)),
+            PostedAt = new PostedAt(utcDateTime),
             IdempotencyKey = hold.IdempotencyKey,
             Type = TransactionType.SettledHold,
             Status = TransactionStatus.Posted,

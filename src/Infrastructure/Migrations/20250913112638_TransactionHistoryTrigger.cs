@@ -26,7 +26,7 @@ namespace Infrastructure.Migrations
             nameof(TransactionHistoryEntity.Amount),
             nameof(TransactionHistoryEntity.CurrencyCode),
             nameof(TransactionHistoryEntity.TransactionDirectionId),
-            nameof(TransactionHistoryEntity.PostedDate),
+            nameof(TransactionHistoryEntity.PostedAt),
             nameof(TransactionHistoryEntity.IdempotencyKey),
             nameof(TransactionHistoryEntity.TransactionTypeId),
             nameof(TransactionHistoryEntity.TransactionStatusId),

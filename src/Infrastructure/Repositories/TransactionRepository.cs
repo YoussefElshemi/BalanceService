@@ -2,7 +2,7 @@ using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
 using Core.ValueObjects;
-using Infrastructure.Entities;
+using Infrastructure.Extensions;
 using Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,7 +42,7 @@ public class TransactionRepository(
             .FirstAsync(x => x.TransactionId == transactionId, cancellationToken);
 
         transactionEntity.TransactionStatusId = (int)TransactionStatus.Posted;
-        transactionEntity.PostedDate = DateOnly.FromDateTime(utcDateTime.UtcDateTime);
+        transactionEntity.PostedAt = utcDateTime.UtcDateTime;
         transactionEntity.UpdatedBy = postedBy;
         transactionEntity.UpdatedAt = utcDateTime;
     }
@@ -90,14 +90,14 @@ public class TransactionRepository(
 
     public Task<int> CountAsync(QueryTransactionsRequest queryTransactionsRequest, CancellationToken cancellationToken)
     {
-        var query = BuildSearchQuery(queryTransactionsRequest);
+        var query = dbContext.Transactions.BuildSearchQuery(queryTransactionsRequest);
 
         return query.CountAsync(cancellationToken);
     }
 
     public async Task<List<Transaction>> QueryAsync(QueryTransactionsRequest queryTransactionsRequest, CancellationToken cancellationToken)
     {
-        var query = BuildSearchQuery(queryTransactionsRequest);
+        var query = dbContext.Transactions.BuildSearchQuery(queryTransactionsRequest);
 
         var entities = await query
             .OrderByDescending(x => x.CreatedAt)
@@ -107,64 +107,5 @@ public class TransactionRepository(
             .ToListAsync(cancellationToken);
 
         return entities.Select(x => x.ToModel()).ToList();
-    }
-
-    private IQueryable<TransactionEntity> BuildSearchQuery(QueryTransactionsRequest queryTransactionsRequest)
-    {
-        var query = dbContext.Transactions
-            .AsNoTracking()
-            .Where(x => x.IsDeleted == false);
-
-        if (queryTransactionsRequest.AccountId.HasValue)
-        {
-            query = query.Where(x => x.AccountId == queryTransactionsRequest.AccountId);
-        }
-
-        if (queryTransactionsRequest.CurrencyCode.HasValue)
-        {
-            query = query.Where(x => x.CurrencyCode == queryTransactionsRequest.CurrencyCode.ToString());
-        }
-
-        if (queryTransactionsRequest.Amount.HasValue)
-        {
-            query = query.Where(x => x.Amount == queryTransactionsRequest.Amount);
-        }
-
-        if (queryTransactionsRequest.Direction.HasValue)
-        {
-            query = query.Where(x => x.TransactionDirectionId == (int)queryTransactionsRequest.Direction);
-        }
-
-        if (queryTransactionsRequest.PostedDate.HasValue)
-        {
-            query = query.Where(x => x.PostedDate == queryTransactionsRequest.PostedDate);
-        }
-
-        if (queryTransactionsRequest.Type.HasValue)
-        {
-            query = query.Where(x => x.TransactionTypeId == (int)queryTransactionsRequest.Type);
-        }
-
-        if (queryTransactionsRequest.Status.HasValue)
-        {
-            query = query.Where(x => x.TransactionStatusId == (int)queryTransactionsRequest.Status);
-        }
-
-        if (queryTransactionsRequest.Source.HasValue)
-        {
-            query = query.Where(x => x.TransactionSourceId == (int)queryTransactionsRequest.Source);
-        }
-
-        if (queryTransactionsRequest.Description.HasValue)
-        {
-            query = query.Where(x => x.Description != null && EF.Functions.ILike(x.Description, $"%{queryTransactionsRequest.Description}%"));
-        }
-
-        if (queryTransactionsRequest.Reference.HasValue)
-        {
-            query = query.Where(x => x.Reference != null && EF.Functions.ILike(x.Reference, $"%{queryTransactionsRequest.Reference}%"));
-        }
-
-        return query;
     }
 }

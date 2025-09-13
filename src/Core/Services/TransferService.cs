@@ -37,7 +37,7 @@ public class TransferService(
             Type = TransactionType.Transfer,
             Source = MapSourceFromTransferToTransaction(createTransferRequest.Source),
             Status = TransactionStatus.Posted,
-            PostedDate = new PostedDate(DateOnly.FromDateTime(utcDateTime.UtcDateTime)),
+            PostedAt = new PostedAt(utcDateTime),
             Description = !string.IsNullOrWhiteSpace(createTransferRequest.Description)
                 ? new TransactionDescription(createTransferRequest.Description)
                 : null,

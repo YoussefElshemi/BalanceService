@@ -3,7 +3,7 @@ using Core.Interfaces;
 using Core.Models;
 using Core.ValueObjects;
 using Infrastructure.Constants;
-using Infrastructure.Entities;
+using Infrastructure.Extensions;
 using Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 
@@ -84,14 +84,14 @@ public class HoldRepository(
 
     public Task<int> CountAsync(QueryHoldsRequest queryHoldsRequest, CancellationToken cancellationToken)
     {
-        var query = BuildSearchQuery(queryHoldsRequest);
+        var query = dbContext.Holds.BuildSearchQuery(queryHoldsRequest);
 
         return query.CountAsync(cancellationToken);
     }
 
     public async Task<List<Hold>> QueryAsync(QueryHoldsRequest queryHoldsRequest, CancellationToken cancellationToken)
     {
-        var query = BuildSearchQuery(queryHoldsRequest);
+        var query = dbContext.Holds.BuildSearchQuery(queryHoldsRequest);
 
         var entities = await query
             .OrderByDescending(x => x.CreatedAt)
@@ -120,64 +120,5 @@ public class HoldRepository(
                 holdEntity.UpdatedAt = utcDateTime;
             }
         }
-    }
-
-    private IQueryable<HoldEntity> BuildSearchQuery(QueryHoldsRequest queryHoldsRequest)
-    {
-        var query = dbContext.Holds
-            .AsNoTracking()
-            .Where(x => x.IsDeleted == false);
-
-        if (queryHoldsRequest.AccountId.HasValue)
-        {
-            query = query.Where(x => x.AccountId == queryHoldsRequest.AccountId);
-        }
-
-        if (queryHoldsRequest.CurrencyCode.HasValue)
-        {
-            query = query.Where(x => x.CurrencyCode == queryHoldsRequest.CurrencyCode.ToString());
-        }
-
-        if (queryHoldsRequest.Amount.HasValue)
-        {
-            query = query.Where(x => x.Amount == queryHoldsRequest.Amount);
-        }
-
-        if (queryHoldsRequest.SettledTransactionId.HasValue)
-        {
-            query = query.Where(x => x.SettledTransactionId == queryHoldsRequest.SettledTransactionId);
-        }
-
-        if (queryHoldsRequest.ExpiresAt.HasValue)
-        {
-            query = query.Where(x => x.ExpiresAt == queryHoldsRequest.ExpiresAt);
-        }
-
-        if (queryHoldsRequest.Type.HasValue)
-        {
-            query = query.Where(x => x.HoldTypeId == (int)queryHoldsRequest.Type);
-        }
-
-        if (queryHoldsRequest.Status.HasValue)
-        {
-            query = query.Where(x => x.HoldStatusId == (int)queryHoldsRequest.Status);
-        }
-
-        if (queryHoldsRequest.Source.HasValue)
-        {
-            query = query.Where(x => x.HoldSourceId == (int)queryHoldsRequest.Source);
-        }
-
-        if (queryHoldsRequest.Description.HasValue)
-        {
-            query = query.Where(x => x.Description != null && EF.Functions.ILike(x.Description, $"%{queryHoldsRequest.Description}%"));
-        }
-
-        if (queryHoldsRequest.Reference.HasValue)
-        {
-            query = query.Where(x => x.Reference != null && EF.Functions.ILike(x.Reference, $"%{queryHoldsRequest.Reference}%"));
-        }
-
-        return query;
     }
 }

@@ -31,6 +31,16 @@ public class QueryTransactionsRequestDtoValidator : AbstractValidator<QueryTrans
             .GreaterThan(0)
             .When(x => x.Amount != null);
 
+        RuleFor(x => x.FromPostedDate)
+            .NotEmpty()
+            .When(x => x.FromPostedDate != null);
+
+        RuleFor(x => x.ToPostedDate)
+            .NotEmpty()
+            .When(x => x.ToPostedDate != null)
+            .GreaterThanOrEqualTo(x => x.FromPostedDate)
+            .When(x => x.FromPostedDate != null);
+
         RuleFor(x => x.Direction)
             .IsInEnum()
             .When(x => x.Direction != null);

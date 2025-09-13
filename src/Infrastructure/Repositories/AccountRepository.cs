@@ -2,7 +2,7 @@ using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
 using Core.ValueObjects;
-using Infrastructure.Entities;
+using Infrastructure.Extensions;
 using Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,7 +20,7 @@ public class AccountRepository(
 
     public async Task<List<Account>> QueryAsync(QueryAccountsRequest queryAccountsRequest, CancellationToken cancellationToken)
     {
-        var query = BuildSearchQuery(queryAccountsRequest);
+        var query = dbContext.Accounts.BuildSearchQuery(queryAccountsRequest);
 
         var entities = await query
             .OrderByDescending(x => x.CreatedAt)
@@ -34,7 +34,7 @@ public class AccountRepository(
 
     public Task<int> CountAsync(QueryAccountsRequest queryAccountsRequest, CancellationToken cancellationToken)
     {
-        var query = BuildSearchQuery(queryAccountsRequest);
+        var query = dbContext.Accounts.BuildSearchQuery(queryAccountsRequest);
 
         return query.CountAsync(cancellationToken);
     }
@@ -123,44 +123,5 @@ public class AccountRepository(
             .FirstOrDefaultAsync(cancellationToken);
 
         return (AccountStatus)statusId;
-    }
-
-    private IQueryable<AccountEntity> BuildSearchQuery(QueryAccountsRequest queryAccountsRequest)
-    {
-        var query = dbContext.Accounts
-            .AsNoTracking()
-            .Where(x => x.IsDeleted == false);
-
-        if (queryAccountsRequest.AccountName.HasValue)
-        {
-            query = query.Where(x => EF.Functions.ILike(x.AccountName, $"%{queryAccountsRequest.AccountName}%"));
-        }
-
-        if (queryAccountsRequest.CurrencyCode.HasValue)
-        {
-            query = query.Where(x => x.CurrencyCode == queryAccountsRequest.CurrencyCode.ToString());
-        }
-
-        if (queryAccountsRequest.AccountType.HasValue)
-        {
-            query = query.Where(x => x.AccountTypeId == (int)queryAccountsRequest.AccountType);
-        }
-
-        if (queryAccountsRequest.ParentAccountId.HasValue)
-        {
-            query = query.Where(x => x.ParentAccountId == queryAccountsRequest.ParentAccountId);
-        }
-
-        if (queryAccountsRequest.ParentAccountName.HasValue)
-        {
-            query = query.Where(x => x.ParentAccountEntity != null &&  EF.Functions.ILike(x.ParentAccountEntity.AccountName, $"%{queryAccountsRequest.ParentAccountName}%"));
-        }
-
-        if (queryAccountsRequest.Metadata != null)
-        {
-            query = query.Where(x => x.Metadata != null && EF.Functions.JsonContains(x.Metadata, queryAccountsRequest.Metadata));
-        }
-
-        return query;
     }
 }

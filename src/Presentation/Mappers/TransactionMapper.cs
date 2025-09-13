@@ -14,7 +14,7 @@ public static class TransactionMapper
             Amount = transaction.Amount,
             CurrencyCode = transaction.CurrencyCode,
             Direction = transaction.Direction,
-            PostedDate = transaction.PostedDate,
+            PostedDate = transaction.PostedAt,
             IdempotencyKey = transaction.IdempotencyKey,
             Type = transaction.Type,
             Status = transaction.Status,

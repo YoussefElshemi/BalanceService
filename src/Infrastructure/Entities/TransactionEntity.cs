@@ -7,7 +7,7 @@ public record TransactionEntity : DeletableBaseEntity
     public required decimal Amount { get; init; }
     public required string CurrencyCode { get; init; }
     public required int TransactionDirectionId { get; init; }
-    public required DateOnly? PostedDate  { get; set; }
+    public required DateTimeOffset? PostedAt  { get; set; }
     public required Guid IdempotencyKey { get; init; }
     public required int TransactionTypeId { get; set; }
     public required int TransactionStatusId { get; set; }

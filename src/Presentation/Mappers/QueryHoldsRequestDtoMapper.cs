@@ -25,8 +25,22 @@ public static class QueryHoldsRequestDtoMapper
             ExpiresAt = queryHoldsRequestDto.ExpiresAt.HasValue
                 ? new ExpiresAt(queryHoldsRequestDto.ExpiresAt.Value)
                 : null,
+            CreatedAtRange = queryHoldsRequestDto.FromCreatedAt.HasValue ||
+                             queryHoldsRequestDto.ToCreatedAt.HasValue
+                ? new Range<CreatedAt?>
+                {
+                    From = queryHoldsRequestDto.FromCreatedAt.HasValue ?
+                        new CreatedAt(queryHoldsRequestDto.FromCreatedAt.Value)
+                        : null,
+                    To = queryHoldsRequestDto.ToCreatedAt.HasValue ?
+                        new CreatedAt(queryHoldsRequestDto.ToCreatedAt.Value)
+                        : null,
+                }
+                : null,
             Type = queryHoldsRequestDto.Type,
-            Status = queryHoldsRequestDto.Status,
+            Statuses = queryHoldsRequestDto.Status.HasValue ?
+                [queryHoldsRequestDto.Status.Value]
+                : null,
             Source = queryHoldsRequestDto.Source,
             Description =  !string.IsNullOrWhiteSpace(queryHoldsRequestDto.Description)
                 ? new HoldDescription(queryHoldsRequestDto.Description)

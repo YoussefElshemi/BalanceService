@@ -10,7 +10,7 @@ public record TransactionHistoryEntity
     public required decimal Amount { get; init; }
     public required string CurrencyCode { get; init; }
     public required int TransactionDirectionId { get; init; }
-    public required DateOnly? PostedDate  { get; init; }
+    public required DateTimeOffset? PostedAt  { get; init; }
     public required Guid IdempotencyKey { get; init; }
     public required int TransactionTypeId { get; init; }
     public required int TransactionStatusId { get; init; }

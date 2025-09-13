@@ -12,8 +12,9 @@ public record QueryTransactionsRequestDto
     public Guid? AccountId { get; init; }
     public CurrencyCode? CurrencyCode { get; init; }
     public decimal? Amount { get; init; }
+    public DateOnly? FromPostedDate { get; init; }
+    public DateOnly? ToPostedDate { get; init; }
     public TransactionDirection? Direction { get; init; }
-    public DateOnly? PostedDate { get; init; }
     public TransactionType? Type { get; init; }
     public TransactionStatus? Status { get; init; }
     public TransactionSource? Source { get; init; }

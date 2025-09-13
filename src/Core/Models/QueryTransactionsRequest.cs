@@ -11,9 +11,9 @@ public record QueryTransactionsRequest
     public required CurrencyCode? CurrencyCode { get; init; }
     public required TransactionAmount? Amount { get; init; }
     public required TransactionDirection? Direction { get; init; }
-    public required PostedDate? PostedDate { get; init; }
+    public required Range<DateOnly?>? PostedDateRange { get; init; }
     public required TransactionType? Type { get; init; }
-    public required TransactionStatus? Status { get; init; }
+    public required TransactionStatus[]? Statuses { get; init; }
     public required TransactionSource? Source { get; init; }
     public required TransactionDescription? Description { get; init; }
     public required TransactionReference? Reference { get; init; }

@@ -17,7 +17,7 @@ public static class CreateTransactionRequestDtoMapper
             Direction = createTransactionRequestDto.Direction,
             IdempotencyKey = new IdempotencyKey(createTransactionRequestDto.IdempotencyKey),
             Status = TransactionStatus.Draft,
-            PostedDate = null,
+            PostedAt = null,
             Type = createTransactionRequestDto.Type,
             Source = createTransactionRequestDto.Source,
             Description = !string.IsNullOrWhiteSpace(createTransactionRequestDto.Description)

@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IAccountRulesService, AccountRulesService>()
             .AddScoped<ITransactionService, TransactionService>()
             .AddScoped<ITransferService, TransferService>()
+            .AddScoped<IStatementService, StatementService>()
             .AddScoped<IHoldService, HoldService>();
 
         return services;
@@ -55,6 +56,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IAccountRepository, AccountRepository>()
             .AddScoped<ITransactionRepository, TransactionRepository>()
             .AddScoped<IHoldRepository, HoldRepository>()
+            .AddScoped<IStatementRepository, StatementRepository>()
             .AddScoped<IUnitOfWork>(x => x.GetRequiredService<ApplicationDbContext>());
 
         return services;

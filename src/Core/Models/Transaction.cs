@@ -10,7 +10,7 @@ public record Transaction : DeletableBaseModel
     public required TransactionAmount Amount { get; init; }
     public required CurrencyCode CurrencyCode { get; init; }
     public required TransactionDirection Direction { get; init; }
-    public required PostedDate? PostedDate  { get; init; }
+    public required PostedAt? PostedAt  { get; init; }
     public required IdempotencyKey IdempotencyKey { get; init; }
     public required TransactionType Type { get; init; }
     public required TransactionStatus Status { get; init; }

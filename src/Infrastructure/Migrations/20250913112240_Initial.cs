@@ -41,6 +41,19 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "HistoryTypes",
+                columns: table => new
+                {
+                    HistoryTypeId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HistoryTypes", x => x.HistoryTypeId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "HoldSources",
                 columns: table => new
                 {
@@ -180,6 +193,130 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AccountHistory",
+                columns: table => new
+                {
+                    AccountHistoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    HistoryTypeId = table.Column<int>(type: "integer", nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AccountName = table.Column<string>(type: "text", nullable: false),
+                    CurrencyCode = table.Column<string>(type: "text", nullable: false),
+                    LedgerBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    AvailableBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    PendingBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    HoldBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    MinimumRequiredBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    AccountTypeId = table.Column<int>(type: "integer", nullable: false),
+                    AccountStatusId = table.Column<int>(type: "integer", nullable: false),
+                    Metadata = table.Column<string>(type: "jsonb", nullable: true),
+                    ParentAccountId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccountHistory", x => x.AccountHistoryId);
+                    table.ForeignKey(
+                        name: "FK_AccountHistory_AccountStatuses_AccountStatusId",
+                        column: x => x.AccountStatusId,
+                        principalTable: "AccountStatuses",
+                        principalColumn: "AccountStatusId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AccountHistory_AccountTypes_AccountTypeId",
+                        column: x => x.AccountTypeId,
+                        principalTable: "AccountTypes",
+                        principalColumn: "AccountTypeId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AccountHistory_Accounts_ParentAccountId",
+                        column: x => x.ParentAccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_AccountHistory_HistoryTypes_HistoryTypeId",
+                        column: x => x.HistoryTypeId,
+                        principalTable: "HistoryTypes",
+                        principalColumn: "HistoryTypeId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TransactionHistory",
+                columns: table => new
+                {
+                    TransactionHistoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    HistoryTypeId = table.Column<int>(type: "integer", nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    TransactionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    CurrencyCode = table.Column<string>(type: "text", nullable: false),
+                    TransactionDirectionId = table.Column<int>(type: "integer", nullable: false),
+                    PostedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IdempotencyKey = table.Column<Guid>(type: "uuid", nullable: false),
+                    TransactionTypeId = table.Column<int>(type: "integer", nullable: false),
+                    TransactionStatusId = table.Column<int>(type: "integer", nullable: false),
+                    TransactionSourceId = table.Column<int>(type: "integer", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Reference = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TransactionHistory", x => x.TransactionHistoryId);
+                    table.ForeignKey(
+                        name: "FK_TransactionHistory_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TransactionHistory_HistoryTypes_HistoryTypeId",
+                        column: x => x.HistoryTypeId,
+                        principalTable: "HistoryTypes",
+                        principalColumn: "HistoryTypeId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TransactionHistory_TransactionDirections_TransactionDirecti~",
+                        column: x => x.TransactionDirectionId,
+                        principalTable: "TransactionDirections",
+                        principalColumn: "TransactionDirectionId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TransactionHistory_TransactionSources_TransactionSourceId",
+                        column: x => x.TransactionSourceId,
+                        principalTable: "TransactionSources",
+                        principalColumn: "TransactionSourceId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TransactionHistory_TransactionStatuses_TransactionStatusId",
+                        column: x => x.TransactionStatusId,
+                        principalTable: "TransactionStatuses",
+                        principalColumn: "TransactionStatusId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TransactionHistory_TransactionTypes_TransactionTypeId",
+                        column: x => x.TransactionTypeId,
+                        principalTable: "TransactionTypes",
+                        principalColumn: "TransactionTypeId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Transactions",
                 columns: table => new
                 {
@@ -188,7 +325,7 @@ namespace Infrastructure.Migrations
                     Amount = table.Column<decimal>(type: "numeric", nullable: false),
                     CurrencyCode = table.Column<string>(type: "text", nullable: false),
                     TransactionDirectionId = table.Column<int>(type: "integer", nullable: false),
-                    PostedDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    PostedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     IdempotencyKey = table.Column<Guid>(type: "uuid", nullable: false),
                     TransactionTypeId = table.Column<int>(type: "integer", nullable: false),
                     TransactionStatusId = table.Column<int>(type: "integer", nullable: false),
@@ -237,6 +374,74 @@ namespace Infrastructure.Migrations
                         principalTable: "TransactionTypes",
                         principalColumn: "TransactionTypeId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HoldHistory",
+                columns: table => new
+                {
+                    HoldHistoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    HistoryTypeId = table.Column<int>(type: "integer", nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    HoldId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    CurrencyCode = table.Column<string>(type: "text", nullable: false),
+                    IdempotencyKey = table.Column<Guid>(type: "uuid", nullable: false),
+                    HoldTypeId = table.Column<int>(type: "integer", nullable: false),
+                    HoldStatusId = table.Column<int>(type: "integer", nullable: false),
+                    HoldSourceId = table.Column<int>(type: "integer", nullable: false),
+                    SettledTransactionId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Reference = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HoldHistory", x => x.HoldHistoryId);
+                    table.ForeignKey(
+                        name: "FK_HoldHistory_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HoldHistory_HistoryTypes_HistoryTypeId",
+                        column: x => x.HistoryTypeId,
+                        principalTable: "HistoryTypes",
+                        principalColumn: "HistoryTypeId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HoldHistory_HoldSources_HoldSourceId",
+                        column: x => x.HoldSourceId,
+                        principalTable: "HoldSources",
+                        principalColumn: "HoldSourceId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HoldHistory_HoldStatuses_HoldStatusId",
+                        column: x => x.HoldStatusId,
+                        principalTable: "HoldStatuses",
+                        principalColumn: "HoldStatusId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HoldHistory_HoldTypes_HoldTypeId",
+                        column: x => x.HoldTypeId,
+                        principalTable: "HoldTypes",
+                        principalColumn: "HoldTypeId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HoldHistory_Transactions_SettledTransactionId",
+                        column: x => x.SettledTransactionId,
+                        principalTable: "Transactions",
+                        principalColumn: "TransactionId",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -327,6 +532,16 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "HistoryTypes",
+                columns: new[] { "HistoryTypeId", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Insert" },
+                    { 2, "Modify" },
+                    { 3, "Delete" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "HoldSources",
                 columns: new[] { "HoldSourceId", "Name" },
                 values: new object[,]
@@ -393,8 +608,34 @@ namespace Infrastructure.Migrations
                 values: new object[,]
                 {
                     { 1, "InboundFunds" },
-                    { 2, "SettledHold" }
+                    { 2, "SettledHold" },
+                    { 3, "Transfer" }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccountHistory_AccountId",
+                table: "AccountHistory",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccountHistory_AccountStatusId",
+                table: "AccountHistory",
+                column: "AccountStatusId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccountHistory_AccountTypeId",
+                table: "AccountHistory",
+                column: "AccountTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccountHistory_HistoryTypeId",
+                table: "AccountHistory",
+                column: "HistoryTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccountHistory_ParentAccountId",
+                table: "AccountHistory",
+                column: "ParentAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_AccountStatusId",
@@ -410,6 +651,42 @@ namespace Infrastructure.Migrations
                 name: "IX_Accounts_ParentAccountId",
                 table: "Accounts",
                 column: "ParentAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HoldHistory_AccountId",
+                table: "HoldHistory",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HoldHistory_HistoryTypeId",
+                table: "HoldHistory",
+                column: "HistoryTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HoldHistory_HoldId",
+                table: "HoldHistory",
+                column: "HoldId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HoldHistory_HoldSourceId",
+                table: "HoldHistory",
+                column: "HoldSourceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HoldHistory_HoldStatusId",
+                table: "HoldHistory",
+                column: "HoldStatusId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HoldHistory_HoldTypeId",
+                table: "HoldHistory",
+                column: "HoldTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HoldHistory_SettledTransactionId",
+                table: "HoldHistory",
+                column: "SettledTransactionId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Holds_AccountId",
@@ -442,6 +719,41 @@ namespace Infrastructure.Migrations
                 table: "Holds",
                 column: "SettledTransactionId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionHistory_AccountId",
+                table: "TransactionHistory",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionHistory_HistoryTypeId",
+                table: "TransactionHistory",
+                column: "HistoryTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionHistory_TransactionDirectionId",
+                table: "TransactionHistory",
+                column: "TransactionDirectionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionHistory_TransactionId",
+                table: "TransactionHistory",
+                column: "TransactionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionHistory_TransactionSourceId",
+                table: "TransactionHistory",
+                column: "TransactionSourceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionHistory_TransactionStatusId",
+                table: "TransactionHistory",
+                column: "TransactionStatusId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionHistory_TransactionTypeId",
+                table: "TransactionHistory",
+                column: "TransactionTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_AccountId",
@@ -479,7 +791,16 @@ namespace Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AccountHistory");
+
+            migrationBuilder.DropTable(
+                name: "HoldHistory");
+
+            migrationBuilder.DropTable(
                 name: "Holds");
+
+            migrationBuilder.DropTable(
+                name: "TransactionHistory");
 
             migrationBuilder.DropTable(
                 name: "HoldSources");
@@ -492,6 +813,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Transactions");
+
+            migrationBuilder.DropTable(
+                name: "HistoryTypes");
 
             migrationBuilder.DropTable(
                 name: "Accounts");

@@ -16,7 +16,7 @@ public static class TransactionMapper
             Amount = transaction.Amount,
             CurrencyCode = transaction.CurrencyCode.ToString(),
             TransactionDirectionId = (int)transaction.Direction,
-            PostedDate = transaction.PostedDate,
+            PostedAt = transaction.PostedAt,
             IdempotencyKey = transaction.IdempotencyKey,
             TransactionTypeId = (int)transaction.Type,
             TransactionStatusId = (int)transaction.Status,
@@ -42,8 +42,8 @@ public static class TransactionMapper
             Amount = new TransactionAmount(transactionEntity.Amount),
             CurrencyCode = Enum.Parse<CurrencyCode>(transactionEntity.CurrencyCode),
             Direction = (TransactionDirection)transactionEntity.TransactionDirectionId,
-            PostedDate = transactionEntity.PostedDate.HasValue
-                ? new PostedDate(transactionEntity.PostedDate.Value)
+            PostedAt = transactionEntity.PostedAt.HasValue
+                ? new PostedAt(transactionEntity.PostedAt.Value)
                 : null,
             IdempotencyKey = new IdempotencyKey(transactionEntity.IdempotencyKey),
             Type = (TransactionType)transactionEntity.TransactionTypeId,
