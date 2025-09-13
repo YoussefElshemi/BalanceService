@@ -1,3 +1,4 @@
+using Core.Enums;
 using Core.Models;
 using Core.ValueObjects;
 using Presentation.Models;
@@ -16,7 +17,7 @@ public static class CreateTransferRequestDtoMapper
             CurrencyCode = createTransferRequestDto.CurrencyCode,
             DebitIdempotencyKey = new IdempotencyKey(createTransferRequestDto.DebitIdempotencyKey),
             CreditIdempotencyKey = new IdempotencyKey(createTransferRequestDto.CreditIdempotencyKey),
-            Source = createTransferRequestDto.Source,
+            Source = TransferSource.Api,
             Description = !string.IsNullOrWhiteSpace(createTransferRequestDto.Description)
                 ? new TransferDescription(createTransferRequestDto.Description)
                 : null,

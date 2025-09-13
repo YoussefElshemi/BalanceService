@@ -33,10 +33,6 @@ public class CreateTransactionRequestDtoValidator : AbstractValidator<CreateTran
             .NotEmpty()
             .IsInEnum();
 
-        RuleFor(x => x.Source)
-            .NotEmpty()
-            .IsInEnum();
-        
         RuleFor(x => x.Description)
             .MaximumLength(256)
             .When(x => x.Description != null);

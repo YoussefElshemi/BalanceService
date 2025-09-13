@@ -10,7 +10,6 @@ public record CreateTransferRequestDto
     public required CurrencyCode CurrencyCode { get; init; }
     public required Guid DebitIdempotencyKey { get; init; }
     public required Guid CreditIdempotencyKey { get; init; }
-    public required TransferSource Source { get; init; }
     public string? Description { get; init; }
     public string? Reference { get; init; }
 }

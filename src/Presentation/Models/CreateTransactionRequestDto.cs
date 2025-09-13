@@ -10,7 +10,6 @@ public record CreateTransactionRequestDto
     public required TransactionDirection Direction { get; init; }
     public required Guid IdempotencyKey { get; init; }
     public required TransactionType Type { get; init; }
-    public required TransactionSource Source { get; init; }
     public string? Description { get; init; }
     public string? Reference { get; init; }
 }

@@ -19,7 +19,7 @@ public static class CreateTransactionRequestDtoMapper
             Status = TransactionStatus.Draft,
             PostedAt = null,
             Type = createTransactionRequestDto.Type,
-            Source = createTransactionRequestDto.Source,
+            Source = TransactionSource.Api,
             Description = !string.IsNullOrWhiteSpace(createTransactionRequestDto.Description)
                 ? new TransactionDescription(createTransactionRequestDto.Description)
                 : null,

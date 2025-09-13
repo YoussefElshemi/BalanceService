@@ -20,7 +20,7 @@ public static class CreateHoldRequestDtoMapper
                 ? new  ExpiresAt(createHoldRequestDto.ExpiresAt.Value)
                 : null,
             Type = createHoldRequestDto.Type,
-            Source = createHoldRequestDto.Source,
+            Source = HoldSource.Api,
             Description = !string.IsNullOrWhiteSpace(createHoldRequestDto.Description)
                 ? new HoldDescription(createHoldRequestDto.Description)
                 : null,

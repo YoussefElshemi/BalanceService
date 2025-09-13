@@ -67,7 +67,6 @@ def on_test_start(environment, **kwargs):
         "currencyCode": "GBP",
         "direction": "Credit",
         "idempotencyKey": str(uuid.uuid4()),
-        "source": "Api",
         "type": "Transfer",
         "description": "Initial load",
         "reference": "init"
@@ -190,7 +189,6 @@ class BalanceUser(FastHttpUser):
                 "currencyCode": "GBP",
                 "direction": direction,
                 "idempotencyKey": str(uuid.uuid4()),
-                "source": "Api",
                 "type": "InboundFunds",
                 "description": "Random Tx",
                 "reference": "rand"
@@ -224,7 +222,6 @@ class BalanceUser(FastHttpUser):
                 "amount": amount,
                 "currencyCode": "GBP",
                 "idempotencyKey": str(uuid.uuid4()),
-                "source": "Api",
                 "type": "Regulatory",
                 "description": "Random Hold",
                 "reference": "randHold"

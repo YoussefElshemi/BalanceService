@@ -35,10 +35,6 @@ public class CreateTransferRequestDtoValidator : AbstractValidator<CreateTransfe
         RuleFor(x => x.CreditIdempotencyKey)
             .NotEmpty();
 
-        RuleFor(x => x.Source)
-            .NotEmpty()
-            .IsInEnum();
-        
         RuleFor(x => x.Description)
             .MaximumLength(256)
             .When(x => x.Description != null);

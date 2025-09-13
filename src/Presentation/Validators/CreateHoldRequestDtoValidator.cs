@@ -34,10 +34,6 @@ public class CreateHoldRequestDtoValidator : AbstractValidator<CreateHoldRequest
             .NotEmpty()
             .IsInEnum();
 
-        RuleFor(x => x.Source)
-            .NotEmpty()
-            .IsInEnum();
-
         RuleFor(x => x.ExpiresAt)
             .GreaterThanOrEqualTo(timeProvider.GetUtcNow())
             .When(x => x.ExpiresAt.HasValue);
