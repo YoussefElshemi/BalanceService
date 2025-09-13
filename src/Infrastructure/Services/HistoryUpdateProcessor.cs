@@ -6,6 +6,7 @@ using Core.Configs;
 using Core.Interfaces;
 using Core.Models;
 using Infrastructure.Entities;
+using Infrastructure.Entities.History;
 using Infrastructure.Services.Interfaces;
 using Microsoft.Extensions.Options;
 

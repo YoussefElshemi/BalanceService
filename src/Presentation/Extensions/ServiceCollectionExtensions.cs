@@ -12,12 +12,20 @@ using Infrastructure.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Presentation.ExceptionHandlers;
-using AccountUpdateService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
-    Infrastructure.Entities.AccountHistoryEntity,
+
+using AccountUpdateBackgroundService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
+    Infrastructure.Entities.History.AccountHistoryEntity,
     Core.Models.AccountHistory,
     System.Guid,
     Core.Configs.AccountUpdateNotificationConfig,
     Core.Dtos.HistoryDto<Core.Dtos.AccountHistoryDto>>;
+
+using TransactionUpdateBackgroundService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
+    Infrastructure.Entities.History.TransactionHistoryEntity,
+    Core.Models.TransactionHistory,
+    System.Guid,
+    Core.Configs.TransactionUpdateNotificationConfig,
+    Core.Dtos.HistoryDto<Core.Dtos.TransactionHistoryDto>>;
 
 namespace Presentation.Extensions;
 
@@ -39,10 +47,13 @@ public static class ServiceCollectionExtensions
     {
         services.Configure<AccountUpdateNotificationConfig>(
             configuration.GetSection(nameof(AppConfig)).GetSection(nameof(AccountUpdateNotificationConfig)));
+        services.Configure<TransactionUpdateNotificationConfig>(
+            configuration.GetSection(nameof(AppConfig)).GetSection(nameof(TransactionUpdateNotificationConfig)));
 
         services
             .AddHostedService<HoldExpiryBackgroundService>()
-            .AddHostedService<AccountUpdateService>();
+            .AddHostedService<AccountUpdateBackgroundService>()
+            .AddHostedService<TransactionUpdateBackgroundService>();
 
         return services;
     }

@@ -3,7 +3,7 @@ using Core.Enums;
 using Core.Models;
 using Core.ValueObjects;
 
-namespace Infrastructure.Entities;
+namespace Infrastructure.Entities.History;
 
 public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
 {

@@ -17,7 +17,7 @@ public record AccountHistory : Account, IHistory<Guid, HistoryDto<AccountHistory
     {
         return new HistoryDto<AccountHistoryDto>
         {
-            HistoryId = AccountHistoryId,
+            IdempotencyKey = AccountHistoryId,
             Type = HistoryType,
             Timestamp = Timestamp,
             Data = new AccountHistoryDto

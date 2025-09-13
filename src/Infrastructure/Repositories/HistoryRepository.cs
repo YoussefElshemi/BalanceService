@@ -1,6 +1,7 @@
 using Core.Exceptions;
 using Core.Interfaces;
 using Infrastructure.Entities;
+using Infrastructure.Entities.History;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;

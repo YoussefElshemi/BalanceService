@@ -1,6 +1,7 @@
 ﻿using Core.Enums;
 using Infrastructure.Constants;
 using Infrastructure.Entities;
+using Infrastructure.Entities.History;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
