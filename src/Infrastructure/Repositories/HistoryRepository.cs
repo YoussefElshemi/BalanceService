@@ -1,14 +1,13 @@
 using Core.Exceptions;
 using Core.Interfaces;
-using Infrastructure.Entities;
 using Infrastructure.Entities.History;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
-public class HistoryRepository<TEntity, TModel, TKey>(
+public class HistoryRepository<TEntity, TModel>(
     ApplicationDbContext dbContext,
-    TimeProvider timeProvider) : IHistoryRepository<TEntity, TModel, TKey>
+    TimeProvider timeProvider) : IHistoryRepository<TEntity, TModel>
     where TEntity : class, IHistoryEntity<TModel>
 {
 
@@ -24,7 +23,7 @@ public class HistoryRepository<TEntity, TModel, TKey>(
         return entities.Select(x => x.ToModel()).ToList();
     }
 
-    public async Task MarkAsProcessedAsync(TKey primaryKey, CancellationToken cancellationToken)
+    public async Task MarkAsProcessedAsync(Guid primaryKey, CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();
         var entity = await dbContext.Set<TEntity>().FindAsync([primaryKey], cancellationToken)

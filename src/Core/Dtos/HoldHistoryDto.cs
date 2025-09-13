@@ -2,18 +2,19 @@ using Core.Enums;
 
 namespace Core.Dtos;
 
-public record TransactionHistoryDto
+public record HoldHistoryDto
 {
-    public required Guid TransactionId { get; init; }
+
+    public required Guid HoldId { get; init; }
     public required Guid AccountId { get; init; }
     public required decimal Amount { get; init; }
     public required CurrencyCode CurrencyCode { get; init; }
-    public required TransactionDirection Direction { get; init; }
-    public required DateOnly? PostedDate  { get; init; }
     public required Guid IdempotencyKey { get; init; }
-    public required TransactionType Type { get; init; }
-    public required TransactionStatus Status { get; init; }
-    public required TransactionSource Source { get; init; }
+    public required HoldType Type { get; init; }
+    public required HoldStatus Status { get; init; }
+    public required HoldSource Source { get; init; }
+    public required Guid? SettledTransactionId { get; init; }
+    public required DateTimeOffset? ExpiresAt { get; init; }
     public required string? Description { get; init; }
     public required string? Reference { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }

@@ -1,9 +1,8 @@
 namespace Core.Models;
 
-public interface IHistory<TKey, TDto>
-    where TKey : IEquatable<TKey>
+public interface IHistory<TDto>
     where TDto : class
 {
-    public TKey GetPrimaryKey();
+    public Guid GetPrimaryKey();
     public TDto ToDto();
 }

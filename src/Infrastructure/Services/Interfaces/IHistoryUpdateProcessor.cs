@@ -1,16 +1,14 @@
 using Core.Configs;
 using Core.Models;
-using Infrastructure.Entities;
 using Infrastructure.Entities.History;
 
 namespace Infrastructure.Services.Interfaces;
 
-public interface IHistoryUpdateProcessor<TEntity, TModel, TKey, TConfig, TDto>
+public interface IHistoryUpdateProcessor<TEntity, TModel, TDto, TConfig>
     where TEntity : class, IHistoryEntity<TModel>
-    where TModel : IHistory<TKey, TDto>
-    where TKey : IEquatable<TKey>
-    where TConfig : class, IUpdateNotificationConfig
+    where TModel : IHistory<TDto>
     where TDto : class
+    where TConfig : class, IUpdateNotificationConfig
 {
     Task ProcessAsync(CancellationToken cancellationToken);
 }

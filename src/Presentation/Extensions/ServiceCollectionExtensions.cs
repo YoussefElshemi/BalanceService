@@ -16,16 +16,20 @@ using Presentation.ExceptionHandlers;
 using AccountUpdateBackgroundService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
     Infrastructure.Entities.History.AccountHistoryEntity,
     Core.Models.AccountHistory,
-    System.Guid,
-    Core.Configs.AccountUpdateNotificationConfig,
-    Core.Dtos.HistoryDto<Core.Dtos.AccountHistoryDto>>;
+    Core.Dtos.HistoryDto<Core.Dtos.AccountHistoryDto>,
+    Core.Configs.AccountUpdateNotificationConfig>;
 
 using TransactionUpdateBackgroundService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
     Infrastructure.Entities.History.TransactionHistoryEntity,
     Core.Models.TransactionHistory,
-    System.Guid,
-    Core.Configs.TransactionUpdateNotificationConfig,
-    Core.Dtos.HistoryDto<Core.Dtos.TransactionHistoryDto>>;
+    Core.Dtos.HistoryDto<Core.Dtos.TransactionHistoryDto>,
+    Core.Configs.TransactionUpdateNotificationConfig>;
+
+using HoldUpdateBackgroundService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
+    Infrastructure.Entities.History.HoldHistoryEntity,
+    Core.Models.HoldHistory,
+    Core.Dtos.HistoryDto<Core.Dtos.HoldHistoryDto>,
+    Core.Configs.HoldUpdateNotificationConfig>;
 
 namespace Presentation.Extensions;
 
@@ -49,11 +53,14 @@ public static class ServiceCollectionExtensions
             configuration.GetSection(nameof(AppConfig)).GetSection(nameof(AccountUpdateNotificationConfig)));
         services.Configure<TransactionUpdateNotificationConfig>(
             configuration.GetSection(nameof(AppConfig)).GetSection(nameof(TransactionUpdateNotificationConfig)));
+        services.Configure<HoldUpdateNotificationConfig>(
+            configuration.GetSection(nameof(AppConfig)).GetSection(nameof(HoldUpdateNotificationConfig)));
 
         services
             .AddHostedService<HoldExpiryBackgroundService>()
             .AddHostedService<AccountUpdateBackgroundService>()
-            .AddHostedService<TransactionUpdateBackgroundService>();
+            .AddHostedService<TransactionUpdateBackgroundService>()
+            .AddHostedService<HoldUpdateBackgroundService>();
 
         return services;
     }
@@ -78,7 +85,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<ITransferService, TransferService>()
             .AddScoped<IStatementService, StatementService>()
             .AddScoped<IHoldService, HoldService>()
-            .AddScoped(typeof(IHistoryUpdateProcessor<,,,,>), typeof(HistoryUpdateProcessor<,,,,>));
+            .AddScoped(typeof(IHistoryUpdateProcessor<,,,>), typeof(HistoryUpdateProcessor<,,,>));
 
         return services;
     }
@@ -103,7 +110,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<ITransactionRepository, TransactionRepository>()
             .AddScoped<IHoldRepository, HoldRepository>()
             .AddScoped<IStatementRepository, StatementRepository>()
-            .AddScoped(typeof(IHistoryRepository<,,>), typeof(HistoryRepository<,,>))
+            .AddScoped(typeof(IHistoryRepository<,>), typeof(HistoryRepository<,>))
             .AddScoped<IUnitOfWork>(x => x.GetRequiredService<ApplicationDbContext>());
 
         return services;

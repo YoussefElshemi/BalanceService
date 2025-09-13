@@ -4,7 +4,7 @@ using Core.ValueObjects;
 
 namespace Core.Models;
 
-public record AccountHistory : Account, IHistory<Guid, HistoryDto<AccountHistoryDto>>
+public record AccountHistory : Account, IHistory<HistoryDto<AccountHistoryDto>>
 {
     public Guid GetPrimaryKey() => AccountHistoryId;
     public required AccountHistoryId AccountHistoryId { get; init; }

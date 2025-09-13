@@ -5,23 +5,21 @@ using Amazon.SimpleNotificationService.Model;
 using Core.Configs;
 using Core.Interfaces;
 using Core.Models;
-using Infrastructure.Entities;
 using Infrastructure.Entities.History;
 using Infrastructure.Services.Interfaces;
 using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Services;
 
-public class HistoryUpdateProcessor<TEntity, TModel, TKey, TConfig, TDto>(
+public class HistoryUpdateProcessor<TEntity, TModel, TDto, TConfig>(
     IAmazonSimpleNotificationService amazonSns,
-    IHistoryRepository<TEntity, TModel, TKey> repository,
+    IHistoryRepository<TEntity, TModel> repository,
     IUnitOfWork unitOfWork,
-    IOptions<TConfig> configOptions) : IHistoryUpdateProcessor<TEntity, TModel, TKey, TConfig, TDto>
+    IOptions<TConfig> configOptions) : IHistoryUpdateProcessor<TEntity, TModel, TDto, TConfig>
     where TEntity : class, IHistoryEntity<TModel>
-    where TModel : IHistory<TKey, TDto>
-    where TKey : IEquatable<TKey>
-    where TConfig : class, IUpdateNotificationConfig
+    where TModel : IHistory<TDto>
     where TDto : class
+    where TConfig : class, IUpdateNotificationConfig
 {
     private readonly TConfig _config = configOptions.Value;
 

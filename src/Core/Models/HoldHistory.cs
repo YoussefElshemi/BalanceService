@@ -4,34 +4,34 @@ using Core.ValueObjects;
 
 namespace Core.Models;
 
-public record TransactionHistory : Transaction, IHistory<HistoryDto<TransactionHistoryDto>>
+public record HoldHistory : Hold, IHistory<HistoryDto<HoldHistoryDto>>
 {
-    public Guid GetPrimaryKey() => TransactionHistoryId;
-    public required TransactionHistoryId TransactionHistoryId { get; init; }
+    public Guid GetPrimaryKey() => HoldHistoryId;
+    public required HoldHistoryId HoldHistoryId { get; init; }
     public required HistoryType HistoryType { get; init; }
     public required Timestamp Timestamp { get; init; }
     public required bool IsProcessed { get; init; }
     public required ProcessedAt? ProcessedAt { get; init; }
 
-    public HistoryDto<TransactionHistoryDto> ToDto()
+    public HistoryDto<HoldHistoryDto> ToDto()
     {
-        return new HistoryDto<TransactionHistoryDto>
+        return new HistoryDto<HoldHistoryDto>
         {
-            IdempotencyKey = TransactionHistoryId,
+            IdempotencyKey = HoldHistoryId,
             Type = HistoryType,
             Timestamp = Timestamp,
-            Data = new TransactionHistoryDto
+            Data = new HoldHistoryDto
             {
-                TransactionId = TransactionId,
+                HoldId = HoldId,
                 AccountId = AccountId,
                 Amount = Amount,
                 CurrencyCode = CurrencyCode,
-                Direction = Direction,
-                PostedDate = PostedAt,
                 IdempotencyKey = IdempotencyKey,
                 Type = Type,
                 Status = Status,
                 Source = Source,
+                SettledTransactionId = SettledTransactionId,
+                ExpiresAt = ExpiresAt,
                 Description = Description,
                 Reference = Reference,
                 CreatedAt = CreatedAt,

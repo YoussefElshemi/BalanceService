@@ -1,5 +1,4 @@
 using Infrastructure.Constants;
-using Infrastructure.Entities;
 using Infrastructure.Entities.History;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
