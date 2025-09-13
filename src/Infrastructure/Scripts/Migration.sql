@@ -2066,5 +2066,55 @@ BEGIN
     VALUES ('20250913112705_HoldHistoryTrigger', '9.0.9');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250913194815_AddProcessedAtFieldsToHistory') THEN
+    ALTER TABLE "TransactionHistory" ADD "IsProcessed" boolean NOT NULL DEFAULT FALSE;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250913194815_AddProcessedAtFieldsToHistory') THEN
+    ALTER TABLE "TransactionHistory" ADD "ProcessedAt" timestamp with time zone;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250913194815_AddProcessedAtFieldsToHistory') THEN
+    ALTER TABLE "HoldHistory" ADD "IsProcessed" boolean NOT NULL DEFAULT FALSE;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250913194815_AddProcessedAtFieldsToHistory') THEN
+    ALTER TABLE "HoldHistory" ADD "ProcessedAt" timestamp with time zone;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250913194815_AddProcessedAtFieldsToHistory') THEN
+    ALTER TABLE "AccountHistory" ADD "IsProcessed" boolean NOT NULL DEFAULT FALSE;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250913194815_AddProcessedAtFieldsToHistory') THEN
+    ALTER TABLE "AccountHistory" ADD "ProcessedAt" timestamp with time zone;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250913194815_AddProcessedAtFieldsToHistory') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20250913194815_AddProcessedAtFieldsToHistory', '9.0.9');
+    END IF;
+END $EF$;
 COMMIT;
 

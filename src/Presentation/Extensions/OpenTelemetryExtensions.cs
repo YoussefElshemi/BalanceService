@@ -36,6 +36,7 @@ public static class OpenTelemetryExtensions
                 metrics.AddRuntimeInstrumentation();
                 metrics.AddAspNetCoreInstrumentation();
                 metrics.AddHttpClientInstrumentation();
+                metrics.AddAWSInstrumentation();
                 metrics.AddOtlpExporter(options => { options.Endpoint = new Uri(appConfig.ObservabilityConfig.OtelCollectorEndpoint); });
 
                 metrics.SetResourceBuilder(ResourceBuilder.CreateDefault()
@@ -45,6 +46,7 @@ public static class OpenTelemetryExtensions
             {
                 tracing.AddSource(OpenTelemetryConstants.ServiceName);
                 tracing.AddHttpClientInstrumentation();
+                tracing.AddAWSInstrumentation();
                 tracing.AddProcessor<ActivityNameProcessor>();
 
                 tracing.AddAspNetCoreInstrumentation(options =>

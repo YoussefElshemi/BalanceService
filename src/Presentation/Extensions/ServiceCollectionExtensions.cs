@@ -1,4 +1,5 @@
 using System.Reflection;
+using Amazon.SimpleNotificationService;
 using Core.Configs;
 using Core.Interfaces;
 using Core.Services;
@@ -6,19 +7,52 @@ using FluentValidation;
 using Infrastructure;
 using Infrastructure.BackgroundServices;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
+using Infrastructure.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Presentation.ExceptionHandlers;
+using AccountUpdateService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
+    Infrastructure.Entities.AccountHistoryEntity,
+    Core.Models.AccountHistory,
+    System.Guid,
+    Core.Configs.AccountUpdateNotificationConfig,
+    Core.Dtos.HistoryDto<Core.Dtos.AccountHistoryDto>>;
 
 namespace Presentation.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection RegisterConfigurations(this IServiceCollection services, ConfigurationManager configuration)
+    public static IServiceCollection RegisterConfigurations(this IServiceCollection services,
+        ConfigurationManager configuration)
     {
         var config = configuration.AddEnvironmentVariables().Build();
         services.AddSingleton<IConfiguration>(config);
         services.AddOptions<AppConfig>().BindConfiguration(nameof(AppConfig));
+
+
+        return services;
+    }
+
+    public static IServiceCollection RegisterBackgroundServices(this IServiceCollection services,
+        ConfigurationManager configuration)
+    {
+        services.Configure<AccountUpdateNotificationConfig>(
+            configuration.GetSection(nameof(AppConfig)).GetSection(nameof(AccountUpdateNotificationConfig)));
+
+        services
+            .AddHostedService<HoldExpiryBackgroundService>()
+            .AddHostedService<AccountUpdateService>();
+
+        return services;
+    }
+
+    public static IServiceCollection RegisterAwsServices(this IServiceCollection services,
+        ConfigurationManager configuration)
+    {
+        services
+            .AddDefaultAWSOptions(configuration.GetAWSOptions())
+            .AddAWSService<IAmazonSimpleNotificationService>();
 
         return services;
     }
@@ -27,18 +61,19 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddSingleton(TimeProvider.System)
-            .AddHostedService<HoldExpiryBackgroundService>()
             .AddScoped<IAccountService, AccountService>()
             .AddScoped<IAccountRulesService, AccountRulesService>()
             .AddScoped<ITransactionService, TransactionService>()
             .AddScoped<ITransferService, TransferService>()
             .AddScoped<IStatementService, StatementService>()
-            .AddScoped<IHoldService, HoldService>();
+            .AddScoped<IHoldService, HoldService>()
+            .AddScoped(typeof(IHistoryUpdateProcessor<,,,,>), typeof(HistoryUpdateProcessor<,,,,>));
 
         return services;
     }
 
-    public static IServiceCollection RegisterDataAccess(this IServiceCollection services, ConfigurationManager configuration)
+    public static IServiceCollection RegisterDataAccess(this IServiceCollection services,
+        ConfigurationManager configuration)
     {
         services.AddDbContext<ApplicationDbContext>(opt =>
         {
@@ -57,6 +92,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<ITransactionRepository, TransactionRepository>()
             .AddScoped<IHoldRepository, HoldRepository>()
             .AddScoped<IStatementRepository, StatementRepository>()
+            .AddScoped(typeof(IHistoryRepository<,,>), typeof(HistoryRepository<,,>))
             .AddScoped<IUnitOfWork>(x => x.GetRequiredService<ApplicationDbContext>());
 
         return services;

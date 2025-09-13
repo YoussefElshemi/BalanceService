@@ -16,6 +16,8 @@ builder.ConfigureSerilog(appConfig);
 builder.Services
     .RegisterOpenTelemetry(appConfig)
     .RegisterDataAccess(builder.Configuration)
+    .RegisterBackgroundServices(builder.Configuration)
+    .RegisterAwsServices(builder.Configuration)
     .RegisterServices()
     .RegisterValidators()
     .RegisterExceptionHandlers()

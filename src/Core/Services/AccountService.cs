@@ -65,12 +65,8 @@ public class AccountService(
 
     public async Task<Account> GetByIdAsync(AccountId accountId, CancellationToken cancellationToken)
     {
-        var account = await accountRepository.GetByIdAsync(accountId, cancellationToken);
-
-        if (account is null)
-        {
-            throw new NotFoundException();
-        }
+        var account = await accountRepository.GetByIdAsync(accountId, cancellationToken) 
+                      ?? throw new NotFoundException();
 
         return account;
     }
@@ -108,12 +104,8 @@ public class AccountService(
 
     public async Task<AccountBalance> GetBalancesByIdAsync(AccountId accountId, CancellationToken cancellationToken)
     {
-        var accountBalances = await accountRepository.GetBalancesByIdAsync(accountId, cancellationToken);
-
-        if (accountBalances is null)
-        {
-            throw new NotFoundException();
-        }
+        var accountBalances = await accountRepository.GetBalancesByIdAsync(accountId, cancellationToken)
+                              ?? throw new NotFoundException();
 
         return accountBalances;
     }

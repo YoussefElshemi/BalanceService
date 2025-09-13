@@ -66,12 +66,8 @@ public class TransactionService(
 
     public async Task<Transaction> GetByIdAsync(TransactionId transactionId, CancellationToken cancellationToken)
     {
-        var transaction = await transactionRepository.GetByIdAsync(transactionId, cancellationToken);
-
-        if (transaction is null)
-        {
-            throw new NotFoundException();
-        }
+        var transaction = await transactionRepository.GetByIdAsync(transactionId, cancellationToken)
+                          ?? throw new NotFoundException();
 
         return transaction;
     }

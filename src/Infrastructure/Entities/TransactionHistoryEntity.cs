@@ -26,6 +26,9 @@ public record TransactionHistoryEntity
     public required DateTimeOffset? DeletedAt { get; init; }
     public required string? DeletedBy { get; init; }
 
+    public required bool IsProcessed { get; init; }
+    public required DateTimeOffset? ProcessedAt { get; init; }
+
     public AccountEntity AccountEntity { get; init; } = null!;
     public TransactionDirectionEntity TransactionDirectionEntity { get; init; } = null!;
     public TransactionTypeEntity TransactionTypeEntity { get; init; } = null!;

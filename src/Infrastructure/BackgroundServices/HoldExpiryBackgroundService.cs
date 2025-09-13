@@ -15,16 +15,9 @@ public class HoldExpiryBackgroundService(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        if (!_holdExpiryConfig.Enabled)
+        while (!cancellationToken.IsCancellationRequested && _holdExpiryConfig.Enabled)
         {
-            return;
-        }
-
-        using var timer = new PeriodicTimer(_holdExpiryConfig.Interval);
-
-        do
-        {
-            var currentActivity = OpenTelemetry.OpenTelemetry.MyActivitySource.StartActivity(GetType().Name);
+            using var currentActivity = OpenTelemetry.OpenTelemetry.MyActivitySource.StartActivity(GetType().Name);
 
             try
             {
@@ -41,7 +34,8 @@ public class HoldExpiryBackgroundService(
             finally
             {
                 currentActivity?.Stop();
+                await Task.Delay(_holdExpiryConfig.Interval, cancellationToken);
             }
-        } while (await timer.WaitForNextTickAsync(cancellationToken));
+        }
     }
 }

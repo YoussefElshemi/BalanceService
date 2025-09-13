@@ -51,12 +51,8 @@ public class HoldService(
 
     public async Task<Hold> GetByIdAsync(HoldId holdId, CancellationToken cancellationToken)
     {
-        var hold =  await holdRepository.GetByIdAsync(holdId, cancellationToken) ;
-
-        if (hold is null)
-        {
-            throw new NotFoundException();
-        }
+        var hold =  await holdRepository.GetByIdAsync(holdId, cancellationToken)
+                    ?? throw new NotFoundException();
 
         return hold;
     }

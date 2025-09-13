@@ -1,7 +1,13 @@
+using System.Text.Json;
+using Core.Enums;
+using Core.Models;
+using Core.ValueObjects;
+
 namespace Infrastructure.Entities;
 
-public record AccountHistoryEntity
+public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
 {
+    public Guid GetPrimaryKey() => AccountHistoryId;
     public required Guid AccountHistoryId { get; init; }
     public required int HistoryTypeId { get; init; }
     public required DateTimeOffset Timestamp { get; init; }
@@ -25,6 +31,50 @@ public record AccountHistoryEntity
     public required bool IsDeleted { get; init; }
     public required DateTimeOffset? DeletedAt { get; init; }
     public required string? DeletedBy { get; init; }
+
+    public required bool IsProcessed { get; set; }
+    public required DateTimeOffset? ProcessedAt { get; set; }
+
+    public AccountHistory ToModel()
+    {
+        return new AccountHistory
+        {
+            AccountHistoryId = new AccountHistoryId(AccountHistoryId),
+            HistoryType = (HistoryType)HistoryTypeId,
+            Timestamp = new Timestamp(Timestamp),
+            AccountId = new AccountId(AccountId),
+            AccountName = new AccountName(AccountName),
+            CurrencyCode = Enum.Parse<CurrencyCode>(CurrencyCode),
+            AvailableBalance = new AvailableBalance(AvailableBalance),
+            LedgerBalance = new LedgerBalance(LedgerBalance),
+            PendingBalance = new PendingBalance(PendingBalance),
+            HoldBalance = new HoldBalance(HoldBalance),
+            MinimumRequiredBalance = new MinimumRequiredBalance(MinimumRequiredBalance),
+            AccountType = (AccountType)AccountTypeId,
+            AccountStatus = (AccountStatus)AccountStatusId,
+            Metadata = !string.IsNullOrWhiteSpace(Metadata)
+                ? JsonDocument.Parse(Metadata)
+                : null,
+            ParentAccountId = ParentAccountId.HasValue
+                ? new AccountId(ParentAccountId.Value)
+                : null,
+            CreatedAt = new CreatedAt(CreatedAt),
+            CreatedBy = new Username(CreatedBy),
+            UpdatedAt = new UpdatedAt(UpdatedAt),
+            UpdatedBy = new  Username(UpdatedBy),
+            IsDeleted = IsDeleted,
+            DeletedAt = DeletedAt.HasValue
+                ? new DeletedAt(DeletedAt.Value)
+                : null,
+            DeletedBy = !string.IsNullOrWhiteSpace(DeletedBy)
+                ? new Username(DeletedBy)
+                : null,
+            IsProcessed = IsProcessed,
+            ProcessedAt = ProcessedAt.HasValue
+                ? new ProcessedAt(ProcessedAt.Value)
+                : null
+        };
+    }
 
     public AccountEntity? ParentAccountEntity { get; init; }
     public AccountTypeEntity AccountTypeEntity { get; init; } = null!;
