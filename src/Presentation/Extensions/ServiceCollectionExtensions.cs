@@ -149,7 +149,7 @@ public static class ServiceCollectionExtensions
         {
             options.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "ABOR",
+                Title = "Balance Service",
                 Version = "v1"
             });
         });

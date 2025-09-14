@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: abor-config
-  namespace: abor
+  name: balance-service-config
+  namespace: balance-service
 data:
   AppConfig__ObservabilityConfig__OtelCollectorEndpoint: "http://host.minikube.internal:4317"

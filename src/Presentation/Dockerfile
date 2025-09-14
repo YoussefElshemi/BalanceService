@@ -7,14 +7,14 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["ABOR.sln", "./"]
+COPY ["BalanceService.sln", "./"]
 COPY ["Directory.Packages.props", "./"]
 COPY ["src/Presentation/Presentation.csproj", "src/Presentation/"]
 COPY ["src/Presentation/appsettings.json", "src/Presentation/"]
 COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
 COPY ["src/Core/Core.csproj", "src/Core/"]
 
-RUN dotnet restore "ABOR.sln"
+RUN dotnet restore "BalanceService.sln"
 
 COPY . .
 

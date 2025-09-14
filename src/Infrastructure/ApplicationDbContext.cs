@@ -10,7 +10,7 @@ namespace Infrastructure;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options), IUnitOfWork
 {
-    public const string DatabaseConnectionName = "AborDb";
+    public const string DatabaseConnectionName = "BalanceServiceDb";
 
     public DbSet<AccountEntity> Accounts { get; init; }
     public DbSet<TransactionEntity> Transactions { get; init; }

@@ -13,7 +13,7 @@ BASE_HEADERS = {
 }
 
 DB_CONN = {
-    "dbname": "abor",
+    "dbname": "balance_service",
     "user": "postgres",
     "password": "postgres",
     "host": "localhost",

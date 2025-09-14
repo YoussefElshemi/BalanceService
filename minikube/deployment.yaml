@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: abor-api
-  namespace: abor
+  name: balance-service-api
+  namespace: balance-service
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: abor-api
+      app: balance-service-api
   template:
     metadata:
       labels:
-        app: abor-api
+        app: balance-service-api
     spec:
       containers:
-        - name: abor-api
-          image: abor-api:latest
+        - name: balance-service-api
+          image: balance-service-api:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
@@ -28,9 +28,9 @@ spec:
               memory: "768Mi"
           envFrom:
             - secretRef:
-                name: abor-secrets
+                name: balance-service-secrets
             - configMapRef:
-                name: abor-config
+                name: balance-service-config
           livenessProbe:
             httpGet:
               path: /healthz/live
