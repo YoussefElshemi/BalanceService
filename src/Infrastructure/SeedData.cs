@@ -106,4 +106,14 @@ public static class SeedData
                 Name = x.ToString()
             })
     ];
+
+    public static readonly ImmutableArray<ProcessingStatusEntity> ProcessingStatuses =
+    [
+        ..Enum.GetValues<ProcessingStatus>()
+            .Select(x => new ProcessingStatusEntity
+            {
+                ProcessingStatusId = (int)x,
+                Name = x.ToString()
+            })
+    ];
 }

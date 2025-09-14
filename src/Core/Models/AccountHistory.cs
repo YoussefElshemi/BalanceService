@@ -10,8 +10,6 @@ public record AccountHistory : Account, IHistory<HistoryDto<AccountHistoryDto>>
     public required AccountHistoryId AccountHistoryId { get; init; }
     public required HistoryType HistoryType { get; init; }
     public required Timestamp Timestamp { get; init; }
-    public required bool IsProcessed { get; init; }
-    public required ProcessedAt? ProcessedAt { get; init; }
 
     public HistoryDto<AccountHistoryDto> ToDto()
     {

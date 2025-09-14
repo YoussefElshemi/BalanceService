@@ -103,100 +103,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Accounts", (string)null);
                 });
 
-            modelBuilder.Entity("Infrastructure.Entities.AccountHistoryEntity", b =>
-                {
-                    b.Property<Guid>("AccountHistoryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("AccountStatusId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AccountTypeId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("AvailableBalance")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CurrencyCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("HistoryTypeId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("HoldBalance")
-                        .HasColumnType("numeric");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsProcessed")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal>("LedgerBalance")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("Metadata")
-                        .HasColumnType("jsonb");
-
-                    b.Property<decimal>("MinimumRequiredBalance")
-                        .HasColumnType("numeric");
-
-                    b.Property<Guid?>("ParentAccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("PendingBalance")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTimeOffset?>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("AccountHistoryId");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("AccountStatusId");
-
-                    b.HasIndex("AccountTypeId");
-
-                    b.HasIndex("HistoryTypeId");
-
-                    b.HasIndex("ParentAccountId");
-
-                    b.ToTable("AccountHistory", (string)null);
-                });
-
             modelBuilder.Entity("Infrastructure.Entities.AccountStatusEntity", b =>
                 {
                     b.Property<int>("AccountStatusId")
@@ -300,7 +206,111 @@ namespace Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Infrastructure.Entities.HistoryTypeEntity", b =>
+            modelBuilder.Entity("Infrastructure.Entities.History.AccountHistoryEntity", b =>
+                {
+                    b.Property<Guid>("AccountHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("AccountStatusId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("AccountTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("AvailableBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("HistoryTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("HoldBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("LedgerBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("jsonb");
+
+                    b.Property<decimal>("MinimumRequiredBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid?>("ParentAccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("PendingBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ProcessingStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("AccountHistoryId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("AccountStatusId");
+
+                    b.HasIndex("AccountTypeId");
+
+                    b.HasIndex("HistoryTypeId");
+
+                    b.HasIndex("ParentAccountId");
+
+                    b.HasIndex("ProcessingStatusId");
+
+                    b.ToTable("AccountHistory", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.History.HistoryTypeEntity", b =>
                 {
                     b.Property<int>("HistoryTypeId")
                         .ValueGeneratedOnAdd()
@@ -332,6 +342,221 @@ namespace Infrastructure.Migrations
                             HistoryTypeId = 3,
                             Name = "Delete"
                         });
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.History.HoldHistoryEntity", b =>
+                {
+                    b.Property<Guid>("HoldHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("HistoryTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("HoldSourceId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HoldStatusId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HoldTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("IdempotencyKey")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ProcessingStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Reference")
+                        .HasColumnType("text");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<Guid?>("SettledTransactionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("HoldHistoryId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("HistoryTypeId");
+
+                    b.HasIndex("HoldId");
+
+                    b.HasIndex("HoldSourceId");
+
+                    b.HasIndex("HoldStatusId");
+
+                    b.HasIndex("HoldTypeId");
+
+                    b.HasIndex("ProcessingStatusId");
+
+                    b.HasIndex("SettledTransactionId")
+                        .IsUnique();
+
+                    b.ToTable("HoldHistory", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.History.TransactionHistoryEntity", b =>
+                {
+                    b.Property<Guid>("TransactionHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("HistoryTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("IdempotencyKey")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("PostedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ProcessingStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Reference")
+                        .HasColumnType("text");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("TransactionDirectionId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("TransactionSourceId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TransactionStatusId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TransactionTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("TransactionHistoryId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("HistoryTypeId");
+
+                    b.HasIndex("ProcessingStatusId");
+
+                    b.HasIndex("TransactionDirectionId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("TransactionSourceId");
+
+                    b.HasIndex("TransactionStatusId");
+
+                    b.HasIndex("TransactionTypeId");
+
+                    b.ToTable("TransactionHistory", (string)null);
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.HoldEntity", b =>
@@ -420,104 +645,6 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Holds", (string)null);
-                });
-
-            modelBuilder.Entity("Infrastructure.Entities.HoldHistoryEntity", b =>
-                {
-                    b.Property<Guid>("HoldHistoryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CurrencyCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("HistoryTypeId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("HoldId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("HoldSourceId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("HoldStatusId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("HoldTypeId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("IdempotencyKey")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsProcessed")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset?>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Reference")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("SettledTransactionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("HoldHistoryId");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("HistoryTypeId");
-
-                    b.HasIndex("HoldId");
-
-                    b.HasIndex("HoldSourceId");
-
-                    b.HasIndex("HoldStatusId");
-
-                    b.HasIndex("HoldTypeId");
-
-                    b.HasIndex("SettledTransactionId")
-                        .IsUnique();
-
-                    b.ToTable("HoldHistory", (string)null);
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.HoldSourceEntity", b =>
@@ -629,6 +756,40 @@ namespace Infrastructure.Migrations
                         {
                             HoldTypeId = 4,
                             Name = "Regulatory"
+                        });
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.ProcessingStatusEntity", b =>
+                {
+                    b.Property<int>("ProcessingStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProcessingStatusId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ProcessingStatusId");
+
+                    b.ToTable("ProcessingStatuses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ProcessingStatusId = 1,
+                            Name = "NotProcessed"
+                        },
+                        new
+                        {
+                            ProcessingStatusId = 2,
+                            Name = "Processing"
+                        },
+                        new
+                        {
+                            ProcessingStatusId = 3,
+                            Name = "Processed"
                         });
                 });
 
@@ -746,103 +907,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("TransactionTypeId");
 
                     b.ToTable("Transactions", (string)null);
-                });
-
-            modelBuilder.Entity("Infrastructure.Entities.TransactionHistoryEntity", b =>
-                {
-                    b.Property<Guid>("TransactionHistoryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CurrencyCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<int>("HistoryTypeId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("IdempotencyKey")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsProcessed")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset?>("PostedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Reference")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("TransactionDirectionId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("TransactionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("TransactionSourceId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TransactionStatusId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TransactionTypeId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("TransactionHistoryId");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("HistoryTypeId");
-
-                    b.HasIndex("TransactionDirectionId");
-
-                    b.HasIndex("TransactionId");
-
-                    b.HasIndex("TransactionSourceId");
-
-                    b.HasIndex("TransactionStatusId");
-
-                    b.HasIndex("TransactionTypeId");
-
-                    b.ToTable("TransactionHistory", (string)null);
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.TransactionSourceEntity", b =>
@@ -973,7 +1037,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("ParentAccountEntity");
                 });
 
-            modelBuilder.Entity("Infrastructure.Entities.AccountHistoryEntity", b =>
+            modelBuilder.Entity("Infrastructure.Entities.History.AccountHistoryEntity", b =>
                 {
                     b.HasOne("Infrastructure.Entities.AccountStatusEntity", "AccountStatusEntity")
                         .WithMany()
@@ -987,7 +1051,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Infrastructure.Entities.HistoryTypeEntity", "HistoryTypeEntity")
+                    b.HasOne("Infrastructure.Entities.History.HistoryTypeEntity", "HistoryTypeEntity")
                         .WithMany("AccountHistoryEntities")
                         .HasForeignKey("HistoryTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -998,6 +1062,12 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("ParentAccountId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Infrastructure.Entities.ProcessingStatusEntity", "ProcessingStatusEntity")
+                        .WithMany("AccountHistoryEntities")
+                        .HasForeignKey("ProcessingStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("AccountStatusEntity");
 
                     b.Navigation("AccountTypeEntity");
@@ -1005,6 +1075,125 @@ namespace Infrastructure.Migrations
                     b.Navigation("HistoryTypeEntity");
 
                     b.Navigation("ParentAccountEntity");
+
+                    b.Navigation("ProcessingStatusEntity");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.History.HoldHistoryEntity", b =>
+                {
+                    b.HasOne("Infrastructure.Entities.AccountEntity", "AccountEntity")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.History.HistoryTypeEntity", "HistoryTypeEntity")
+                        .WithMany("HoldHistoryEntities")
+                        .HasForeignKey("HistoryTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.HoldSourceEntity", "HoldSourceEntity")
+                        .WithMany()
+                        .HasForeignKey("HoldSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.HoldStatusEntity", "HoldStatusEntity")
+                        .WithMany()
+                        .HasForeignKey("HoldStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.HoldTypeEntity", "HoldTypeEntity")
+                        .WithMany()
+                        .HasForeignKey("HoldTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.ProcessingStatusEntity", "ProcessingStatusEntity")
+                        .WithMany("HoldHistoryEntities")
+                        .HasForeignKey("ProcessingStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.TransactionEntity", "SettledTransactionEntity")
+                        .WithOne()
+                        .HasForeignKey("Infrastructure.Entities.History.HoldHistoryEntity", "SettledTransactionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AccountEntity");
+
+                    b.Navigation("HistoryTypeEntity");
+
+                    b.Navigation("HoldSourceEntity");
+
+                    b.Navigation("HoldStatusEntity");
+
+                    b.Navigation("HoldTypeEntity");
+
+                    b.Navigation("ProcessingStatusEntity");
+
+                    b.Navigation("SettledTransactionEntity");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.History.TransactionHistoryEntity", b =>
+                {
+                    b.HasOne("Infrastructure.Entities.AccountEntity", "AccountEntity")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.History.HistoryTypeEntity", "HistoryTypeEntity")
+                        .WithMany("TransactionHistoryEntities")
+                        .HasForeignKey("HistoryTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.ProcessingStatusEntity", "ProcessingStatusEntity")
+                        .WithMany("TransactionHistoryEntities")
+                        .HasForeignKey("ProcessingStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.TransactionDirectionEntity", "TransactionDirectionEntity")
+                        .WithMany()
+                        .HasForeignKey("TransactionDirectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.TransactionSourceEntity", "TransactionSourceEntity")
+                        .WithMany()
+                        .HasForeignKey("TransactionSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.TransactionStatusEntity", "TransactionStatusEntity")
+                        .WithMany()
+                        .HasForeignKey("TransactionStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.TransactionTypeEntity", "TransactionTypeEntity")
+                        .WithMany()
+                        .HasForeignKey("TransactionTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountEntity");
+
+                    b.Navigation("HistoryTypeEntity");
+
+                    b.Navigation("ProcessingStatusEntity");
+
+                    b.Navigation("TransactionDirectionEntity");
+
+                    b.Navigation("TransactionSourceEntity");
+
+                    b.Navigation("TransactionStatusEntity");
+
+                    b.Navigation("TransactionTypeEntity");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.HoldEntity", b =>
@@ -1039,56 +1228,6 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("AccountEntity");
-
-                    b.Navigation("HoldSourceEntity");
-
-                    b.Navigation("HoldStatusEntity");
-
-                    b.Navigation("HoldTypeEntity");
-
-                    b.Navigation("SettledTransactionEntity");
-                });
-
-            modelBuilder.Entity("Infrastructure.Entities.HoldHistoryEntity", b =>
-                {
-                    b.HasOne("Infrastructure.Entities.AccountEntity", "AccountEntity")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.HistoryTypeEntity", "HistoryTypeEntity")
-                        .WithMany("HoldHistoryEntities")
-                        .HasForeignKey("HistoryTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.HoldSourceEntity", "HoldSourceEntity")
-                        .WithMany()
-                        .HasForeignKey("HoldSourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.HoldStatusEntity", "HoldStatusEntity")
-                        .WithMany()
-                        .HasForeignKey("HoldStatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.HoldTypeEntity", "HoldTypeEntity")
-                        .WithMany()
-                        .HasForeignKey("HoldTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.TransactionEntity", "SettledTransactionEntity")
-                        .WithOne()
-                        .HasForeignKey("Infrastructure.Entities.HoldHistoryEntity", "SettledTransactionId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("AccountEntity");
-
-                    b.Navigation("HistoryTypeEntity");
 
                     b.Navigation("HoldSourceEntity");
 
@@ -1142,57 +1281,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("TransactionTypeEntity");
                 });
 
-            modelBuilder.Entity("Infrastructure.Entities.TransactionHistoryEntity", b =>
-                {
-                    b.HasOne("Infrastructure.Entities.AccountEntity", "AccountEntity")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.HistoryTypeEntity", "HistoryTypeEntity")
-                        .WithMany("TransactionHistoryEntities")
-                        .HasForeignKey("HistoryTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.TransactionDirectionEntity", "TransactionDirectionEntity")
-                        .WithMany()
-                        .HasForeignKey("TransactionDirectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.TransactionSourceEntity", "TransactionSourceEntity")
-                        .WithMany()
-                        .HasForeignKey("TransactionSourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.TransactionStatusEntity", "TransactionStatusEntity")
-                        .WithMany()
-                        .HasForeignKey("TransactionStatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Entities.TransactionTypeEntity", "TransactionTypeEntity")
-                        .WithMany()
-                        .HasForeignKey("TransactionTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AccountEntity");
-
-                    b.Navigation("HistoryTypeEntity");
-
-                    b.Navigation("TransactionDirectionEntity");
-
-                    b.Navigation("TransactionSourceEntity");
-
-                    b.Navigation("TransactionStatusEntity");
-
-                    b.Navigation("TransactionTypeEntity");
-                });
-
             modelBuilder.Entity("Infrastructure.Entities.AccountEntity", b =>
                 {
                     b.Navigation("ChildAccountEntities");
@@ -1212,7 +1300,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("AccountEntities");
                 });
 
-            modelBuilder.Entity("Infrastructure.Entities.HistoryTypeEntity", b =>
+            modelBuilder.Entity("Infrastructure.Entities.History.HistoryTypeEntity", b =>
                 {
                     b.Navigation("AccountHistoryEntities");
 
@@ -1234,6 +1322,15 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Infrastructure.Entities.HoldTypeEntity", b =>
                 {
                     b.Navigation("HoldEntities");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.ProcessingStatusEntity", b =>
+                {
+                    b.Navigation("AccountHistoryEntities");
+
+                    b.Navigation("HoldHistoryEntities");
+
+                    b.Navigation("TransactionHistoryEntities");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.TransactionDirectionEntity", b =>

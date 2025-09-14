@@ -16,6 +16,7 @@
         <PackageReference Include="Microsoft.Extensions.Http"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
         <PackageReference Include="OpenTelemetry" />
+        <PackageReference Include="Polly" />
     </ItemGroup>
 
     <ItemGroup>

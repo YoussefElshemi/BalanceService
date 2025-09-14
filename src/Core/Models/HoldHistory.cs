@@ -10,8 +10,6 @@ public record HoldHistory : Hold, IHistory<HistoryDto<HoldHistoryDto>>
     public required HoldHistoryId HoldHistoryId { get; init; }
     public required HistoryType HistoryType { get; init; }
     public required Timestamp Timestamp { get; init; }
-    public required bool IsProcessed { get; init; }
-    public required ProcessedAt? ProcessedAt { get; init; }
 
     public HistoryDto<HoldHistoryDto> ToDto()
     {

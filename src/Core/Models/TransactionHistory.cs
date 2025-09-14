@@ -10,8 +10,6 @@ public record TransactionHistory : Transaction, IHistory<HistoryDto<TransactionH
     public required TransactionHistoryId TransactionHistoryId { get; init; }
     public required HistoryType HistoryType { get; init; }
     public required Timestamp Timestamp { get; init; }
-    public required bool IsProcessed { get; init; }
-    public required ProcessedAt? ProcessedAt { get; init; }
 
     public HistoryDto<TransactionHistoryDto> ToDto()
     {

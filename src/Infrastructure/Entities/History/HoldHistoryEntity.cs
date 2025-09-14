@@ -31,8 +31,10 @@ public record HoldHistoryEntity : IHistoryEntity<HoldHistory>
     public required DateTimeOffset? DeletedAt { get; init; }
     public required string? DeletedBy { get; init; }
 
-    public required bool IsProcessed { get; set; }
+    public required int ProcessingStatusId { get; set; }
     public required DateTimeOffset? ProcessedAt { get; set; }
+
+    public uint RowVersion { get; init; }
 
     public HoldHistory ToModel()
     {
@@ -71,10 +73,6 @@ public record HoldHistoryEntity : IHistoryEntity<HoldHistory>
                 : null,
             DeletedBy = !string.IsNullOrWhiteSpace(DeletedBy)
                 ? new Username(DeletedBy)
-                : null,
-            IsProcessed = IsProcessed,
-            ProcessedAt = ProcessedAt.HasValue
-                ? new ProcessedAt(ProcessedAt.Value)
                 : null
         };
     }
@@ -85,5 +83,5 @@ public record HoldHistoryEntity : IHistoryEntity<HoldHistory>
     public HoldStatusEntity HoldStatusEntity { get; init; } = null!;
     public HoldSourceEntity HoldSourceEntity { get; init; } = null!;
     public HistoryTypeEntity HistoryTypeEntity { get; init; } = null!;
-
+    public ProcessingStatusEntity ProcessingStatusEntity { get; init; } = null!;
 }

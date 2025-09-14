@@ -1,3 +1,4 @@
+using Core.Enums;
 using Infrastructure.Constants;
 using Infrastructure.Entities.History;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,8 @@ public class HoldHistoryEntityConfiguration : IEntityTypeConfiguration<HoldHisto
     public void Configure(EntityTypeBuilder<HoldHistoryEntity> builder)
     {
         builder.HasKey(x => x.HoldHistoryId);
+        builder.Property(x => x.RowVersion).IsRowVersion();
+        builder.Property(x => x.ProcessingStatusId).HasDefaultValue((int)ProcessingStatus.NotProcessed);
 
         builder.HasIndex(x => x.HoldId);
 
@@ -17,6 +20,12 @@ public class HoldHistoryEntityConfiguration : IEntityTypeConfiguration<HoldHisto
             .HasOne(x => x.HistoryTypeEntity)
             .WithMany(x => x.HoldHistoryEntities)
             .HasForeignKey(x => x.HistoryTypeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasOne(x => x.ProcessingStatusEntity)
+            .WithMany(x => x.HoldHistoryEntities)
+            .HasForeignKey(x => x.ProcessingStatusId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder

@@ -18,4 +18,5 @@ public static class TableNames
     public const string TransactionHistory = nameof(TransactionHistory);
     public const string HoldHistory = nameof(HoldHistory);
     public const string HistoryTypes = nameof(HistoryTypes);
+    public const string ProcessingStatuses = nameof(ProcessingStatuses);
 }

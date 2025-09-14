@@ -1,3 +1,4 @@
+using Core.Enums;
 using Infrastructure.Constants;
 using Infrastructure.Entities.History;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,8 @@ public class AccountHistoryEntityConfiguration : IEntityTypeConfiguration<Accoun
     public void Configure(EntityTypeBuilder<AccountHistoryEntity> builder)
     {
         builder.HasKey(x => x.AccountHistoryId);
+        builder.Property(x => x.RowVersion).IsRowVersion();
+        builder.Property(x => x.ProcessingStatusId).HasDefaultValue((int)ProcessingStatus.NotProcessed);
 
         builder.HasIndex(x => x.AccountId);
 
@@ -19,6 +22,12 @@ public class AccountHistoryEntityConfiguration : IEntityTypeConfiguration<Accoun
             .HasOne(x => x.HistoryTypeEntity)
             .WithMany(x => x.AccountHistoryEntities)
             .HasForeignKey(x => x.HistoryTypeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasOne(x => x.ProcessingStatusEntity)
+            .WithMany(x => x.AccountHistoryEntities)
+            .HasForeignKey(x => x.ProcessingStatusId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder

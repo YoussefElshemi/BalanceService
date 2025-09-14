@@ -1,3 +1,4 @@
+using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
 using Infrastructure.Entities.History;
@@ -15,12 +16,23 @@ public class HistoryRepository<TEntity, TModel>(
     {
         var entities = await dbContext.Set<TEntity>()
             .AsNoTracking()
-            .Where(x => x.IsProcessed == false)
+            .Where(x => x.ProcessingStatusId == (int)ProcessingStatus.NotProcessed)
             .OrderBy(x => x.Timestamp)
             .Take(count)
             .ToListAsync(cancellationToken);
 
         return entities.Select(x => x.ToModel()).ToList();
+    }
+
+    public async Task UpdateProcessingStatusAsync(Guid primaryKey, ProcessingStatus processingStatus, CancellationToken cancellationToken)
+    {
+        var entity = await dbContext.Set<TEntity>().FindAsync([primaryKey], cancellationToken)
+                     ?? throw new NotFoundException();
+
+        entity.ProcessingStatusId = (int)processingStatus;
+
+        dbContext.Attach(entity);
+        dbContext.Entry(entity).Property(e => e.ProcessingStatusId).IsModified = true;
     }
 
     public async Task MarkAsProcessedAsync(Guid primaryKey, CancellationToken cancellationToken)
@@ -29,11 +41,11 @@ public class HistoryRepository<TEntity, TModel>(
         var entity = await dbContext.Set<TEntity>().FindAsync([primaryKey], cancellationToken)
                      ?? throw new NotFoundException();
 
-        entity.IsProcessed = true;
+        entity.ProcessingStatusId = (int)ProcessingStatus.Processed;
         entity.ProcessedAt = utcDateTime;
 
         dbContext.Attach(entity);
-        dbContext.Entry(entity).Property(e => e.IsProcessed).IsModified = true;
+        dbContext.Entry(entity).Property(e => e.ProcessingStatusId).IsModified = true;
         dbContext.Entry(entity).Property(e => e.ProcessedAt).IsModified = true;
     }
 }
