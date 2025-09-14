@@ -33,7 +33,9 @@ public static class OpenTelemetryTags
 
     public const string CorrelationId = "correlation.id";
 
-    public const string DbCommandType = "db.CommandType";
-    public const string DbCommandText = "db.CommandText";
-    public const string DbIsTransaction = "db.IsTransaction";
+    public const string DbCommandType = "db.command_type";
+    public const string DbCommandText = "db.command_text";
+    public const string DbIsTransaction = "db.is_transaction";
+
+    public const string HistoryPrimaryKey = "history.primary_key";
 }

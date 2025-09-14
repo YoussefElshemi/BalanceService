@@ -8,24 +8,23 @@ using Infrastructure;
 using Infrastructure.BackgroundServices;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
-using Infrastructure.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Presentation.ExceptionHandlers;
 
-using AccountUpdateBackgroundService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
+using IAccountHistoryUpdateProcessor = Infrastructure.Services.Interfaces.IHistoryUpdateProcessor<
     Infrastructure.Entities.History.AccountHistoryEntity,
     Core.Models.AccountHistory,
     Core.Dtos.HistoryDto<Core.Dtos.AccountHistoryDto>,
     Core.Configs.AccountUpdateNotificationConfig>;
 
-using TransactionUpdateBackgroundService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
+using ITransactionHistoryUpdateProcessor = Infrastructure.Services.Interfaces.IHistoryUpdateProcessor<
     Infrastructure.Entities.History.TransactionHistoryEntity,
     Core.Models.TransactionHistory,
     Core.Dtos.HistoryDto<Core.Dtos.TransactionHistoryDto>,
     Core.Configs.TransactionUpdateNotificationConfig>;
 
-using HoldUpdateBackgroundService = Infrastructure.BackgroundServices.UpdateNotificationBackgroundService<
+using IHoldHistoryUpdateProcessor = Infrastructure.Services.Interfaces.IHistoryUpdateProcessor<
     Infrastructure.Entities.History.HoldHistoryEntity,
     Core.Models.HoldHistory,
     Core.Dtos.HistoryDto<Core.Dtos.HoldHistoryDto>,
@@ -58,9 +57,9 @@ public static class ServiceCollectionExtensions
 
         services
             .AddHostedService<HoldExpiryBackgroundService>()
-            .AddHostedService<AccountUpdateBackgroundService>()
-            .AddHostedService<TransactionUpdateBackgroundService>()
-            .AddHostedService<HoldUpdateBackgroundService>();
+            .AddHostedService<AccountUpdateNotificationBackgroundService>()
+            .AddHostedService<TransactionUpdateNotificationBackgroundService>()
+            .AddHostedService<HoldUpdateNotificationBackgroundService>();
 
         return services;
     }
@@ -85,7 +84,9 @@ public static class ServiceCollectionExtensions
             .AddScoped<ITransferService, TransferService>()
             .AddScoped<IStatementService, StatementService>()
             .AddScoped<IHoldService, HoldService>()
-            .AddScoped(typeof(IHistoryUpdateProcessor<,,,>), typeof(HistoryUpdateProcessor<,,,>));
+            .AddScoped<IAccountHistoryUpdateProcessor, AccountHistoryUpdateProcessor>()
+            .AddScoped<ITransactionHistoryUpdateProcessor, TransactionHistoryUpdateProcessor>()
+            .AddScoped<IHoldHistoryUpdateProcessor, HoldHistoryUpdateProcessor>();
 
         return services;
     }
