@@ -7,57 +7,18 @@ using Infrastructure.Entities.History;
 namespace Infrastructure.Services;
 
 public class AccountHistoryService(
-    IHistoryRepository<AccountHistoryEntity, AccountHistory> accountHistoryRepository) : IHistoryService<AccountHistory>
+    IHistoryRepository<AccountHistoryEntity, AccountHistory> repository)
+    : HistoryService<AccountHistoryEntity, AccountHistory>(repository)
 {
-    private static readonly Dictionary<string, string> FieldMappings = new()
+    protected override Dictionary<string, string> FieldMappings { get; } = new()
     {
         { nameof(AccountEntity.AccountTypeId), nameof(Account.AccountType) },
         { nameof(AccountEntity.AccountStatusId), nameof(Account.AccountStatus) }
     };
 
-    public Task<int> CountChangesAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    protected override Dictionary<string, Func<string?, string?>> ValueMappers { get; } = new()
     {
-        return accountHistoryRepository.CountChangesAsync(getChangesRequest, cancellationToken);
-    }
-
-    public async Task<List<ChangeEvent>> GetChangesAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
-    {
-        var changes = await accountHistoryRepository.GetChangesAsync(getChangesRequest, cancellationToken);
-
-        return MapToDomain(changes);
-    }
-
-    private static List<ChangeEvent> MapToDomain(List<ChangeEvent> changes)
-    {
-        return changes.Select(x =>
-        {
-            var mappedField = FieldMappings.TryGetValue(x.Field, out var domainField)
-                ? domainField
-                : x.Field;
-
-            return new ChangeEvent
-            {
-                EntityId = x.EntityId,
-                Timestamp = x.Timestamp,
-                Field = mappedField,
-                OldValue = MapValue(x.Field, x.OldValue),
-                NewValue = MapValue(x.Field, x.NewValue)
-            };
-        }).ToList();
-    }
-
-    private static string? MapValue(string field, string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return value;
-        }
-
-        return field switch
-        {
-            nameof(AccountEntity.AccountTypeId) => Enum.TryParse<AccountType>(value, out var type) ? type.ToString() : value,
-            nameof(AccountEntity.AccountStatusId) => Enum.TryParse<AccountStatus>(value, out var status) ? status.ToString() : value,
-            _ => value
-        };
-    }
+        { nameof(AccountEntity.AccountTypeId), v => Enum.TryParse<AccountType>(v, out var type) ? type.ToString() : v },
+        { nameof(AccountEntity.AccountStatusId), v => Enum.TryParse<AccountStatus>(v, out var status) ? status.ToString() : v }
+    };
 }

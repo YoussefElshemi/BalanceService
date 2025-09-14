@@ -132,6 +132,30 @@ public class TransactionsController : Controller
         );
     }
 
+    /// <summary>|
+    /// Gets a transaction's history by its ID.
+    /// </summary>
+    [HttpGet("{transactionId:guid}/history")]
+    [ProducesResponseType(typeof(PagedResultsDto<ChangeEventDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTransactionHistoryById(
+        [FromRoute] Guid transactionId,
+        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromQuery] GetChangesRequestDto getChangesRequestDto,
+        [FromServices] IValidator<GetChangesRequestDto> getChangesRequestDtoValidator,
+        [FromServices] ITransactionService transactionService,
+        CancellationToken cancellationToken)
+    {
+        await getChangesRequestDtoValidator.ValidateAndThrowAsync(getChangesRequestDto, cancellationToken);
+
+        var getChangesRequest = getChangesRequestDto.ToModel(transactionId);
+
+        var results = await transactionService.GetHistoryAsync(getChangesRequest, cancellationToken);
+
+        return Ok(results.ToDto(x => x.ToDto()));
+        
+    }
+
     /// <summary>
     /// Updates an existing draft transaction.
     /// </summary>

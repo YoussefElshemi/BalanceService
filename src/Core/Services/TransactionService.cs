@@ -10,6 +10,7 @@ namespace Core.Services;
 
 public class TransactionService(
     ITransactionRepository transactionRepository,
+    IHistoryService<TransactionHistory> transactionHistoryService,
     IAccountRulesService accountRulesService,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : ITransactionService
@@ -166,6 +167,29 @@ public class TransactionService(
                 TotalPages = (count + queryTransactionsRequest.PageSize - 1) / queryTransactionsRequest.PageSize,
                 PageSize = queryTransactionsRequest.PageSize,
                 PageNumber = queryTransactionsRequest.PageNumber
+            }
+        };
+    }
+
+    public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    {
+        if (!await transactionRepository.ExistsAsync(new TransactionId(getChangesRequest.EntityId), cancellationToken))
+        {
+            throw new NotFoundException();
+        }
+        
+        var count = await transactionHistoryService.CountChangesAsync(getChangesRequest, cancellationToken);
+        var changeEvents = await transactionHistoryService.GetChangesAsync(getChangesRequest, cancellationToken);
+
+        return new PagedResults<ChangeEvent>
+        {
+            Data = changeEvents,
+            MetaData = new PagedMetadata
+            {
+                TotalRecords = count,
+                TotalPages = (count + getChangesRequest.PageSize - 1) / getChangesRequest.PageSize,
+                PageSize = getChangesRequest.PageSize,
+                PageNumber = getChangesRequest.PageNumber
             }
         };
     }

@@ -28,7 +28,7 @@ public class HistoryRepository<TEntity, TModel>(
 
         var entities = await query
             .OrderBy(x => x.Timestamp)
-            .ThenBy(x => x.EntityId)
+            .ThenBy(x => x.Field)
             .Skip((getChangesRequest.PageNumber - 1) * getChangesRequest.PageSize)
             .Take(getChangesRequest.PageSize)
             .ToListAsync(cancellationToken);
