@@ -6,7 +6,7 @@ namespace Infrastructure.Entities.History;
 
 public record HoldHistoryEntity : IHistoryEntity<HoldHistory>
 {
-    public Guid GetPrimaryKey() => HoldHistoryId;
+    public static string GetIdColumn() => nameof(HoldId);
     public required Guid HoldHistoryId { get; init; }
     public required int HistoryTypeId { get; init; }
     public required DateTimeOffset Timestamp { get; init; }
@@ -77,6 +77,28 @@ public record HoldHistoryEntity : IHistoryEntity<HoldHistory>
         };
     }
 
+    public static string[] GetColumns() => [
+        nameof(HoldId),
+        nameof(AccountId),
+        nameof(Amount),
+        nameof(CurrencyCode),
+        nameof(IdempotencyKey),
+        nameof(HoldTypeId),
+        nameof(HoldStatusId),
+        nameof(HoldSourceId),
+        nameof(SettledTransactionId),
+        nameof(ExpiresAt),
+        nameof(Description),
+        nameof(Reference),
+        nameof(IsDeleted),
+        nameof(DeletedAt),
+        nameof(DeletedBy),
+        nameof(CreatedAt),
+        nameof(CreatedBy),
+        nameof(UpdatedAt),
+        nameof(UpdatedBy)
+    ];
+    
     public AccountEntity AccountEntity { get; init; } = null!;
     public TransactionEntity? SettledTransactionEntity { get; init; }
     public HoldTypeEntity HoldTypeEntity { get; init; } = null!;

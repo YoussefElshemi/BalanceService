@@ -10,6 +10,7 @@ namespace Core.Services;
 
 public class AccountService(
     IAccountRepository accountRepository,
+    IHistoryService<AccountHistory> accountHistoryService,
     IAccountRulesService accountRulesService,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : IAccountService
@@ -181,6 +182,24 @@ public class AccountService(
         };
 
         await UpdateStatusAsync(updateAccountStatusRequest, cancellationToken);
+    }
+
+    public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    {
+        var count = await accountHistoryService.CountChangesAsync(getChangesRequest, cancellationToken);
+        var changeEvents = await accountHistoryService.GetChangesAsync(getChangesRequest, cancellationToken);
+
+        return new PagedResults<ChangeEvent>
+        {
+            Data = changeEvents,
+            MetaData = new PagedMetadata
+            {
+                TotalRecords = count,
+                TotalPages = (count + getChangesRequest.PageSize - 1) / getChangesRequest.PageSize,
+                PageSize = getChangesRequest.PageSize,
+                PageNumber = getChangesRequest.PageNumber
+            }
+        };
     }
 
     private async Task UpdateStatusAsync(UpdateAccountStatusRequest updateAccountStatusRequest, CancellationToken cancellationToken)

@@ -48,6 +48,7 @@ public class HistoryUpdateProcessor<TEntity, TModel, TDto, TConfig>(
         {
             using var currentActivity = OpenTelemetry.OpenTelemetry.MyActivitySource.StartActivity($"{GetType().Name}");
             currentActivity?.AddTag(OpenTelemetryTags.Service.HistoryPrimaryKey, model.GetPrimaryKey());
+            currentActivity?.AddTag(OpenTelemetryTags.Service.HistoryKey, model.GetKey());
 
             try
             {

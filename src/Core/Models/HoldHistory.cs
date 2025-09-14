@@ -7,6 +7,8 @@ namespace Core.Models;
 public record HoldHistory : Hold, IHistory<HistoryDto<HoldHistoryDto>>
 {
     public Guid GetPrimaryKey() => HoldHistoryId;
+    public Guid GetKey() => AccountId;
+
     public required HoldHistoryId HoldHistoryId { get; init; }
     public required HistoryType HistoryType { get; init; }
     public required Timestamp Timestamp { get; init; }

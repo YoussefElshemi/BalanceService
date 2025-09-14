@@ -2,6 +2,7 @@ using System.Reflection;
 using Amazon.SimpleNotificationService;
 using Core.Configs;
 using Core.Interfaces;
+using Core.Models;
 using Core.Services;
 using FluentValidation;
 using Infrastructure;
@@ -84,6 +85,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<ITransferService, TransferService>()
             .AddScoped<IStatementService, StatementService>()
             .AddScoped<IHoldService, HoldService>()
+            .AddScoped<IHistoryService<AccountHistory>, AccountHistoryService>()
             .AddScoped<IAccountHistoryUpdateProcessor, AccountHistoryUpdateProcessor>()
             .AddScoped<ITransactionHistoryUpdateProcessor, TransactionHistoryUpdateProcessor>()
             .AddScoped<IHoldHistoryUpdateProcessor, HoldHistoryUpdateProcessor>();

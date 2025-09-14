@@ -7,7 +7,7 @@ namespace Infrastructure.Entities.History;
 
 public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
 {
-    public Guid GetPrimaryKey() => AccountHistoryId;
+    public static string GetIdColumn() => nameof(AccountId);
     public required Guid AccountHistoryId { get; init; }
     public required int HistoryTypeId { get; init; }
     public required DateTimeOffset Timestamp { get; init; }
@@ -73,6 +73,28 @@ public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
                 : null
         };
     }
+
+    public static string[] GetColumns() => [
+        nameof(AccountId),
+        nameof(AccountName),
+        nameof(CurrencyCode),
+        nameof(LedgerBalance),
+        nameof(AvailableBalance),
+        nameof(PendingBalance),
+        nameof(HoldBalance),
+        nameof(MinimumRequiredBalance),
+        nameof(AccountTypeId),
+        nameof(AccountStatusId),
+        nameof(Metadata),
+        nameof(ParentAccountId),
+        nameof(IsDeleted),
+        nameof(DeletedAt),
+        nameof(DeletedBy),
+        nameof(CreatedAt),
+        nameof(CreatedBy),
+        nameof(UpdatedAt),
+        nameof(UpdatedBy)
+    ];
 
     public AccountEntity? ParentAccountEntity { get; init; }
     public AccountTypeEntity AccountTypeEntity { get; init; } = null!;

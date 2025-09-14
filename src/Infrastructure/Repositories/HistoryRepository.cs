@@ -1,7 +1,11 @@
+// ReSharper disable EntityFramework.ClientSideDbFunctionCall
+
 using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
+using Core.Models;
 using Infrastructure.Entities.History;
+using Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
@@ -11,6 +15,26 @@ public class HistoryRepository<TEntity, TModel>(
     TimeProvider timeProvider) : IHistoryRepository<TEntity, TModel>
     where TEntity : class, IHistoryEntity<TModel>
 {
+    public Task<int> CountChangesAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    {
+        var query = BuildSearchQuery(getChangesRequest);
+
+        return query.CountAsync(cancellationToken);
+    }
+
+    public async Task<List<ChangeEvent>> GetChangesAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    {
+        var query = BuildSearchQuery(getChangesRequest);
+
+        var entities = await query
+            .OrderBy(x => x.Timestamp)
+            .ThenBy(x => x.EntityId)
+            .Skip((getChangesRequest.PageNumber - 1) * getChangesRequest.PageSize)
+            .Take(getChangesRequest.PageSize)
+            .ToListAsync(cancellationToken);
+
+        return entities.Select(x => x.ToModel()).ToList();
+    }
 
     public async Task<List<TModel>> GetPendingAsync(int count, CancellationToken cancellationToken)
     {
@@ -47,5 +71,32 @@ public class HistoryRepository<TEntity, TModel>(
         dbContext.Attach(entity);
         dbContext.Entry(entity).Property(e => e.ProcessingStatusId).IsModified = true;
         dbContext.Entry(entity).Property(e => e.ProcessedAt).IsModified = true;
+    }
+
+    private IQueryable<ChangeEventEntity> BuildSearchQuery(GetChangesRequest getChangesRequest)
+    {
+        var tableName = dbContext.Model.FindEntityType(typeof(TEntity))!.GetTableName();
+        var idColumn = TEntity.GetIdColumn();
+        var properties = TEntity.GetColumns();
+        
+        var unionSql = string.Join("\nUNION ALL\n", properties.Select(col => $@"
+        SELECT ""{idColumn}"" AS ""{nameof(ChangeEventEntity.EntityId)}"",
+               ""{nameof(ChangeEventEntity.Timestamp)}"",
+               '{col}' AS ""{nameof(ChangeEventEntity.Field)}"",
+               LAG(""{col}"") OVER (PARTITION BY ""{idColumn}"" ORDER BY ""{nameof(ChangeEventEntity.Timestamp)}"")::text AS ""{nameof(ChangeEventEntity.OldValue)}"",
+               ""{col}""::text AS ""{nameof(ChangeEventEntity.NewValue)}""
+        FROM ""{tableName}""
+        WHERE ""{idColumn}"" = '{getChangesRequest.EntityId}'
+        "));
+        
+        var sql = $@"
+        WITH Changes AS (
+           {unionSql}
+        )
+        SELECT *
+        FROM Changes 
+        WHERE ""{nameof(ChangeEventEntity.OldValue)}"" IS DISTINCT FROM ""{nameof(ChangeEventEntity.NewValue)}"" ";
+
+        return dbContext.Database.SqlQueryRaw<ChangeEventEntity>(sql);
     }
 }

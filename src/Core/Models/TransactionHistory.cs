@@ -7,6 +7,8 @@ namespace Core.Models;
 public record TransactionHistory : Transaction, IHistory<HistoryDto<TransactionHistoryDto>>
 {
     public Guid GetPrimaryKey() => TransactionHistoryId;
+    public Guid GetKey() => AccountId;
+
     public required TransactionHistoryId TransactionHistoryId { get; init; }
     public required HistoryType HistoryType { get; init; }
     public required Timestamp Timestamp { get; init; }

@@ -15,4 +15,5 @@ public interface IAccountService
     Task ActivateAsync(AccountId accountId, Username activatedBy, CancellationToken cancellationToken);
     Task FreezeAsync(AccountId accountId, Username frozenBy, CancellationToken cancellationToken);
     Task CloseAsync(AccountId accountId, Username closedBy, CancellationToken cancellationToken);
+    Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken);
 }

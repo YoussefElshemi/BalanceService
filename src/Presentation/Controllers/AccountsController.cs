@@ -158,6 +158,33 @@ public class AccountsController : Controller
         return Ok(balances.ToDto());
     }
 
+    
+    // TODO: handle mapping entity -> domain column names, and enum values too
+    
+    /// <summary>|
+    /// Gets an account's history by its ID.
+    /// </summary>
+    [HttpGet("{accountId:guid}/history")]
+    [ProducesResponseType(typeof(AccountBalanceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAccountHistoryById(
+        [FromRoute] Guid accountId,
+        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromQuery] GetChangesRequestDto getChangesRequestDto,
+        [FromServices] IValidator<GetChangesRequestDto> getChangesRequestDtoValidator,
+        [FromServices] IAccountService accountService,
+        CancellationToken cancellationToken)
+    {
+        await getChangesRequestDtoValidator.ValidateAndThrowAsync(getChangesRequestDto, cancellationToken);
+
+        var getChangesRequest = getChangesRequestDto.ToModel(accountId);
+
+        var results = await accountService.GetHistoryAsync(getChangesRequest, cancellationToken);
+
+        return Ok(results.ToDto(x => x.ToDto()));
+        
+    }
+
     /// <summary>
     /// Updates an existing account.
     /// </summary>

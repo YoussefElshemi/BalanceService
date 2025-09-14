@@ -48,5 +48,6 @@ public static class OpenTelemetryTags
 
         
         public const string HistoryPrimaryKey = $"{OpenTelemetryConstants.ServiceName}.history.primary_key";
+        public const string HistoryKey = $"{OpenTelemetryConstants.ServiceName}.history.key";
     }
 }

@@ -6,7 +6,7 @@ namespace Infrastructure.Entities.History;
 
 public record TransactionHistoryEntity : IHistoryEntity<TransactionHistory>
 {
-    public Guid GetPrimaryKey() => TransactionHistoryId;
+    public static string GetIdColumn() => nameof(TransactionId);
     public required Guid TransactionHistoryId { get; init; }
     public required int HistoryTypeId { get; init; }
     public required DateTimeOffset Timestamp { get; init; }
@@ -74,6 +74,28 @@ public record TransactionHistoryEntity : IHistoryEntity<TransactionHistory>
                 : null
         };
     }
+
+    public static string[] GetColumns() => [
+        nameof(TransactionId),
+        nameof(AccountId),
+        nameof(Amount),
+        nameof(CurrencyCode),
+        nameof(TransactionDirectionId),
+        nameof(PostedAt),
+        nameof(IdempotencyKey),
+        nameof(TransactionTypeId),
+        nameof(TransactionStatusId),
+        nameof(TransactionSourceId),
+        nameof(Description),
+        nameof(Reference),
+        nameof(IsDeleted),
+        nameof(DeletedAt),
+        nameof(DeletedBy),
+        nameof(CreatedAt),
+        nameof(CreatedBy),
+        nameof(UpdatedAt),
+        nameof(UpdatedBy)
+    ];
 
     public AccountEntity AccountEntity { get; init; } = null!;
     public TransactionDirectionEntity TransactionDirectionEntity { get; init; } = null!;
