@@ -52,8 +52,8 @@ public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
             PendingBalance = new PendingBalance(PendingBalance),
             HoldBalance = new HoldBalance(HoldBalance),
             MinimumRequiredBalance = new MinimumRequiredBalance(MinimumRequiredBalance),
-            AccountType = (AccountType)AccountTypeId,
-            AccountStatus = (AccountStatus)AccountStatusId,
+            Type = (AccountType)AccountTypeId,
+            Status = (AccountStatus)AccountStatusId,
             Metadata = !string.IsNullOrWhiteSpace(Metadata)
                 ? JsonDocument.Parse(Metadata)
                 : null,

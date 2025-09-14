@@ -7,6 +7,7 @@ public interface IHoldRepository
 {
     Task CreateAsync(Hold hold, CancellationToken cancellationToken);
     Task<Hold?> GetByIdAsync(HoldId holdId, CancellationToken cancellationToken);
+    Task<bool> ExistsAsync(HoldId holdId, CancellationToken cancellationToken);
     Task ReleaseAsync(HoldId holdId, Username releasedBy, CancellationToken cancellationToken);
     Task DeleteAsync(HoldId holdId, Username deletedBy, CancellationToken cancellationToken);
     Task SettleAsync(HoldId holdId, TransactionId transactionId, Username settledBy, CancellationToken cancellationToken);

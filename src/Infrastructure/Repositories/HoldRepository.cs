@@ -28,6 +28,13 @@ public class HoldRepository(
         return holdEntity?.ToModel();
     }
 
+    public Task<bool> ExistsAsync(HoldId holdId, CancellationToken cancellationToken)
+    {
+        return dbContext.Holds
+            .AsNoTracking()
+            .AnyAsync(x => x.HoldId ==  holdId && x.IsDeleted == false, cancellationToken);
+    }
+
     public async Task ReleaseAsync(HoldId holdId, Username releasedBy, CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();

@@ -20,8 +20,8 @@ public static class AccountMapper
             PendingBalance = account.PendingBalance,
             HoldBalance = account.HoldBalance,
             MinimumRequiredBalance = account.MinimumRequiredBalance,
-            AccountTypeId = (int)account.AccountType,
-            AccountStatusId = (int)account.AccountStatus,
+            AccountTypeId = (int)account.Type,
+            AccountStatusId = (int)account.Status,
             Metadata = account.Metadata?.RootElement.GetRawText(),
             ParentAccountId = account.ParentAccountId,
             CreatedAt = account.CreatedAt,
@@ -46,8 +46,8 @@ public static class AccountMapper
             PendingBalance = new PendingBalance(accountEntity.PendingBalance),
             HoldBalance = new HoldBalance(accountEntity.HoldBalance),
             MinimumRequiredBalance = new MinimumRequiredBalance(accountEntity.MinimumRequiredBalance),
-            AccountType = (AccountType)accountEntity.AccountTypeId,
-            AccountStatus = (AccountStatus)accountEntity.AccountStatusId,
+            Type = (AccountType)accountEntity.AccountTypeId,
+            Status = (AccountStatus)accountEntity.AccountStatusId,
             Metadata = !string.IsNullOrWhiteSpace(accountEntity.Metadata)
                 ? JsonDocument.Parse(accountEntity.Metadata)
                 : null,

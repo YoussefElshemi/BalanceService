@@ -11,6 +11,7 @@ namespace Core.Services;
 public class HoldService(
     IHoldRepository holdRepository,
     ITransactionRepository transactionRepository,
+    IHistoryService<HoldHistory> holdHistoryService,
     IAccountRulesService accountRulesService,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : IHoldService
@@ -185,6 +186,29 @@ public class HoldService(
     {
         await holdRepository.ExpireHoldsAsync(cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    {
+        if (!await holdRepository.ExistsAsync(new HoldId(getChangesRequest.EntityId), cancellationToken))
+        {
+            throw new NotFoundException();
+        }
+
+        var count = await holdHistoryService.CountChangesAsync(getChangesRequest, cancellationToken);
+        var changeEvents = await holdHistoryService.GetChangesAsync(getChangesRequest, cancellationToken);
+
+        return new PagedResults<ChangeEvent>
+        {
+            Data = changeEvents,
+            MetaData = new PagedMetadata
+            {
+                TotalRecords = count,
+                TotalPages = (count + getChangesRequest.PageSize - 1) / getChangesRequest.PageSize,
+                PageSize = getChangesRequest.PageSize,
+                PageNumber = getChangesRequest.PageNumber
+            }
+        };
     }
 
     private static TransactionSource MapSourceFromHoldToTransaction(HoldSource holdSource) => holdSource switch

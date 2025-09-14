@@ -131,7 +131,31 @@ public class HoldsController : Controller
             value: transaction.ToDto()
         );
     }
-    
+
+    /// <summary>|
+    /// Gets a hold's history by its ID.
+    /// </summary>
+    [HttpGet("{holdId:guid}/history")]
+    [ProducesResponseType(typeof(PagedResultsDto<ChangeEventDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetHoldHistoryById(
+        [FromRoute] Guid holdId,
+        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromQuery] GetChangesRequestDto getChangesRequestDto,
+        [FromServices] IValidator<GetChangesRequestDto> getChangesRequestDtoValidator,
+        [FromServices] IHoldService holdService,
+        CancellationToken cancellationToken)
+    {
+        await getChangesRequestDtoValidator.ValidateAndThrowAsync(getChangesRequestDto, cancellationToken);
+
+        var getChangesRequest = getChangesRequestDto.ToModel(holdId);
+
+        var results = await holdService.GetHistoryAsync(getChangesRequest, cancellationToken);
+
+        return Ok(results.ToDto(x => x.ToDto()));
+        
+    }
+
     /// <summary>
     /// Updates an existing draft hold.
     /// </summary>

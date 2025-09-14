@@ -14,8 +14,8 @@ public record Account : DeletableBaseModel
     public required PendingBalance PendingBalance { get; init; }
     public required HoldBalance HoldBalance { get; init; }
     public required MinimumRequiredBalance MinimumRequiredBalance { get; init; }
-    public required AccountType AccountType { get; init; }
-    public required AccountStatus AccountStatus { get; init; }
+    public required AccountType Type { get; init; }
+    public required AccountStatus Status { get; init; }
     public required JsonDocument? Metadata { get; init; }
     public required AccountId? ParentAccountId { get; init; }
 }

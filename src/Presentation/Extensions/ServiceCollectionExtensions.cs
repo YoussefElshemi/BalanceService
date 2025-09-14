@@ -87,6 +87,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IHoldService, HoldService>()
             .AddScoped<IHistoryService<AccountHistory>, AccountHistoryService>()
             .AddScoped<IHistoryService<TransactionHistory>, TransactionHistoryService>()
+            .AddScoped<IHistoryService<HoldHistory>, HoldHistoryService>()
             .AddScoped<IAccountHistoryUpdateProcessor, AccountHistoryUpdateProcessor>()
             .AddScoped<ITransactionHistoryUpdateProcessor, TransactionHistoryUpdateProcessor>()
             .AddScoped<IHoldHistoryUpdateProcessor, HoldHistoryUpdateProcessor>();

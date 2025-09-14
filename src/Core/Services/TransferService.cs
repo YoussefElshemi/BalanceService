@@ -24,8 +24,8 @@ public class TransferService(
         var creditAccount = await accountService.GetByIdAsync(createTransferRequest.CreditAccountId, cancellationToken); 
         var debitAccount = await accountService.GetByIdAsync(createTransferRequest.DebitAccountId, cancellationToken);
 
-        accountRulesService.ThrowIfNotAllowed(creditAccount.AccountStatus, AccountOperationType.CreditTransaction);
-        accountRulesService.ThrowIfNotAllowed(debitAccount.AccountStatus, AccountOperationType.DebitTransaction);
+        accountRulesService.ThrowIfNotAllowed(creditAccount.Status, AccountOperationType.CreditTransaction);
+        accountRulesService.ThrowIfNotAllowed(debitAccount.Status, AccountOperationType.DebitTransaction);
 
         if (creditAccount.CurrencyCode != debitAccount.CurrencyCode)
         {

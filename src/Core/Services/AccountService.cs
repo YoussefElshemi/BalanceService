@@ -29,8 +29,8 @@ public class AccountService(
             PendingBalance = new PendingBalance(0),
             HoldBalance = new HoldBalance(0),
             MinimumRequiredBalance = createAccountRequest.MinimumRequiredBalance,
-            AccountType = createAccountRequest.AccountType,
-            AccountStatus = AccountStatus.PendingActivation,
+            Type = createAccountRequest.AccountType,
+            Status = AccountStatus.PendingActivation,
             Metadata = createAccountRequest.Metadata,
             ParentAccountId = createAccountRequest.ParentAccountId,
             CreatedAt = new CreatedAt(utcDateTime),
@@ -163,7 +163,7 @@ public class AccountService(
 
         var account = await GetByIdAsync(accountId, cancellationToken);
 
-        accountRulesService.ThrowIfNotAllowed(account.AccountStatus, AccountOperationType.CloseAccount);
+        accountRulesService.ThrowIfNotAllowed(account.Status, AccountOperationType.CloseAccount);
 
         List<decimal> balances = [
             account.AvailableBalance,

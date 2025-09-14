@@ -13,4 +13,5 @@ public interface IHoldService
     Task<Hold> UpdateAsync(HoldId holdId, UpdateHoldRequest updateHoldRequest, CancellationToken cancellationToken);
     Task<PagedResults<Hold>> QueryAsync(QueryHoldsRequest queryHoldsRequest, CancellationToken cancellationToken);
     Task ExpireHoldsAsync(CancellationToken cancellationToken);
+    Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken);
 }

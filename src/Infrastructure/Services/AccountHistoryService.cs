@@ -12,8 +12,8 @@ public class AccountHistoryService(
 {
     protected override Dictionary<string, string> FieldMappings { get; } = new()
     {
-        { nameof(AccountEntity.AccountTypeId), nameof(Account.AccountType) },
-        { nameof(AccountEntity.AccountStatusId), nameof(Account.AccountStatus) }
+        { nameof(AccountEntity.AccountTypeId), nameof(Account.Type) },
+        { nameof(AccountEntity.AccountStatusId), nameof(Account.Status) }
     };
 
     protected override Dictionary<string, Func<string?, string?>> ValueMappers { get; } = new()
