@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Core.Constants;
 using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
@@ -39,6 +41,8 @@ public class AccountService(
             DeletedBy = null,
         };
 
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, account.AccountId.ToString());
+
         await accountRepository.CreateAsync(account, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -65,6 +69,8 @@ public class AccountService(
 
     public async Task<Account> GetByIdAsync(AccountId accountId, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
+
         var account = await accountRepository.GetByIdAsync(accountId, cancellationToken) 
                       ?? throw new NotFoundException();
 
@@ -73,11 +79,15 @@ public class AccountService(
 
     public Task<bool> ExistsAsync(AccountId accountId, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
+
         return accountRepository.ExistsAsync(accountId, cancellationToken);
     }
 
     public async Task<Account> UpdateAsync(AccountId accountId, UpdateAccountRequest updateAccountRequest, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
+
         if (!await accountRepository.ExistsAsync(accountId, cancellationToken))
         {
             throw new NotFoundException();
@@ -96,6 +106,8 @@ public class AccountService(
 
     public async Task DeleteAsync(AccountId accountId, Username deletedBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
+
         await accountRulesService.ThrowIfNotAllowedAsync(accountId, AccountOperationType.DeleteAccount, cancellationToken);
 
         await accountRepository.DeleteAsync(accountId, deletedBy, cancellationToken);
@@ -104,6 +116,8 @@ public class AccountService(
 
     public async Task<AccountBalance> GetBalancesByIdAsync(AccountId accountId, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
+
         var accountBalances = await accountRepository.GetBalancesByIdAsync(accountId, cancellationToken)
                               ?? throw new NotFoundException();
 
@@ -112,6 +126,8 @@ public class AccountService(
 
     public async Task ActivateAsync(AccountId accountId, Username activatedBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
+
         await accountRulesService.ThrowIfNotAllowedAsync(accountId, AccountOperationType.ActivateAccount, cancellationToken);
 
         var updateAccountStatusRequest = new UpdateAccountStatusRequest
@@ -126,6 +142,8 @@ public class AccountService(
 
     public async Task FreezeAsync(AccountId accountId, Username frozenBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
+
         await accountRulesService.ThrowIfNotAllowedAsync(accountId, AccountOperationType.FreezeAccount, cancellationToken);
 
         var updateAccountStatusRequest = new UpdateAccountStatusRequest
@@ -140,6 +158,8 @@ public class AccountService(
 
     public async Task CloseAsync(AccountId accountId, Username closedBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
+
         var account = await GetByIdAsync(accountId, cancellationToken);
 
         accountRulesService.ThrowIfNotAllowed(account.AccountStatus, AccountOperationType.CloseAccount);

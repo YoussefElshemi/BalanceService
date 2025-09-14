@@ -1,6 +1,5 @@
 using Core.Configs;
 using Core.Constants;
-using Infrastructure.Constants;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;

@@ -1,7 +1,7 @@
 using System.Data;
 using System.Diagnostics;
 using Core.Configs;
-using Infrastructure.Constants;
+using Core.Constants;
 using Infrastructure.OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;

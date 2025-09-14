@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Core.Constants;
 using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
@@ -19,13 +21,16 @@ public class TransactionService(
         return transactions.Single();
     }
 
-    public async Task<List<Transaction>> CreateManyAsync(IEnumerable<CreateTransactionRequest> createTransactionRequests, CancellationToken cancellationToken)
+    public async Task<List<Transaction>> CreateManyAsync(List<CreateTransactionRequest> createTransactionRequests, CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();
         var transactions = new List<Transaction>();
 
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, string.Join(", ", createTransactionRequests.Select(x => x.AccountId.ToString())));
+
         foreach (var createTransactionRequest in createTransactionRequests)
         {
+            
             var operationType = createTransactionRequest.Direction == TransactionDirection.Credit
                 ? AccountOperationType.CreditTransaction
                 : AccountOperationType.DebitTransaction;
@@ -59,6 +64,8 @@ public class TransactionService(
             transactions.Add(transaction);
         }
 
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransactionId, string.Join(", " , transactions.Select(x => x.TransactionId.ToString())));
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return transactions;
@@ -66,6 +73,8 @@ public class TransactionService(
 
     public async Task<Transaction> GetByIdAsync(TransactionId transactionId, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransactionId, transactionId.ToString());
+
         var transaction = await transactionRepository.GetByIdAsync(transactionId, cancellationToken)
                           ?? throw new NotFoundException();
 
@@ -74,11 +83,14 @@ public class TransactionService(
 
     public Task<bool> ExistsAsync(TransactionId transactionId, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransactionId, transactionId.ToString());
         return transactionRepository.ExistsAsync(transactionId, cancellationToken);
     }
 
     public async Task<Transaction> UpdateAsync(TransactionId transactionId, UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransactionId, transactionId.ToString());
+
         var transaction = await GetByIdAsync(transactionId, cancellationToken);
         
         if (transaction.Status != TransactionStatus.Draft)
@@ -94,6 +106,8 @@ public class TransactionService(
 
     public async Task<Transaction> ReverseAsync(TransactionId transactionId, Username reversedBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransactionId, transactionId.ToString());
+
         var transaction = await GetByIdAsync(transactionId, cancellationToken);
 
         if (transaction.Status != TransactionStatus.Posted)
@@ -129,6 +143,8 @@ public class TransactionService(
             DeletedBy = null
         };
 
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.ReversedTransactionId, reversedTransaction.TransactionId.ToString());
+
         await transactionRepository.CreateAsync(reversedTransaction, cancellationToken);
         await transactionRepository.ReverseAsync(transaction.TransactionId, reversedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -156,6 +172,8 @@ public class TransactionService(
 
     public async Task PostAsync(TransactionId transactionId, Username postedBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransactionId, transactionId.ToString());
+
         var transaction = await GetByIdAsync(transactionId, cancellationToken);
 
         if (transaction.Status != TransactionStatus.Draft)
@@ -175,6 +193,8 @@ public class TransactionService(
 
     public async Task DeleteAsync(TransactionId transactionId, Username deletedBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransactionId, transactionId.ToString());
+
         var transaction = await GetByIdAsync(new TransactionId(transactionId), cancellationToken);
 
         if (transaction.Status != TransactionStatus.Draft)

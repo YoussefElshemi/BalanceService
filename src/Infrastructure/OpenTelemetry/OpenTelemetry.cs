@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using Infrastructure.Constants;
+using Core.Constants;
 
 namespace Infrastructure.OpenTelemetry;
 

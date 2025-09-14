@@ -1,4 +1,4 @@
-namespace Infrastructure.Constants;
+namespace Core.Constants;
 
 public static class OpenTelemetryTags
 {
@@ -37,5 +37,16 @@ public static class OpenTelemetryTags
     public const string DbCommandText = "db.command_text";
     public const string DbIsTransaction = "db.is_transaction";
 
-    public const string HistoryPrimaryKey = "history.primary_key";
+    public static class Service
+    {
+        public const string AccountId = $"{OpenTelemetryConstants.ServiceName}.account.id";
+        public const string TransferCreditAccountId = $"{OpenTelemetryConstants.ServiceName}.transfer.credit_account.id";
+        public const string TransferDebitAccountId = $"{OpenTelemetryConstants.ServiceName}.transfer.debit_account.id";
+        public const string TransactionId = $"{OpenTelemetryConstants.ServiceName}.transaction.id";
+        public const string ReversedTransactionId = $"{OpenTelemetryConstants.ServiceName}.reversed_transaction.id";
+        public const string HoldId = $"{OpenTelemetryConstants.ServiceName}.hold.id";
+
+        
+        public const string HistoryPrimaryKey = $"{OpenTelemetryConstants.ServiceName}.history.primary_key";
+    }
 }

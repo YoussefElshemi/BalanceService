@@ -3,10 +3,10 @@ using System.Text.Json;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Core.Configs;
+using Core.Constants;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
-using Infrastructure.Constants;
 using Infrastructure.Entities.History;
 using Infrastructure.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -47,7 +47,7 @@ public class HistoryUpdateProcessor<TEntity, TModel, TDto, TConfig>(
         foreach (var model in models)
         {
             using var currentActivity = OpenTelemetry.OpenTelemetry.MyActivitySource.StartActivity($"{GetType().Name}");
-            currentActivity?.AddTag(OpenTelemetryTags.HistoryPrimaryKey, model.GetPrimaryKey());
+            currentActivity?.AddTag(OpenTelemetryTags.Service.HistoryPrimaryKey, model.GetPrimaryKey());
 
             try
             {

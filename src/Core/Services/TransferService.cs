@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Core.Constants;
 using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
@@ -15,6 +17,9 @@ public class TransferService(
     public async Task<Transfer> CreateAsync(CreateTransferRequest createTransferRequest, CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();
+
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransferCreditAccountId, createTransferRequest.CreditAccountId.ToString());
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransferDebitAccountId, createTransferRequest.DebitAccountId.ToString());
 
         var creditAccount = await accountService.GetByIdAsync(createTransferRequest.CreditAccountId, cancellationToken); 
         var debitAccount = await accountService.GetByIdAsync(createTransferRequest.DebitAccountId, cancellationToken);

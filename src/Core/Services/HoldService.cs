@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Core.Constants;
 using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
@@ -16,6 +18,8 @@ public class HoldService(
     public async Task<Hold> CreateAsync(CreateHoldRequest createHoldRequest,
         CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, createHoldRequest.AccountId.ToString());
+
         await accountRulesService.ThrowIfNotAllowedAsync(createHoldRequest.AccountId, AccountOperationType.CreateHold, cancellationToken);
 
         var utcDateTime = timeProvider.GetUtcNow();
@@ -43,6 +47,8 @@ public class HoldService(
             DeletedBy = null
         };
 
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.HoldId, hold.HoldId.ToString());
+
         await holdRepository.CreateAsync(hold, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -51,6 +57,8 @@ public class HoldService(
 
     public async Task<Hold> GetByIdAsync(HoldId holdId, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.HoldId, holdId.ToString());
+
         var hold =  await holdRepository.GetByIdAsync(holdId, cancellationToken)
                     ?? throw new NotFoundException();
 
@@ -59,6 +67,8 @@ public class HoldService(
 
     public async Task ReleaseAsync(HoldId holdId, Username releasedBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.HoldId, holdId.ToString());
+
         var hold = await GetByIdAsync(holdId, cancellationToken);
 
         if (hold.Status != HoldStatus.Active)
@@ -74,6 +84,8 @@ public class HoldService(
 
     public async Task DeleteAsync(HoldId holdId, Username deletedBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.HoldId, holdId.ToString());
+
         var hold = await GetByIdAsync(holdId, cancellationToken);
 
         if (hold.Status != HoldStatus.Active)
@@ -87,6 +99,8 @@ public class HoldService(
 
     public async Task<Transaction> SettleAsync(HoldId holdId, Username settledBy, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.HoldId, holdId.ToString());
+
         var hold = await GetByIdAsync(holdId, cancellationToken);
 
         if (hold.Status != HoldStatus.Active)
@@ -134,6 +148,8 @@ public class HoldService(
 
     public async Task<Hold> UpdateAsync(HoldId holdId, UpdateHoldRequest updateHoldRequest, CancellationToken cancellationToken)
     {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.HoldId, holdId.ToString());
+
         var hold = await GetByIdAsync(holdId, cancellationToken);
 
         if (hold.Status != HoldStatus.Active)
