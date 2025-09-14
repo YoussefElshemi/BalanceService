@@ -158,14 +158,11 @@ public class AccountsController : Controller
         return Ok(balances.ToDto());
     }
 
-    
-    // TODO: handle mapping entity -> domain column names, and enum values too
-    
     /// <summary>|
     /// Gets an account's history by its ID.
     /// </summary>
     [HttpGet("{accountId:guid}/history")]
-    [ProducesResponseType(typeof(AccountBalanceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResultsDto<ChangeEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAccountHistoryById(
         [FromRoute] Guid accountId,

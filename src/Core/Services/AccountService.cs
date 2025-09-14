@@ -186,6 +186,11 @@ public class AccountService(
 
     public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
     {
+        if (!await accountRepository.ExistsAsync(new AccountId(getChangesRequest.EntityId), cancellationToken))
+        {
+            throw new NotFoundException();
+        }
+        
         var count = await accountHistoryService.CountChangesAsync(getChangesRequest, cancellationToken);
         var changeEvents = await accountHistoryService.GetChangesAsync(getChangesRequest, cancellationToken);
 
