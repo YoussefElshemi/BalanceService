@@ -1,5 +1,6 @@
 using Core.Interfaces;
 using Core.Models;
+using Core.ValueObjects;
 
 namespace Infrastructure.Services;
 
@@ -8,8 +9,8 @@ public abstract class HistoryService<TEntity, TModel>(
     where TEntity : class
     where TModel : class
 {
-    protected abstract Dictionary<string, string> FieldMappings { get; }
-    protected abstract Dictionary<string, Func<string?, string?>> ValueMappers { get; }
+    protected abstract Dictionary<ChangeEventField, ChangeEventField> FieldMappings { get; }
+    protected abstract Dictionary<string, Func<ChangeEventValue?, ChangeEventValue?>> ValueMappers { get; }
 
     public Task<int> CountChangesAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
     {
@@ -22,25 +23,23 @@ public abstract class HistoryService<TEntity, TModel>(
         return MapToDomain(changes);
     }
 
-    private List<ChangeEvent> MapToDomain(List<ChangeEvent> changes)
+    private List<ChangeEvent> MapToDomain(List<ChangeEvent> changeEvents)
     {
-        return changes.Select(x =>
+        return changeEvents.Select(changeEvent =>
         {
-            var mappedField = FieldMappings.TryGetValue(x.Field, out var domainField)
+            var mappedField = FieldMappings.TryGetValue(changeEvent.Field, out var domainField)
                 ? domainField
-                : x.Field;
+                : changeEvent.Field;
 
-            var mapValue = ValueMappers.TryGetValue(x.Field, out var mapper)
+            var mapValue = ValueMappers.TryGetValue(changeEvent.Field, out var mapper)
                 ? mapper
                 : v => v;
 
-            return new ChangeEvent
+            return changeEvent with
             {
-                EntityId = x.EntityId,
-                Timestamp = x.Timestamp,
                 Field = mappedField,
-                OldValue = mapValue(x.OldValue),
-                NewValue = mapValue(x.NewValue)
+                OldValue = mapValue(changeEvent.OldValue),
+                NewValue = mapValue(changeEvent.NewValue)
             };
         }).ToList();
     }
