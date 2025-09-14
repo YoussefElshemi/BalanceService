@@ -78,25 +78,35 @@ public class HistoryRepository<TEntity, TModel>(
         var tableName = dbContext.Model.FindEntityType(typeof(TEntity))!.GetTableName();
         var idColumn = TEntity.GetIdColumn();
         var properties = TEntity.GetColumns();
-        
+
         var unionSql = string.Join("\nUNION ALL\n", properties.Select(col => $@"
-        SELECT ""{idColumn}"" AS ""{nameof(ChangeEventEntity.EntityId)}"",
-               ""{nameof(ChangeEventEntity.Timestamp)}"",
-               '{col}' AS ""{nameof(ChangeEventEntity.Field)}"",
-               LAG(""{col}"") OVER (PARTITION BY ""{idColumn}"" ORDER BY ""{nameof(ChangeEventEntity.Timestamp)}"")::text AS ""{nameof(ChangeEventEntity.OldValue)}"",
-               ""{col}""::text AS ""{nameof(ChangeEventEntity.NewValue)}""
+        SELECT 
+            ""{idColumn}"" AS ""{nameof(ChangeEventEntity.EntityId)}"",
+            ""{nameof(ChangeEventEntity.Timestamp)}"",
+            '{col}' AS ""{nameof(ChangeEventEntity.Field)}"",
+            LAG(""{col}"") OVER (PARTITION BY ""{idColumn}"" ORDER BY ""{nameof(ChangeEventEntity.Timestamp)}"")::text AS ""{nameof(ChangeEventEntity.OldValue)}"",
+            ""{col}""::text AS ""{nameof(ChangeEventEntity.NewValue)}"",
+            ""{nameof(ChangeEventEntity.HistoryTypeId)}"",
+            ROW_NUMBER() OVER (PARTITION BY ""{idColumn}"" ORDER BY ""{nameof(ChangeEventEntity.Timestamp)}"") AS row_num
         FROM ""{tableName}""
         WHERE ""{idColumn}"" = '{getChangesRequest.EntityId}'
-        "));
-        
+    "));
+
         var sql = $@"
         WITH Changes AS (
            {unionSql}
         )
         SELECT *
         FROM Changes 
-        WHERE ""{nameof(ChangeEventEntity.OldValue)}"" IS DISTINCT FROM ""{nameof(ChangeEventEntity.NewValue)}"" ";
+        WHERE ""{nameof(ChangeEventEntity.OldValue)}"" IS DISTINCT FROM ""{nameof(ChangeEventEntity.NewValue)}""";
+
+        if (getChangesRequest.IgnoreInsert == true)
+        {
+            sql += $@"
+          AND NOT (row_num = 1 AND ""{nameof(ChangeEventEntity.HistoryTypeId)}"" = {(int)HistoryType.Insert})";
+        }
 
         return dbContext.Database.SqlQueryRaw<ChangeEventEntity>(sql);
     }
+
 }

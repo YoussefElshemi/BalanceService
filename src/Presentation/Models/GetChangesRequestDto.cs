@@ -8,4 +8,5 @@ public record GetChangesRequestDto
     public required int PageSize { get; init; } = 20;
     [DefaultValue(1)]
     public required int PageNumber { get; init; } = 1;
+    public bool? IgnoreInsert { get; init; }
 }

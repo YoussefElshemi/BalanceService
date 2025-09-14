@@ -12,7 +12,8 @@ public static class GetChangesRequestDtoMapper
         {
             PageSize = new PageSize(queryAccountsRequestDto.PageSize),
             PageNumber = new PageNumber(queryAccountsRequestDto.PageNumber),
-            EntityId = entityId
+            EntityId = entityId,
+            IgnoreInsert = queryAccountsRequestDto.IgnoreInsert
         };
     }
 }

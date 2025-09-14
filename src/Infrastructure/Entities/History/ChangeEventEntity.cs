@@ -7,4 +7,5 @@ public record ChangeEventEntity
     public required string Field { get; init; } = null!;
     public required string? OldValue { get; init; }
     public required string? NewValue { get; init; }
+    public required int HistoryTypeId { get; init; }
 }
