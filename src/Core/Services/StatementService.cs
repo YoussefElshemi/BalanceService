@@ -1,3 +1,4 @@
+using System.Text;
 using Core.Constants;
 using Core.Enums;
 using Core.Interfaces;
@@ -55,18 +56,18 @@ public class StatementService(
         };
     }
 
-    public async Task<byte[]> GeneratePdfAsync(GeneratePdfStatementRequest generatePdfStatementRequest, CancellationToken cancellationToken)
+    public async Task<byte[]> GeneratePdfAsync(GenerateStatementRequest generateStatementRequest, CancellationToken cancellationToken)
     {
         var openingBalanceRequest = new BalanceRequest
         {
-            AccountId = generatePdfStatementRequest.AccountId,
-            Date = generatePdfStatementRequest.DateRange.From
+            AccountId = generateStatementRequest.AccountId,
+            Date = generateStatementRequest.DateRange.From
         };
 
         var closingBalanceRequest = new BalanceRequest
         {
-            AccountId = generatePdfStatementRequest.AccountId,
-            Date = generatePdfStatementRequest.DateRange.To
+            AccountId = generateStatementRequest.AccountId,
+            Date = generateStatementRequest.DateRange.To
         };
 
         var openingBalance = await statementRepository.GetAvailableBalanceAtAsync(openingBalanceRequest, cancellationToken);
@@ -76,9 +77,9 @@ public class StatementService(
         {
             PageSize = new PageSize(0),
             PageNumber = new PageNumber(0),
-            AccountId = generatePdfStatementRequest.AccountId,
-            DateRange = generatePdfStatementRequest.DateRange,
-            Direction = generatePdfStatementRequest.Direction,
+            AccountId = generateStatementRequest.AccountId,
+            DateRange = generateStatementRequest.DateRange,
+            Direction = generateStatementRequest.Direction,
         };
 
         var allEntries = await statementRepository.QueryAllAsync(getStatementRequest, cancellationToken);
@@ -100,12 +101,12 @@ public class StatementService(
                             .FontColor(Colors.Blue.Medium);
 
                         col.Item()
-                            .Text($"Account: {generatePdfStatementRequest.AccountId}")
+                            .Text($"Account: {generateStatementRequest.AccountId}")
                             .FontSize(10)
                             .FontColor(Colors.Grey.Darken2);
 
                         col.Item()
-                            .Text($"Period: {generatePdfStatementRequest.DateRange.From.ToString(DateTimeConstants.DateFormat)} → {generatePdfStatementRequest.DateRange.To.ToString(DateTimeConstants.DateFormat)}")
+                            .Text($"Period: {generateStatementRequest.DateRange.From.ToString(DateTimeConstants.DateFormat)} → {generateStatementRequest.DateRange.To.ToString(DateTimeConstants.DateFormat)}")
                             .FontSize(10).FontColor(Colors.Grey.Darken2);
                     });
 
@@ -256,5 +257,61 @@ public class StatementService(
         }).GeneratePdf();
 
         return pdf;
+    }
+    
+    public async Task<byte[]> GenerateCsvAsync(GenerateStatementRequest generateCsvStatementRequest, CancellationToken cancellationToken)
+    {
+        var allEntries = await GetStatementEntriesAsync(generateCsvStatementRequest, cancellationToken);
+
+        var csv = new StringBuilder();
+
+        csv.AppendLine("Date,Description,Reference,Direction,Type,Amount,Balance");
+
+        foreach (var entry in allEntries)
+        {
+            var values = new List<string?>()
+            {
+                entry.Date.ToString(),
+                CsvEscape(entry.Description),
+                CsvEscape(entry.Reference),
+                entry.Direction.ToString(),
+                entry.Type.ToString(),
+                $"{(decimal)entry.Amount:0.00}",
+                $"{(decimal)entry.AvailableBalance:0.00}"
+            };
+            
+            csv.AppendLine(string.Join(',', values));
+        }
+
+        return Encoding.UTF8.GetBytes(csv.ToString());
+    }
+
+    private  Task<List<StatementEntry>> GetStatementEntriesAsync(GenerateStatementRequest generateCsvStatementRequest, CancellationToken cancellationToken)
+    {
+        var getStatementRequest = new GetStatementRequest
+        {
+            PageSize = new PageSize(0),
+            PageNumber = new PageNumber(0),
+            AccountId = generateCsvStatementRequest.AccountId,
+            DateRange = generateCsvStatementRequest.DateRange,
+            Direction = generateCsvStatementRequest.Direction,
+        };
+
+        return statementRepository.QueryAllAsync(getStatementRequest, cancellationToken);
+    }
+
+    private static string CsvEscape(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        if (value.Contains(',') || value.Contains('"'))
+        {
+            return $"\"{value.Replace("\"", "\"\"")}\"";
+        }
+
+        return value;
     }
 }

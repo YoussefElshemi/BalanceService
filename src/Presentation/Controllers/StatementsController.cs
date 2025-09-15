@@ -44,20 +44,43 @@ public class StatementsController : Controller
     /// Generates a PDF statement.
     /// </summary>
     [HttpPost("pdf")]
+    [Produces(MediaTypeNames.Application.Pdf)]
     [ProducesResponseType(typeof(StatementDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GeneratePdfStatement(
-        [FromQuery] GeneratePdfStatementRequestDto generatePdfStatementRequestDto,
+        [FromQuery] GenerateStatementRequestDto generateStatementRequestDto,
         [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [FromServices] IValidator<GeneratePdfStatementRequestDto> generatePdfStatementRequestDtoValidator,
+        [FromServices] IValidator<GenerateStatementRequestDto> generateStatementRequestDtoValidator,
         [FromServices] IStatementService statementService,
         CancellationToken cancellationToken)
     {
-        await generatePdfStatementRequestDtoValidator.ValidateAndThrowAsync(generatePdfStatementRequestDto, cancellationToken);
+        await generateStatementRequestDtoValidator.ValidateAndThrowAsync(generateStatementRequestDto, cancellationToken);
 
-        var generatedPdfStatementRequest = generatePdfStatementRequestDto.ToModel();
+        var generatedPdfStatementRequest = generateStatementRequestDto.ToModel();
 
         var pdf = await statementService.GeneratePdfAsync(generatedPdfStatementRequest, cancellationToken);
 
-        return File(pdf, MediaTypeNames.Application.Pdf, $"{nameof(Statement)}_{generatePdfStatementRequestDto.AccountId}.pdf");
+        return File(pdf, MediaTypeNames.Application.Pdf, $"{nameof(Statement)}_{generateStatementRequestDto.AccountId}.pdf");
+    }
+
+    /// <summary>
+    /// Generates a CSV statement.
+    /// </summary>
+    [HttpPost("csv")]
+    [Produces(MediaTypeNames.Text.Csv)]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GenerateCsvStatement(
+        [FromQuery] GenerateStatementRequestDto generateCsvStatementRequestDto,
+        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromServices] IValidator<GenerateStatementRequestDto> generateCsvStatementRequestDtoValidator,
+        [FromServices] IStatementService statementService,
+        CancellationToken cancellationToken)
+    {
+        await generateCsvStatementRequestDtoValidator.ValidateAndThrowAsync(generateCsvStatementRequestDto, cancellationToken);
+
+        var generatedCsvStatementRequest = generateCsvStatementRequestDto.ToModel();
+
+        var csv = await statementService.GenerateCsvAsync(generatedCsvStatementRequest, cancellationToken);
+
+        return File(csv, MediaTypeNames.Text.Csv, $"{nameof(Statement)}_{generateCsvStatementRequestDto.AccountId}.csv");
     }
 }

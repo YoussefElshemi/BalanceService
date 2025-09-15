@@ -3,7 +3,7 @@ using Core.ValueObjects;
 
 namespace Core.Models;
 
-public record GeneratePdfStatementRequest
+public record GenerateStatementRequest
 {
     public required AccountId AccountId { get; init; }
     public required Range<DateOnly> DateRange { get; init; }

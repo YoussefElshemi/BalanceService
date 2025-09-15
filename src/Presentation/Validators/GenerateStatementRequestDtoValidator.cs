@@ -5,11 +5,11 @@ using Presentation.Models;
 
 namespace Presentation.Validators;
 
-public class GeneratePdfStatementRequestDtoValidator : AbstractValidator<GeneratePdfStatementRequestDto>
+public class GenerateStatementRequestDtoValidator : AbstractValidator<GenerateStatementRequestDto>
 {
     private const int MaximumNumberOfDays = 90;
 
-    public GeneratePdfStatementRequestDtoValidator(IAccountService accountService)
+    public GenerateStatementRequestDtoValidator(IAccountService accountService)
     {
         RuleFor(x => x.AccountId)
             .NotEmpty()
