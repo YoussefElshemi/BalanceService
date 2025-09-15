@@ -57,6 +57,18 @@ public class StatementRepository(ApplicationDbContext dbContext) : IStatementRep
         return entities.Select(x => x.ToModel()).ToList();
     }
     
+    public async Task<List<StatementEntry>> QueryAllAsync(GetStatementRequest getStatementRequest, CancellationToken cancellationToken)
+    {
+        var query = BuildSearchQuery(getStatementRequest);
+
+        var entities = await query
+            .OrderBy(x => x.ActionedAt)
+            .ThenBy(x => x.StatementEntryId)
+            .ToListAsync(cancellationToken);
+
+        return entities.Select(x => x.ToModel()).ToList();
+    }
+
     private IQueryable<StatementEntryEntity> BuildSearchQuery(GetStatementRequest getStatementRequest)
     {
         var fromDate = getStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc).ToString(DateTimeConstants.DateTimeFormat);

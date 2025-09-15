@@ -1,4 +1,6 @@
+using System.Net.Mime;
 using Core.Interfaces;
+using Core.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Constants;
@@ -12,7 +14,7 @@ namespace Presentation.Controllers;
 /// </summary>
 [ApiController]
 [Route("statements")]
-[Produces("application/json")]
+[Produces(MediaTypeNames.Application.Json)]
 [ProducesResponseType(StatusCodes.Status400BadRequest)]
 [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 public class StatementsController : Controller
@@ -36,5 +38,26 @@ public class StatementsController : Controller
         var statement = await statementService.GetAsync(getStatementRequest, cancellationToken);
 
         return Ok(statement.ToDto());
+    }
+
+    /// <summary>
+    /// Generates a PDF statement.
+    /// </summary>
+    [HttpPost("pdf")]
+    [ProducesResponseType(typeof(StatementDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GeneratePdfStatement(
+        [FromQuery] GeneratePdfStatementRequestDto generatePdfStatementRequestDto,
+        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromServices] IValidator<GeneratePdfStatementRequestDto> generatePdfStatementRequestDtoValidator,
+        [FromServices] IStatementService statementService,
+        CancellationToken cancellationToken)
+    {
+        await generatePdfStatementRequestDtoValidator.ValidateAndThrowAsync(generatePdfStatementRequestDto, cancellationToken);
+
+        var generatedPdfStatementRequest = generatePdfStatementRequestDto.ToModel();
+
+        var pdf = await statementService.GeneratePdfAsync(generatedPdfStatementRequest, cancellationToken);
+
+        return File(pdf, MediaTypeNames.Application.Pdf, $"{nameof(Statement)}_{generatePdfStatementRequestDto.AccountId}.pdf");
     }
 }

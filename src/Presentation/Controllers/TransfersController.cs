@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net.Mime;
 using Core.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,7 @@ namespace Presentation.Controllers;
 /// </summary>
 [ApiController]
 [Route("transfers")]
-[Produces("application/json")]
+[Produces(MediaTypeNames.Application.Json)]
 [ProducesResponseType(StatusCodes.Status400BadRequest)]
 [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 public class TransfersController : Controller
