@@ -21,6 +21,7 @@ public class AccountRulesService(IAccountRepository accountRepository) : IAccoun
         [
             AccountOperationType.DebitTransaction,
             AccountOperationType.CreditTransaction,
+            AccountOperationType.AccrueInterest,
             AccountOperationType.CreateHold,
             AccountOperationType.ReleaseHold,
             AccountOperationType.SettleHold,
@@ -32,6 +33,7 @@ public class AccountRulesService(IAccountRepository accountRepository) : IAccoun
         [AccountStatus.Frozen] =
         [
             AccountOperationType.CreditTransaction,
+            AccountOperationType.AccrueInterest,
             AccountOperationType.ReleaseHold,
             AccountOperationType.SettleHold,
             AccountOperationType.ActivateAccount,
@@ -42,6 +44,7 @@ public class AccountRulesService(IAccountRepository accountRepository) : IAccoun
         [AccountStatus.Dormant] =
         [
             AccountOperationType.CreditTransaction,
+            AccountOperationType.AccrueInterest,
             AccountOperationType.ActivateAccount,
             AccountOperationType.CloseAccount
         ],
@@ -50,6 +53,7 @@ public class AccountRulesService(IAccountRepository accountRepository) : IAccoun
         [AccountStatus.Restricted] =
         [
             AccountOperationType.CreditTransaction,
+            AccountOperationType.AccrueInterest,
             AccountOperationType.ActivateAccount,
             AccountOperationType.CloseAccount
         ],
@@ -66,6 +70,7 @@ public class AccountRulesService(IAccountRepository accountRepository) : IAccoun
         [
             AccountOperationType.DebitTransaction,
             AccountOperationType.CreditTransaction,
+            AccountOperationType.AccrueInterest,
             AccountOperationType.CreateHold,
             AccountOperationType.ReleaseHold,
             AccountOperationType.SettleHold,
@@ -93,7 +98,7 @@ public class AccountRulesService(IAccountRepository accountRepository) : IAccoun
         }
     }
 
-    private static bool IsAllowed(AccountStatus accountStatus, AccountOperationType operation)
+    public static bool IsAllowed(AccountStatus accountStatus, AccountOperationType operation)
     {
         return Allowed.TryGetValue(accountStatus, out var ops) && ops.Contains(operation);
     }

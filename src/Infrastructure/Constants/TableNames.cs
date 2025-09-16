@@ -19,4 +19,8 @@ public static class TableNames
     public const string HoldHistory = nameof(HoldHistory);
     public const string HistoryTypes = nameof(HistoryTypes);
     public const string ProcessingStatuses = nameof(ProcessingStatuses);
+    public const string InterestProducts = nameof(InterestProducts);
+    public const string InterestAccruals = nameof(InterestAccruals);
+    public const string InterestPayoutFrequencies = nameof(InterestPayoutFrequencies);
+    public const string InterestProductAccountLinks = nameof(InterestProductAccountLinks);
 }

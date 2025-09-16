@@ -7,7 +7,9 @@ namespace Presentation.Validators;
 
 public class CreateTransferRequestDtoValidator : AbstractValidator<CreateTransferRequestDto>
 {
-    public CreateTransferRequestDtoValidator(IAccountService accountService)
+    public CreateTransferRequestDtoValidator(
+        IAccountService accountService,
+        ICurrencyService currencyService)
     {
         RuleFor(x => x.DebitAccountId)
             .NotEmpty()
@@ -23,7 +25,9 @@ public class CreateTransferRequestDtoValidator : AbstractValidator<CreateTransfe
 
         RuleFor(x => x.Amount)
             .NotEmpty()
-            .GreaterThan(0);
+            .GreaterThan(0)
+            .Must((x, y) => currencyService.IsValid(x.CurrencyCode, y))
+            .WithMessage(x => $"Max {currencyService.GetMaxNumberOfDecimalPlaces(x.CurrencyCode)} decimal places allowed");
 
         RuleFor(x => x.CurrencyCode)
             .NotEmpty()

@@ -12,6 +12,7 @@ namespace Core.Services;
 
 public class StatementService(
     IStatementRepository statementRepository,
+    IBalanceService balanceService,
     TimeProvider timeProvider) : IStatementService
 {
     public async Task<Statement> GetAsync(GetStatementRequest getStatementRequest, CancellationToken cancellationToken)
@@ -19,19 +20,17 @@ public class StatementService(
         var openingBalanceRequest = new BalanceRequest
         {
             AccountId = getStatementRequest.AccountId,
-            Date = getStatementRequest.DateRange.From
+            DateTime = getStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue)
         };
 
         var closingBalanceRequest = new BalanceRequest
         {
             AccountId = getStatementRequest.AccountId,
-            Date = getStatementRequest.DateRange.To
+            DateTime = getStatementRequest.DateRange.To.ToDateTime(TimeOnly.MaxValue)
         };
 
-        var openingBalance =
-            await statementRepository.GetAvailableBalanceAtAsync(openingBalanceRequest, cancellationToken);
-        var closingBalance =
-            await statementRepository.GetAvailableBalanceAtAsync(closingBalanceRequest, cancellationToken);
+        var openingBalance = await balanceService.GetAvailableBalanceAsync(openingBalanceRequest, cancellationToken);
+        var closingBalance = await balanceService.GetAvailableBalanceAsync(closingBalanceRequest, cancellationToken);
 
         var count = await statementRepository.CountAsync(getStatementRequest, cancellationToken);
         var statementEntries = await statementRepository.QueryAsync(getStatementRequest, cancellationToken);
@@ -61,17 +60,17 @@ public class StatementService(
         var openingBalanceRequest = new BalanceRequest
         {
             AccountId = generateStatementRequest.AccountId,
-            Date = generateStatementRequest.DateRange.From
+            DateTime = generateStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue)
         };
 
         var closingBalanceRequest = new BalanceRequest
         {
             AccountId = generateStatementRequest.AccountId,
-            Date = generateStatementRequest.DateRange.To
+            DateTime = generateStatementRequest.DateRange.To.ToDateTime(TimeOnly.MaxValue)
         };
 
-        var openingBalance = await statementRepository.GetAvailableBalanceAtAsync(openingBalanceRequest, cancellationToken);
-        var closingBalance = await statementRepository.GetAvailableBalanceAtAsync(closingBalanceRequest, cancellationToken);
+        var openingBalance = await balanceService.GetAvailableBalanceAsync(openingBalanceRequest, cancellationToken);
+        var closingBalance = await balanceService.GetAvailableBalanceAsync(closingBalanceRequest, cancellationToken);
 
         var getStatementRequest = new GetStatementRequest
         {
@@ -269,7 +268,7 @@ public class StatementService(
 
         foreach (var entry in allEntries)
         {
-            var values = new List<string?>()
+            var values = new List<string?>
             {
                 entry.Date.ToString(),
                 CsvEscape(entry.Description),

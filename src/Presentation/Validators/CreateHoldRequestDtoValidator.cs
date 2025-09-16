@@ -7,21 +7,21 @@ namespace Presentation.Validators;
 
 public class CreateHoldRequestDtoValidator : AbstractValidator<CreateHoldRequestDto>
 {
-    private readonly IAccountService _accountService;
-
     public CreateHoldRequestDtoValidator(
         IAccountService accountService,
+        ICurrencyService currencyService,
         TimeProvider timeProvider)
     {
-        _accountService = accountService;
-
         RuleFor(x => x.AccountId)
             .NotEmpty()
-            .MustAsync(AccountExists);
+            .MustAsync((accountId, cancellationToken) => accountService.ExistsAsync(new AccountId(accountId), cancellationToken))
+            .WithMessage(x => $"Account ({x.AccountId}) does not exist");
 
         RuleFor(x => x.Amount)
             .NotEmpty()
-            .GreaterThan(0);
+            .GreaterThan(0)
+            .Must((x, y) => currencyService.IsValid(x.CurrencyCode, y))
+            .WithMessage(x => $"Max {currencyService.GetMaxNumberOfDecimalPlaces(x.CurrencyCode)} decimal places allowed");
 
         RuleFor(x => x.CurrencyCode)
             .NotEmpty()
@@ -45,10 +45,5 @@ public class CreateHoldRequestDtoValidator : AbstractValidator<CreateHoldRequest
         RuleFor(x => x.Reference)
             .MaximumLength(256)
             .When(x => x.Reference != null);
-    }
-
-    private Task<bool> AccountExists(Guid accountId, CancellationToken cancellationToken)
-    {
-        return _accountService.ExistsAsync(new AccountId(accountId), cancellationToken);
     }
 }

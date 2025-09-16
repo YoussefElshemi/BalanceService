@@ -116,4 +116,14 @@ public static class SeedData
                 Name = x.ToString()
             })
     ];
+    
+    public static readonly ImmutableArray<InterestPayoutFrequencyEntity> InterestPayoutFrequencies =
+    [
+        ..Enum.GetValues<InterestPayoutFrequency>()
+            .Select(x => new InterestPayoutFrequencyEntity
+            {
+                InterestPayoutFrequencyId = (int)x,
+                Name = x.ToString()
+            })
+    ];
 }

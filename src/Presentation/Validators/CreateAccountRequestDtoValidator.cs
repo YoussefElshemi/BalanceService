@@ -9,7 +9,9 @@ namespace Presentation.Validators;
 
 public class CreateAccountRequestDtoValidator : AbstractValidator<CreateAccountRequestDto>
 {
-    public CreateAccountRequestDtoValidator(IAccountService accountService)
+    public CreateAccountRequestDtoValidator(
+        IAccountService accountService,
+        ICurrencyService currencyService)
     {
         RuleFor(x => x.AccountName)
             .NotEmpty()
@@ -23,7 +25,12 @@ public class CreateAccountRequestDtoValidator : AbstractValidator<CreateAccountR
         RuleFor(x => x.AccountType)
             .NotEmpty()
             .IsInEnum();
-        
+
+        RuleFor(x => x.MinimumRequiredBalance)
+            .Must((x, y) => currencyService.IsValid(x.CurrencyCode, y!.Value))
+            .WithMessage(x => $"Max {currencyService.GetMaxNumberOfDecimalPlaces(x.CurrencyCode)} decimal places allowed")
+            .When(x => x.MinimumRequiredBalance.HasValue);
+
         RuleFor(x => x.Metadata)
             .Must(x => x.BeValidJsonObject())
             .WithMessage("Metadata must be a valid JSON object.")

@@ -759,6 +759,217 @@ namespace Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Infrastructure.Entities.InterestAccrualEntity", b =>
+                {
+                    b.Property<Guid>("InterestAccrualId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AccruedAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("AccruedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("DailyInterestRate")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("InterestProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPosted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("PostedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("InterestAccrualId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("InterestProductId");
+
+                    b.ToTable("InterestAccruals", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestPayoutFrequencyEntity", b =>
+                {
+                    b.Property<int>("InterestPayoutFrequencyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("InterestPayoutFrequencyId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("InterestPayoutFrequencyId");
+
+                    b.ToTable("InterestPayoutFrequencies", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            InterestPayoutFrequencyId = 1,
+                            Name = "Daily"
+                        },
+                        new
+                        {
+                            InterestPayoutFrequencyId = 2,
+                            Name = "Weekly"
+                        },
+                        new
+                        {
+                            InterestPayoutFrequencyId = 3,
+                            Name = "Monthly"
+                        },
+                        new
+                        {
+                            InterestPayoutFrequencyId = 4,
+                            Name = "Quarterly"
+                        },
+                        new
+                        {
+                            InterestPayoutFrequencyId = 5,
+                            Name = "Yearly"
+                        });
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductAccountLinkEntity", b =>
+                {
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InterestProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("AccountId", "InterestProductId");
+
+                    b.HasIndex("InterestProductId");
+
+                    b.ToTable("InterestProductAccountLinks", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductEntity", b =>
+                {
+                    b.Property<Guid>("InterestProductId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AccrualBasis")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("AnnualInterestRate")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("InterestPayoutFrequencyId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("InterestProductId");
+
+                    b.HasIndex("InterestPayoutFrequencyId");
+
+                    b.ToTable("InterestProducts", (string)null);
+                });
+
             modelBuilder.Entity("Infrastructure.Entities.ProcessingStatusEntity", b =>
                 {
                     b.Property<int>("ProcessingStatusId")
@@ -940,6 +1151,11 @@ namespace Infrastructure.Migrations
                         {
                             TransactionSourceId = 3,
                             Name = "Manual"
+                        },
+                        new
+                        {
+                            TransactionSourceId = 4,
+                            Name = "Internal"
                         });
                 });
 
@@ -1008,6 +1224,11 @@ namespace Infrastructure.Migrations
                         {
                             TransactionTypeId = 3,
                             Name = "Transfer"
+                        },
+                        new
+                        {
+                            TransactionTypeId = 4,
+                            Name = "AccruedInterest"
                         });
                 });
 
@@ -1238,6 +1459,55 @@ namespace Infrastructure.Migrations
                     b.Navigation("SettledTransactionEntity");
                 });
 
+            modelBuilder.Entity("Infrastructure.Entities.InterestAccrualEntity", b =>
+                {
+                    b.HasOne("Infrastructure.Entities.AccountEntity", "AccountEntity")
+                        .WithMany("InterestAccrualEntities")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.InterestProductEntity", "InterestProductEntity")
+                        .WithMany("InterestAccrualEntities")
+                        .HasForeignKey("InterestProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountEntity");
+
+                    b.Navigation("InterestProductEntity");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductAccountLinkEntity", b =>
+                {
+                    b.HasOne("Infrastructure.Entities.AccountEntity", "AccountEntity")
+                        .WithMany("InterestProductAccountLinkEntities")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.InterestProductEntity", "InterestProductEntity")
+                        .WithMany("InterestProductAccountLinkEntities")
+                        .HasForeignKey("InterestProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountEntity");
+
+                    b.Navigation("InterestProductEntity");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductEntity", b =>
+                {
+                    b.HasOne("Infrastructure.Entities.InterestPayoutFrequencyEntity", "InterestPayoutFrequencyEntity")
+                        .WithMany("InterestProductEntities")
+                        .HasForeignKey("InterestPayoutFrequencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InterestPayoutFrequencyEntity");
+                });
+
             modelBuilder.Entity("Infrastructure.Entities.TransactionEntity", b =>
                 {
                     b.HasOne("Infrastructure.Entities.AccountEntity", "AccountEntity")
@@ -1287,6 +1557,10 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("HoldEntities");
 
+                    b.Navigation("InterestAccrualEntities");
+
+                    b.Navigation("InterestProductAccountLinkEntities");
+
                     b.Navigation("TransactionEntities");
                 });
 
@@ -1322,6 +1596,18 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Infrastructure.Entities.HoldTypeEntity", b =>
                 {
                     b.Navigation("HoldEntities");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestPayoutFrequencyEntity", b =>
+                {
+                    b.Navigation("InterestProductEntities");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductEntity", b =>
+                {
+                    b.Navigation("InterestAccrualEntities");
+
+                    b.Navigation("InterestProductAccountLinkEntities");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.ProcessingStatusEntity", b =>

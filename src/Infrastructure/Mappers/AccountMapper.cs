@@ -57,7 +57,7 @@ public static class AccountMapper
             CreatedAt = new CreatedAt(accountEntity.CreatedAt),
             CreatedBy = new Username(accountEntity.CreatedBy),
             UpdatedAt = new UpdatedAt(accountEntity.UpdatedAt),
-            UpdatedBy = new  Username(accountEntity.UpdatedBy),
+            UpdatedBy = new Username(accountEntity.UpdatedBy),
             IsDeleted = accountEntity.IsDeleted,
             DeletedAt = accountEntity.DeletedAt.HasValue
                 ? new DeletedAt(accountEntity.DeletedAt.Value)

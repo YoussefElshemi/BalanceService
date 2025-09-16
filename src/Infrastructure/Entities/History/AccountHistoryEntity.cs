@@ -63,7 +63,7 @@ public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
             CreatedAt = new CreatedAt(CreatedAt),
             CreatedBy = new Username(CreatedBy),
             UpdatedAt = new UpdatedAt(UpdatedAt),
-            UpdatedBy = new  Username(UpdatedBy),
+            UpdatedBy = new Username(UpdatedBy),
             IsDeleted = IsDeleted,
             DeletedAt = DeletedAt.HasValue
                 ? new DeletedAt(DeletedAt.Value)

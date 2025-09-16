@@ -13,7 +13,6 @@ public class HoldHistoryEntityConfiguration : IEntityTypeConfiguration<HoldHisto
         builder.HasKey(x => x.HoldHistoryId);
         builder.Property(x => x.RowVersion).IsRowVersion();
         builder.Property(x => x.ProcessingStatusId).HasDefaultValue((int)ProcessingStatus.NotProcessed);
-
         builder.HasIndex(x => x.HoldId);
 
         builder

@@ -15,5 +15,8 @@ public enum AccountOperationType
     ActivateAccount,
     FreezeAccount,
     CloseAccount,
-    DeleteAccount
+    DeleteAccount,
+    
+    // Interest
+    AccrueInterest
 }

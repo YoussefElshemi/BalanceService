@@ -2,7 +2,6 @@ using Core.Constants;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
-using Core.ValueObjects;
 using Infrastructure.Entities;
 using Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -11,31 +10,6 @@ namespace Infrastructure.Repositories;
 
 public class StatementRepository(ApplicationDbContext dbContext) : IStatementRepository
 {
-    public async Task<AvailableBalance> GetAvailableBalanceAtAsync(BalanceRequest balanceRequest, CancellationToken cancellationToken)
-    {
-        var result = await dbContext.Transactions
-            .Where(x => x.IsDeleted == false)
-            .Where(x => x.AccountId == balanceRequest.AccountId)
-            .Where(x => DateOnly.FromDateTime(x.PostedAt!.Value.UtcDateTime) <= balanceRequest.Date)
-            .Where(x => x.TransactionStatusId == (int)TransactionStatus.Posted ||
-                        x.TransactionStatusId == (int)TransactionStatus.Reversed)
-            .GroupBy(x => 1)
-            .Select(x => new
-            {
-                LedgerBalance = x.Sum(y =>
-                    y.TransactionDirectionId == (int)TransactionDirection.Credit ? y.Amount : -y.Amount),
-                HoldBalance = dbContext.Holds
-                    .Where(z => z.IsDeleted == false)
-                    .Where(z => z.AccountId == balanceRequest.AccountId)
-                    .Where(z => DateOnly.FromDateTime(z.CreatedAt.UtcDateTime) <= balanceRequest.Date)
-                    .Where(z => z.HoldStatusId == (int)HoldStatus.Active)
-                    .Sum(z => z.Amount)
-            })
-            .SingleOrDefaultAsync(cancellationToken);
-
-        return new AvailableBalance(result?.LedgerBalance - result?.HoldBalance ?? 0);
-    }
-
     public Task<int> CountAsync(GetStatementRequest getStatementRequest, CancellationToken cancellationToken)
     {
         var query = BuildSearchQuery(getStatementRequest);

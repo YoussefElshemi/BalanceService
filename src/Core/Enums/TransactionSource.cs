@@ -4,5 +4,6 @@ public enum TransactionSource
 {
     Api = 1,
     Import,
-    Manual
+    Manual,
+    Internal
 }

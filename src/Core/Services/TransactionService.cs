@@ -29,9 +29,10 @@ public class TransactionService(
 
         Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, string.Join(", ", createTransactionRequests.Select(x => x.AccountId.ToString())));
 
+        // TODO: this will select account from db for each one, optimise
+
         foreach (var createTransactionRequest in createTransactionRequests)
         {
-            
             var operationType = createTransactionRequest.Direction == TransactionDirection.Credit
                 ? AccountOperationType.CreditTransaction
                 : AccountOperationType.DebitTransaction;

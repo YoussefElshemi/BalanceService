@@ -13,7 +13,6 @@ public class TransactionHistoryEntityConfiguration : IEntityTypeConfiguration<Tr
         builder.HasKey(x => x.TransactionHistoryId);
         builder.Property(x => x.RowVersion).IsRowVersion();
         builder.Property(x => x.ProcessingStatusId).HasDefaultValue((int)ProcessingStatus.NotProcessed);
-
         builder.HasIndex(x => x.TransactionId);
 
         builder

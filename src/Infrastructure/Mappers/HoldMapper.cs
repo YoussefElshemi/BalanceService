@@ -60,7 +60,7 @@ public static class HoldMapper
             CreatedAt = new CreatedAt(holdEntity.CreatedAt),
             CreatedBy = new Username(holdEntity.CreatedBy),
             UpdatedAt = new UpdatedAt(holdEntity.UpdatedAt),
-            UpdatedBy = new  Username(holdEntity.UpdatedBy),
+            UpdatedBy =new  Username(holdEntity.UpdatedBy),
             IsDeleted = holdEntity.IsDeleted,
             DeletedAt = holdEntity.DeletedAt.HasValue
                 ? new DeletedAt(holdEntity.DeletedAt.Value)

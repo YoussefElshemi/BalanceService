@@ -11,7 +11,6 @@ public class HoldEntityConfiguration : IEntityTypeConfiguration<HoldEntity>
     {
         builder.HasKey(x => x.HoldId);
         builder.Property(x => x.RowVersion).IsRowVersion();
-
         builder.HasIndex(x => x.IdempotencyKey).IsUnique();
 
         builder

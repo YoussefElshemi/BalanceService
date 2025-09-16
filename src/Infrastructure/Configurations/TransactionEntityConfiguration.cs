@@ -11,7 +11,6 @@ public class TransactionEntityConfiguration : IEntityTypeConfiguration<Transacti
     {
         builder.HasKey(x => x.TransactionId);
         builder.Property(x => x.RowVersion).IsRowVersion();
-
         builder.HasIndex(x => x.IdempotencyKey).IsUnique();
 
         builder

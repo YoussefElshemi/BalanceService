@@ -60,7 +60,10 @@ public class TransferService(
         };
 
         var transactions = await transactionService.CreateManyAsync(
-            [createDebitTransactionRequest, createCreditTransactionRequest],
+            [
+                createDebitTransactionRequest,
+                createCreditTransactionRequest
+            ],
             cancellationToken);
 
         return new Transfer

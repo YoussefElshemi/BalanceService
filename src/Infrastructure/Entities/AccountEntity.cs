@@ -43,4 +43,6 @@ public record AccountEntity : DeletableBaseEntity
     public AccountStatusEntity AccountStatusEntity { get; init; } = null!;
     public ICollection<TransactionEntity>? TransactionEntities { get; init; }
     public ICollection<HoldEntity>? HoldEntities { get; init; }
+    public ICollection<InterestAccrualEntity>? InterestAccrualEntities { get; init; }
+    public ICollection<InterestProductAccountLinkEntity>? InterestProductAccountLinkEntities { get; init; }
 }

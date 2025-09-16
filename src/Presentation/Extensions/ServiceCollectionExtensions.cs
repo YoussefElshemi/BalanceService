@@ -58,6 +58,7 @@ public static class ServiceCollectionExtensions
 
         services
             .AddHostedService<HoldExpiryBackgroundService>()
+            .AddHostedService<InterestAccrualBackgroundService>()
             .AddHostedService<AccountUpdateNotificationBackgroundService>()
             .AddHostedService<TransactionUpdateNotificationBackgroundService>()
             .AddHostedService<HoldUpdateNotificationBackgroundService>();
@@ -79,12 +80,16 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddSingleton(TimeProvider.System)
+            .AddSingleton<ICurrencyService, CurrencyService>()
             .AddScoped<IAccountService, AccountService>()
             .AddScoped<IAccountRulesService, AccountRulesService>()
             .AddScoped<ITransactionService, TransactionService>()
             .AddScoped<ITransferService, TransferService>()
             .AddScoped<IStatementService, StatementService>()
+            .AddScoped<IBalanceService, BalanceService>()
             .AddScoped<IHoldService, HoldService>()
+            .AddScoped<IInterestAccrualService, InterestAccrualService>()
+            .AddScoped<IInterestProductAccountLinkService, InterestProductAccountLinkService>()
             .AddScoped<IHistoryService<AccountHistory>, AccountHistoryService>()
             .AddScoped<IHistoryService<TransactionHistory>, TransactionHistoryService>()
             .AddScoped<IHistoryService<HoldHistory>, HoldHistoryService>()
@@ -115,6 +120,9 @@ public static class ServiceCollectionExtensions
             .AddScoped<ITransactionRepository, TransactionRepository>()
             .AddScoped<IHoldRepository, HoldRepository>()
             .AddScoped<IStatementRepository, StatementRepository>()
+            .AddScoped<IBalanceRepository, BalanceRepository>()
+            .AddScoped<IInterestAccrualRepository, InterestAccrualRepository>()
+            .AddScoped<IInterestProductAccountLinkRepository, InterestProductAccountLinkRepository>()
             .AddScoped(typeof(IHistoryRepository<,>), typeof(HistoryRepository<,>))
             .AddScoped<IUnitOfWork>(x => x.GetRequiredService<ApplicationDbContext>());
 

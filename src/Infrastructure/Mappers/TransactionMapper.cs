@@ -58,7 +58,7 @@ public static class TransactionMapper
             CreatedAt = new CreatedAt(transactionEntity.CreatedAt),
             CreatedBy = new Username(transactionEntity.CreatedBy),
             UpdatedAt = new UpdatedAt(transactionEntity.UpdatedAt),
-            UpdatedBy = new  Username(transactionEntity.UpdatedBy),
+            UpdatedBy = new Username(transactionEntity.UpdatedBy),
             IsDeleted = transactionEntity.IsDeleted,
             DeletedAt = transactionEntity.DeletedAt.HasValue
                 ? new DeletedAt(transactionEntity.DeletedAt.Value)

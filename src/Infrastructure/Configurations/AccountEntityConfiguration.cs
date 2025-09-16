@@ -10,7 +10,6 @@ public class AccountEntityConfiguration : IEntityTypeConfiguration<AccountEntity
     public void Configure(EntityTypeBuilder<AccountEntity> builder)
     {
         builder.HasKey(x => x.AccountId);
-
         builder.Property(x => x.RowVersion).IsRowVersion();
         builder.Property(x => x.Metadata).HasColumnType("jsonb");
 
