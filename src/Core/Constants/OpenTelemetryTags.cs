@@ -45,7 +45,7 @@ public static class OpenTelemetryTags
         public const string TransactionId = $"{OpenTelemetryConstants.ServiceName}.transaction.id";
         public const string ReversedTransactionId = $"{OpenTelemetryConstants.ServiceName}.reversed_transaction.id";
         public const string HoldId = $"{OpenTelemetryConstants.ServiceName}.hold.id";
-
+        public const string InterestProductId = $"{OpenTelemetryConstants.ServiceName}.interest_product.id";
         
         public const string HistoryPrimaryKey = $"{OpenTelemetryConstants.ServiceName}.history.primary_key";
         public const string HistoryKey = $"{OpenTelemetryConstants.ServiceName}.history.key";

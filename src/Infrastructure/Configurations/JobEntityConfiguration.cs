@@ -11,7 +11,7 @@ public class JobEntityConfiguration : IEntityTypeConfiguration<JobEntity>
     {
         builder.HasKey(x => x.JobId);
         builder.Property(x => x.RowVersion).IsRowVersion();
-        builder.HasIndex(x => x.JobName).IsUnique();
+        builder.HasIndex(x => x.JobName).IsUnique().HasFilter($"\"{nameof(JobEntity.IsDeleted)}\" = FALSE");
 
         builder.ToTable(TableNames.Jobs);
     }

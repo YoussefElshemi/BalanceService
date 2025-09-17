@@ -19,10 +19,6 @@ public class QueryAccountsRequestDtoValidator : AbstractValidator<QueryAccountsR
             .NotEmpty()
             .GreaterThan(0);
 
-        RuleFor(x => x.AccountName)
-            .Matches(RegexConstants.AlphaNumericRegex)
-            .When(x => x.AccountName != null);
-
         RuleFor(x => x.CurrencyCode)
             .IsInEnum()
             .When(x => x.CurrencyCode != null);
@@ -41,10 +37,6 @@ public class QueryAccountsRequestDtoValidator : AbstractValidator<QueryAccountsR
             .MustAsync((accountId, cancellationToken) => accountService.ExistsAsync(new AccountId(accountId!.Value), cancellationToken))
             .WithMessage(x => $"Parent Account ({x.ParentAccountId}) does not exist")
             .When(x => x.ParentAccountId.HasValue);
-
-        RuleFor(x => x.ParentAccountName)
-            .Matches(RegexConstants.AlphaNumericRegex)
-            .When(x => x.ParentAccountName != null);
 
         RuleFor(x => x)
             .Must(x => !(x.ParentAccountId.HasValue && x.ParentAccountName != null))

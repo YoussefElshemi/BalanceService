@@ -11,11 +11,7 @@ public class JobRunEntityConfiguration : IEntityTypeConfiguration<JobRunEntity>
     {
         builder.HasKey(x => x.JobRunId);
         builder.Property(x => x.RowVersion).IsRowVersion();
-
-        builder
-            .HasIndex(x => new { x.JobId, x.ScheduledAt })
-            .IsUnique()
-            .HasFilter($"\"{nameof(JobRunEntity.IsDeleted)}\" = FALSE");
+        builder.HasIndex(x => new { x.JobId, x.ScheduledAt }).IsUnique().HasFilter($"\"{nameof(JobRunEntity.IsDeleted)}\" = FALSE");
 
         builder
             .HasOne(x => x.JobEntity)

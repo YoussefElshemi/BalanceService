@@ -2427,5 +2427,34 @@ BEGIN
     VALUES ('20250917010129_AddJobEntities', '9.0.9');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250917213355_AddFilteredUniqueIndexes') THEN
+    DROP INDEX "IX_Jobs_JobName";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250917213355_AddFilteredUniqueIndexes') THEN
+    CREATE UNIQUE INDEX "IX_Jobs_JobName" ON "Jobs" ("JobName") WHERE "IsDeleted" = FALSE;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250917213355_AddFilteredUniqueIndexes') THEN
+    CREATE UNIQUE INDEX "IX_InterestProductAccountLinks_AccountId" ON "InterestProductAccountLinks" ("AccountId") WHERE "IsDeleted" = FALSE;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250917213355_AddFilteredUniqueIndexes') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20250917213355_AddFilteredUniqueIndexes', '9.0.9');
+    END IF;
+END $EF$;
 COMMIT;
 

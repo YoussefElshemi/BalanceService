@@ -14,7 +14,7 @@ public class JobService(
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : IJobService
 {
-    public async Task<Job> EnsureJobExistsAsync(IJobConfig jobConfig, CancellationToken cancellationToken)
+    public async Task<Job> GetOrCreateAsync(IJobConfig jobConfig, CancellationToken cancellationToken)
     {
         var existingJob = await jobRepository.GetByNameAsync(new JobName(jobConfig.JobName), cancellationToken);
         if (existingJob != null)

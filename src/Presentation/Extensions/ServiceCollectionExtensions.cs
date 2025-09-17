@@ -74,8 +74,8 @@ public static class ServiceCollectionExtensions
             configuration.GetSection(nameof(AppConfig)).GetSection(nameof(InterestAccrualJobConfig)));
 
         services
-            .AddScoped<InterestAccrualService>()
-            .AddHostedService<JobBackgroundService<InterestAccrualJobConfig, InterestAccrualService>>();
+            .AddScoped<InterestAccrualJobExecutor>()
+            .AddHostedService<JobBackgroundService<InterestAccrualJobConfig, InterestAccrualJobExecutor>>();
 
         return services;
     }
@@ -101,6 +101,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IStatementService, StatementService>()
             .AddScoped<IBalanceService, BalanceService>()
             .AddScoped<IHoldService, HoldService>()
+            .AddScoped<IInterestProductService, InterestProductService>()
             .AddScoped<IInterestProductAccountLinkService, InterestProductAccountLinkService>()
             .AddScoped<IJobService, JobService>()
             .AddScoped<IHistoryService<AccountHistory>, AccountHistoryService>()
@@ -135,6 +136,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IStatementRepository, StatementRepository>()
             .AddScoped<IBalanceRepository, BalanceRepository>()
             .AddScoped<IInterestAccrualRepository, InterestAccrualRepository>()
+            .AddScoped<IInterestProductRepository, InterestProductRepository>()
             .AddScoped<IInterestProductAccountLinkRepository, InterestProductAccountLinkRepository>()
             .AddScoped<IJobRepository, JobRepository>()
             .AddScoped<IJobRunRepository, JobRunRepository>()

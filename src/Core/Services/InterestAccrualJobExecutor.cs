@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace Core.Services;
 
-public class InterestAccrualService(
+public class InterestAccrualJobExecutor(
     IInterestAccrualRepository interestAccrualRepository,
     IInterestProductAccountLinkService interestProductAccountLinkService,
     ITransactionService transactionService,
@@ -28,7 +28,7 @@ public class InterestAccrualService(
         var links = await interestProductAccountLinkService.GetActiveAsync(cancellationToken);
         foreach (var link in links)
         {
-            var interestProudct = link.InterestProduct;
+            var interestProduct = link.InterestProduct;
             var account = link.Account;
 
             var balanceRequest = new BalanceRequest
@@ -42,14 +42,14 @@ public class InterestAccrualService(
                 _interestAccrualJobConfig.InterestEligibilityLag,
                 cancellationToken);
 
-            var dailyInterestRate = interestProudct.AnnualInterestRate / interestProudct.AccrualBasis;
+            var dailyInterestRate = interestProduct.AnnualInterestRate / interestProduct.AccrualBasis;
             var accruedAmount = currencyService.Round(account.CurrencyCode, eligibleBalance * dailyInterestRate);
 
             var accrual = new InterestAccrual
             {
                 InterestAccrualId = new InterestAccrualId(Guid.NewGuid()),
                 AccountId = account.AccountId,
-                InterestProductId = interestProudct.InterestProductId,
+                InterestProductId = interestProduct.InterestProductId,
                 AccruedAt = new AccruedAt(utcDateTime),
                 DailyInterestRate = new InterestRate(dailyInterestRate),
                 AccruedAmount = new AccruedAmount(accruedAmount),
@@ -66,16 +66,16 @@ public class InterestAccrualService(
 
             await interestAccrualRepository.CreateAsync(accrual, cancellationToken);
 
-            if (interestProudct.InterestPayoutFrequency == InterestPayoutFrequency.Daily ||
+            if (interestProduct.InterestPayoutFrequency == InterestPayoutFrequency.Daily ||
                 ShouldPayoutToday(
-                    interestProudct.InterestPayoutFrequency,
+                    interestProduct.InterestPayoutFrequency,
                     DateOnly.FromDateTime(utcDateTime.UtcDateTime)))
             {
-                var unposted = interestProudct.InterestPayoutFrequency == InterestPayoutFrequency.Daily
+                var unposted = interestProduct.InterestPayoutFrequency == InterestPayoutFrequency.Daily
                     ? [accrual]
                     : await interestAccrualRepository.GetUnpostedAsync(
                         account.AccountId,
-                        interestProudct.InterestProductId,
+                        interestProduct.InterestProductId,
                         cancellationToken);
 
                 if (unposted.Count > 0)

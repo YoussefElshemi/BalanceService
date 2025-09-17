@@ -16,6 +16,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<TransactionEntity> Transactions { get; init; }
     public DbSet<HoldEntity> Holds { get; init; }
     public DbSet<InterestAccrualEntity> InterestAccruals { get; init; }
+    public DbSet<InterestProductEntity> InterestProducts { get; init; }
     public DbSet<InterestProductAccountLinkEntity> InterestProductAccountLinks { get; init; }
     public DbSet<JobEntity> Jobs { get; init; }
     public DbSet<JobRunEntity> JobRuns { get; set; }

@@ -32,7 +32,7 @@ public class JobBackgroundService<TConfig, TExecutor>(
 
         using var parentActivity = OpenTelemetry.OpenTelemetry.MyActivitySource.StartActivity(GetType().Name);
 
-        var job = await jobService.EnsureJobExistsAsync(_config, cancellationToken);
+        var job = await jobService.GetOrCreateAsync(_config, cancellationToken);
         var cronSchedule = CronExpression.Parse(_config.CronExpression);
 
         while (!cancellationToken.IsCancellationRequested)

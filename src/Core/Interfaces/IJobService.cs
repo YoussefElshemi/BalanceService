@@ -6,7 +6,7 @@ namespace Core.Interfaces;
 
 public interface IJobService
 {
-    Task<Job> EnsureJobExistsAsync(IJobConfig jobConfig, CancellationToken cancellationToken);
+    Task<Job> GetOrCreateAsync(IJobConfig jobConfig, CancellationToken cancellationToken);
     Task<(bool Success, JobRun JobRun)> TryCreateRunAsync(JobId jobId, ScheduledAt scheduledAt, CancellationToken cancellationToken);
     Task ExecuteAsync(JobRunId jobRunId, Username executedBy, CancellationToken cancellationToken);
     Task DeleteAsync(JobRunId jobRunId, Username deletedBy, CancellationToken cancellationToken);
