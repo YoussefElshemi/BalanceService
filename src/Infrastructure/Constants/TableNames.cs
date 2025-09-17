@@ -23,4 +23,6 @@ public static class TableNames
     public const string InterestAccruals = nameof(InterestAccruals);
     public const string InterestPayoutFrequencies = nameof(InterestPayoutFrequencies);
     public const string InterestProductAccountLinks = nameof(InterestProductAccountLinks);
+    public const string Jobs =  nameof(Jobs);
+    public const string JobRuns =  nameof(JobRuns);
 }

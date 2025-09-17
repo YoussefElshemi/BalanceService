@@ -20,6 +20,7 @@ builder.Services
     .RegisterOpenTelemetry(appConfig)
     .RegisterDataAccess(builder.Configuration)
     .RegisterBackgroundServices(builder.Configuration)
+    .RegisterJobs(builder.Configuration)
     .RegisterAwsServices(builder.Configuration)
     .RegisterServices()
     .RegisterValidators()

@@ -10,5 +10,5 @@ public record AppConfig
     public ObservabilityConfig ObservabilityConfig { get; init; } = null!;
     public Dictionary<CurrencyCode, int> CurrencyDecimalPlaceConfiguration { get; init; } = null!;
     public HoldExpiryConfig HoldExpiryConfig { get; init; } = null!;
-    public InterestAccrualJob InterestAccrualJob { get; init; } = null!;
+    public InterestAccrualJobConfig InterestAccrualJobConfig { get; init; } = null!;
 }

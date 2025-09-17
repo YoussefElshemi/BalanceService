@@ -16,24 +16,6 @@ public class InterestAccrualRepository(
         await dbContext.InterestAccruals.AddAsync(interestAccrualEntity, cancellationToken);
     }
 
-    public async Task<AccruedAt?> GetLastAccrualDateAsync(CancellationToken cancellationToken)
-    {
-        var lastAccrualDate = await dbContext.InterestAccruals
-            .AsNoTracking()
-            .MaxAsync(x => (DateTimeOffset?)x.AccruedAt, cancellationToken);
-
-        return lastAccrualDate.HasValue
-            ? new AccruedAt(lastAccrualDate.Value)
-            : null;
-    }
-
-    public async Task<bool> ExistsByDateAsync(DateOnly date, CancellationToken cancellationToken)
-    {
-        return await dbContext.InterestAccruals
-            .AsNoTracking()
-            .AnyAsync(x => DateOnly.FromDateTime(x.AccruedAt.UtcDateTime) == date, cancellationToken);
-    }
-
     public async Task PostAsync(InterestAccrualId interestAccrualId, Username postedBy, CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();

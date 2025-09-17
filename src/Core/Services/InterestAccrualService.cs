@@ -16,37 +16,20 @@ public class InterestAccrualService(
     IBalanceService balanceService,
     IUnitOfWork unitOfWork,
     IOptions<AppConfig> appConfig,
-    TimeProvider timeProvider) : IInterestAccrualService
+    TimeProvider timeProvider) : IJobExecutor
 {
-    private readonly InterestAccrualJob _interestAccrualJob = appConfig.Value.InterestAccrualJob;
+    private readonly InterestAccrualJobConfig _interestAccrualJobConfig = appConfig.Value.InterestAccrualJobConfig;
 
-    public async Task AccrueMissingDaysAsync(CancellationToken cancellationToken)
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var utcToday = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
-        var lastAccruedAt = await interestAccrualRepository.GetLastAccrualDateAsync(cancellationToken);
-        var lastAccruedDate = lastAccruedAt ?? utcToday.AddDays(-1);
-
-        for (var date = lastAccruedDate.AddDays(1); date <= utcToday; date = date.AddDays(1))
-        {
-            await AccrueForDateAsync(date, cancellationToken);
-        }
-    }
-
-    private async Task AccrueForDateAsync(DateOnly date, CancellationToken cancellationToken)
-    {
-        if (await interestAccrualRepository.ExistsByDateAsync(date, cancellationToken))
-        {
-            return;
-        }
-
         var utcDateTime = timeProvider.GetUtcNow();
         var payoutCandidates = new Dictionary<Account, List<InterestAccrual>>();
 
-        var interestProductAccountLinks = await interestProductAccountLinkService.GetActiveAsync(cancellationToken);
-        foreach (var interestProductAccountLink in interestProductAccountLinks)
+        var links = await interestProductAccountLinkService.GetActiveAsync(cancellationToken);
+        foreach (var link in links)
         {
-            var interestProduct = interestProductAccountLink.InterestProduct;
-            var account = interestProductAccountLink.Account;
+            var interestProudct = link.InterestProduct;
+            var account = link.Account;
 
             var balanceRequest = new BalanceRequest
             {
@@ -56,56 +39,53 @@ public class InterestAccrualService(
 
             var eligibleBalance = await balanceService.GetEligibleBalanceAsync(
                 balanceRequest,
-                _interestAccrualJob.InterestEligibilityLag,
+                _interestAccrualJobConfig.InterestEligibilityLag,
                 cancellationToken);
 
-            var dailyInterestRate = interestProduct.AnnualInterestRate /
-                                    interestProduct.AccrualBasis;
+            var dailyInterestRate = interestProudct.AnnualInterestRate / interestProudct.AccrualBasis;
+            var accruedAmount = currencyService.Round(account.CurrencyCode, eligibleBalance * dailyInterestRate);
 
-            var accruedAmount = currencyService.Round(
-                account.CurrencyCode,
-                eligibleBalance * dailyInterestRate);
-
-            var interestAccrual = new InterestAccrual
+            var accrual = new InterestAccrual
             {
                 InterestAccrualId = new InterestAccrualId(Guid.NewGuid()),
                 AccountId = account.AccountId,
-                InterestProductId = interestProduct.InterestProductId,
+                InterestProductId = interestProudct.InterestProductId,
                 AccruedAt = new AccruedAt(utcDateTime),
                 DailyInterestRate = new InterestRate(dailyInterestRate),
                 AccruedAmount = new AccruedAmount(accruedAmount),
                 IsPosted = false,
                 PostedAt = null,
                 CreatedAt = new CreatedAt(utcDateTime),
-                CreatedBy = new Username(SystemConstants.Username),
+                CreatedBy = SystemConstants.Username,
                 UpdatedAt = new UpdatedAt(utcDateTime),
-                UpdatedBy = new Username(SystemConstants.Username),
+                UpdatedBy = SystemConstants.Username,
                 IsDeleted = false,
                 DeletedAt = null,
                 DeletedBy = null
             };
 
-            await interestAccrualRepository.CreateAsync(interestAccrual, cancellationToken);
+            await interestAccrualRepository.CreateAsync(accrual, cancellationToken);
 
-            if (interestProduct.InterestPayoutFrequency == InterestPayoutFrequency.Daily)
+            if (interestProudct.InterestPayoutFrequency == InterestPayoutFrequency.Daily ||
+                ShouldPayoutToday(
+                    interestProudct.InterestPayoutFrequency,
+                    DateOnly.FromDateTime(utcDateTime.UtcDateTime)))
             {
-                payoutCandidates[account] = [interestAccrual];
-            }
-            else if (ShouldPayoutToday(interestProduct.InterestPayoutFrequency, DateOnly.FromDateTime(utcDateTime.UtcDateTime)))
-            {
-                var unpostedInterestAccruals = await interestAccrualRepository.GetUnpostedAsync(
-                    account.AccountId,
-                    interestProduct.InterestProductId,
-                    cancellationToken);
+                var unposted = interestProudct.InterestPayoutFrequency == InterestPayoutFrequency.Daily
+                    ? [accrual]
+                    : await interestAccrualRepository.GetUnpostedAsync(
+                        account.AccountId,
+                        interestProudct.InterestProductId,
+                        cancellationToken);
 
-                if (unpostedInterestAccruals.Count > 0)
+                if (unposted.Count > 0)
                 {
-                    payoutCandidates[account] = unpostedInterestAccruals;
+                    payoutCandidates[account] = unposted;
                 }
             }
         }
 
-        if (payoutCandidates.Count != 0)
+        if (payoutCandidates.Count > 0)
         {
             await PayoutAccruedInterestAsync(payoutCandidates, cancellationToken);
         }
@@ -119,13 +99,13 @@ public class InterestAccrualService(
     {
         var utcDateTime = timeProvider.GetUtcNow();
 
-        foreach (var interestAccruals in accruedInterest)
+        foreach (var (account, interestAccruals) in accruedInterest)
         {
             var createTransactionRequest = new CreateTransactionRequest
             {
-                AccountId = interestAccruals.Key.AccountId,
-                Amount = new TransactionAmount(interestAccruals.Value.Sum(y => y.AccruedAmount)),
-                CurrencyCode = interestAccruals.Key.CurrencyCode,
+                AccountId = account.AccountId,
+                Amount = new TransactionAmount(interestAccruals.Sum(x => x.AccruedAmount)),
+                CurrencyCode = account.CurrencyCode,
                 Direction = TransactionDirection.Credit,
                 IdempotencyKey = new IdempotencyKey(Guid.NewGuid()),
                 Type = TransactionType.AccruedInterest,
@@ -139,7 +119,7 @@ public class InterestAccrualService(
 
             await transactionService.CreateAsync(createTransactionRequest, cancellationToken);
 
-            foreach (var interestAccrual in interestAccruals.Value)
+            foreach (var interestAccrual in interestAccruals)
             {
                 await interestAccrualRepository.PostAsync(
                     interestAccrual.InterestAccrualId,
@@ -148,14 +128,13 @@ public class InterestAccrualService(
             }
         }
     }
-    
-    private static bool ShouldPayoutToday(InterestPayoutFrequency interestPayoutFrequency, DateOnly date) => interestPayoutFrequency switch
+
+    private static bool ShouldPayoutToday(InterestPayoutFrequency frequency, DateOnly date) => frequency switch
     {
-        InterestPayoutFrequency.Daily => true,
         InterestPayoutFrequency.Weekly => date.DayOfWeek == DayOfWeek.Sunday,
         InterestPayoutFrequency.Monthly => date.Day == 1,
         InterestPayoutFrequency.Quarterly => date is { Day: 1, Month: 1 or 4 or 7 or 10 },
         InterestPayoutFrequency.Yearly => date is { Day: 1, Month: 1 },
-        _ => throw new ArgumentOutOfRangeException(nameof(interestPayoutFrequency), interestPayoutFrequency, null)
+        _ => false
     };
 }

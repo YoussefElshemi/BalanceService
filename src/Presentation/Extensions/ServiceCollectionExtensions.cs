@@ -35,18 +35,19 @@ namespace Presentation.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection RegisterConfigurations(this IServiceCollection services,
+    public static IServiceCollection RegisterConfigurations(
+        this IServiceCollection services,
         ConfigurationManager configuration)
     {
         var config = configuration.AddEnvironmentVariables().Build();
         services.AddSingleton<IConfiguration>(config);
         services.AddOptions<AppConfig>().BindConfiguration(nameof(AppConfig));
 
-
         return services;
     }
 
-    public static IServiceCollection RegisterBackgroundServices(this IServiceCollection services,
+    public static IServiceCollection RegisterBackgroundServices(
+        this IServiceCollection services, 
         ConfigurationManager configuration)
     {
         services.Configure<AccountUpdateNotificationConfig>(
@@ -58,7 +59,6 @@ public static class ServiceCollectionExtensions
 
         services
             .AddHostedService<HoldExpiryBackgroundService>()
-            .AddHostedService<InterestAccrualBackgroundService>()
             .AddHostedService<AccountUpdateNotificationBackgroundService>()
             .AddHostedService<TransactionUpdateNotificationBackgroundService>()
             .AddHostedService<HoldUpdateNotificationBackgroundService>();
@@ -66,6 +66,19 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection RegisterJobs(
+        this IServiceCollection services,
+        ConfigurationManager configuration)
+    {
+        services.Configure<InterestAccrualJobConfig>(
+            configuration.GetSection(nameof(AppConfig)).GetSection(nameof(InterestAccrualJobConfig)));
+
+        services
+            .AddScoped<InterestAccrualService>()
+            .AddHostedService<JobBackgroundService<InterestAccrualJobConfig, InterestAccrualService>>();
+
+        return services;
+    }
     public static IServiceCollection RegisterAwsServices(this IServiceCollection services,
         ConfigurationManager configuration)
     {
@@ -88,8 +101,8 @@ public static class ServiceCollectionExtensions
             .AddScoped<IStatementService, StatementService>()
             .AddScoped<IBalanceService, BalanceService>()
             .AddScoped<IHoldService, HoldService>()
-            .AddScoped<IInterestAccrualService, InterestAccrualService>()
             .AddScoped<IInterestProductAccountLinkService, InterestProductAccountLinkService>()
+            .AddScoped<IJobService, JobService>()
             .AddScoped<IHistoryService<AccountHistory>, AccountHistoryService>()
             .AddScoped<IHistoryService<TransactionHistory>, TransactionHistoryService>()
             .AddScoped<IHistoryService<HoldHistory>, HoldHistoryService>()
@@ -123,6 +136,8 @@ public static class ServiceCollectionExtensions
             .AddScoped<IBalanceRepository, BalanceRepository>()
             .AddScoped<IInterestAccrualRepository, InterestAccrualRepository>()
             .AddScoped<IInterestProductAccountLinkRepository, InterestProductAccountLinkRepository>()
+            .AddScoped<IJobRepository, JobRepository>()
+            .AddScoped<IJobRunRepository, JobRunRepository>()
             .AddScoped(typeof(IHistoryRepository<,>), typeof(HistoryRepository<,>))
             .AddScoped<IUnitOfWork>(x => x.GetRequiredService<ApplicationDbContext>());
 

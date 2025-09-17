@@ -2365,5 +2365,67 @@ BEGIN
     VALUES ('20250915231710_AddInterestEntities', '9.0.9');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250917010129_AddJobEntities') THEN
+    CREATE TABLE "Jobs" (
+        "JobId" uuid NOT NULL,
+        "JobName" text NOT NULL,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        "CreatedBy" text NOT NULL,
+        "UpdatedAt" timestamp with time zone NOT NULL,
+        "UpdatedBy" text NOT NULL,
+        "IsDeleted" boolean NOT NULL,
+        "DeletedAt" timestamp with time zone,
+        "DeletedBy" text,
+        CONSTRAINT "PK_Jobs" PRIMARY KEY ("JobId")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250917010129_AddJobEntities') THEN
+    CREATE TABLE "JobRuns" (
+        "JobRunId" uuid NOT NULL,
+        "JobId" uuid NOT NULL,
+        "ScheduledAt" timestamp with time zone NOT NULL,
+        "IsExecuted" boolean NOT NULL,
+        "ExecutedAt" timestamp with time zone,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        "CreatedBy" text NOT NULL,
+        "UpdatedAt" timestamp with time zone NOT NULL,
+        "UpdatedBy" text NOT NULL,
+        "IsDeleted" boolean NOT NULL,
+        "DeletedAt" timestamp with time zone,
+        "DeletedBy" text,
+        CONSTRAINT "PK_JobRuns" PRIMARY KEY ("JobRunId"),
+        CONSTRAINT "FK_JobRuns_Jobs_JobId" FOREIGN KEY ("JobId") REFERENCES "Jobs" ("JobId") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250917010129_AddJobEntities') THEN
+    CREATE UNIQUE INDEX "IX_JobRuns_JobId_ScheduledAt" ON "JobRuns" ("JobId", "ScheduledAt") WHERE "IsDeleted" = FALSE;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250917010129_AddJobEntities') THEN
+    CREATE UNIQUE INDEX "IX_Jobs_JobName" ON "Jobs" ("JobName");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250917010129_AddJobEntities') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20250917010129_AddJobEntities', '9.0.9');
+    END IF;
+END $EF$;
 COMMIT;
 

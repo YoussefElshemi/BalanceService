@@ -2,8 +2,8 @@ namespace Core.Configs;
 
 public interface IUpdateNotificationConfig
 {
-    public bool Enabled { get; init; }
-    public TimeSpan Interval { get; init; }
-    public int MaxCount { get; init; }
-    public string TopicArn { get; init; }
+    public bool Enabled { get; }
+    public TimeSpan Interval { get; }
+    public int MaxCount { get; }
+    public string TopicArn { get; }
 }

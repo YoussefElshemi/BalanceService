@@ -1,6 +1,8 @@
+using Core.ValueObjects;
+
 namespace Core.Constants;
 
 public static class SystemConstants
 {
-    public const string Username = "System";
+    public static readonly Username Username = new("System");
 }
