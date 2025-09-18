@@ -1,0 +1,3 @@
+namespace Presentation.Models;
+
+public record UpdateInterestProductAccountLinkRequestDto;

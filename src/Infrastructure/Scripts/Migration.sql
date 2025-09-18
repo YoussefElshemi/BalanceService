@@ -2456,5 +2456,20 @@ BEGIN
     VALUES ('20250917213355_AddFilteredUniqueIndexes', '9.0.9');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250918185216_RemoveInterestProductAccountLinkIndex') THEN
+    DROP INDEX "IX_InterestProductAccountLinks_AccountId";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250918185216_RemoveInterestProductAccountLinkIndex') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20250918185216_RemoveInterestProductAccountLinkIndex', '9.0.9');
+    END IF;
+END $EF$;
 COMMIT;
 
