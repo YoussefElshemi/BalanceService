@@ -5,6 +5,7 @@ public record InterestProductAccountLinkDto
     public required Guid AccountId { get; init; }
     public required InterestProductDto InterestProduct { get; init; }
     public required bool IsActive { get; init; }
+    public required DateTimeOffset? ExpiresAt { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
     public required string CreatedBy { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }

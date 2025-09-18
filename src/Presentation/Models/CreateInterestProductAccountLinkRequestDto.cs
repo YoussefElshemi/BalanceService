@@ -6,4 +6,5 @@ namespace Presentation.Models;
 public record CreateInterestProductAccountLinkRequestDto
 {
     public required Guid InterestProductId { get; init; }
+    public DateTimeOffset? ExpiresAt { get; init; }
 }

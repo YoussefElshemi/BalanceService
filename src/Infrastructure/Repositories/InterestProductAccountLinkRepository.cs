@@ -52,6 +52,7 @@ public class InterestProductAccountLinkRepository(
         var entities = await dbContext.InterestProductAccountLinks
             .AsNoTracking()
             .Where(x => x.IsActive == true && x.IsDeleted == false)
+            .Where(x => x.ExpiresAt == null || x.ExpiresAt <= timeProvider.GetUtcNow())
             .Include(x => x.AccountEntity)
             .Include(x => x.InterestProductEntity)
             .ToListAsync(cancellationToken);
@@ -129,5 +130,22 @@ public class InterestProductAccountLinkRepository(
             .ToListAsync(cancellationToken);
 
         return entities.Select(x => x.ToModel()).ToList();
+    }
+
+    public async Task MarkAsInactiveAsync(InterestProductId interestProductId, Username disabledBy, CancellationToken cancellationToken)
+    {
+        var utcDateTime = timeProvider.GetUtcNow();
+        var interestProductAccountLinkEntities = await dbContext.InterestProductAccountLinks
+            .AsTracking()
+            .Where(x => x.IsActive == true && x.IsDeleted == false)
+            .Where(x => x.InterestProductId == interestProductId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var interestProductAccountLinkEntity in interestProductAccountLinkEntities)
+        {
+            interestProductAccountLinkEntity.IsActive = false;
+            interestProductAccountLinkEntity.UpdatedBy = disabledBy;
+            interestProductAccountLinkEntity.UpdatedAt = utcDateTime;
+        }
     }
 }

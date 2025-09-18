@@ -13,6 +13,7 @@ public static class InterestProductAccountLinkMapper
             InterestProductId = interestProductAccountLink.InterestProduct.InterestProductId,
             AccountId = interestProductAccountLink.Account.AccountId,
             IsActive = interestProductAccountLink.IsActive,
+            ExpiresAt = interestProductAccountLink.ExpiresAt,
             CreatedAt = interestProductAccountLink.CreatedAt,
             CreatedBy = interestProductAccountLink.CreatedBy,
             UpdatedAt = interestProductAccountLink.UpdatedAt,
@@ -30,6 +31,9 @@ public static class InterestProductAccountLinkMapper
             InterestProduct = interestProductAccountLinkEntity.InterestProductEntity.ToModel(),
             Account = interestProductAccountLinkEntity.AccountEntity.ToModel(),
             IsActive = interestProductAccountLinkEntity.IsActive,
+            ExpiresAt = interestProductAccountLinkEntity.ExpiresAt.HasValue
+                ? new ExpiresAt(interestProductAccountLinkEntity.ExpiresAt.Value)
+                : null,
             CreatedAt = new CreatedAt(interestProductAccountLinkEntity.CreatedAt),
             CreatedBy = new Username(interestProductAccountLinkEntity.CreatedBy),
             UpdatedAt = new UpdatedAt(interestProductAccountLinkEntity.UpdatedAt),

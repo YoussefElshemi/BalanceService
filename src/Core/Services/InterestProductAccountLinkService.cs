@@ -28,6 +28,7 @@ public class InterestProductAccountLinkService(
             InterestProduct = interestProduct,
             Account = account,
             IsActive = false,
+            ExpiresAt = createInterestProductAccountLinkRequest.ExpiresAt,
             CreatedAt = new CreatedAt(utcDateTime),
             CreatedBy = createInterestProductAccountLinkRequest.CreatedBy,
             UpdatedAt = new UpdatedAt(utcDateTime),
@@ -63,6 +64,8 @@ public class InterestProductAccountLinkService(
         Username activatedBy,
         CancellationToken cancellationToken)
     {
+        var utcDateTime = timeProvider.GetUtcNow();
+
         Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
         Activity.Current?.AddTag(OpenTelemetryTags.Service.InterestProductId, interestProductId.ToString());
 
@@ -70,6 +73,16 @@ public class InterestProductAccountLinkService(
         if (interestProductAccountLink.IsActive)
         {
             throw new UnprocessableRequestException($"{nameof(InterestProductAccountLink)} must not be active");
+        }
+
+        if (interestProductAccountLink.InterestProduct.IsDeleted)
+        {
+            throw new UnprocessableRequestException($"{nameof(InterestProductAccountLink)} is deleted");
+        }
+
+        if (interestProductAccountLink.ExpiresAt >= utcDateTime)
+        {
+            throw new UnprocessableRequestException($"{nameof(InterestProductAccountLink)} is expired");
         }
 
         var updateInterestProductAccountLinkActiveRequest = new UpdateInterestProductAccountLinkActiveRequest

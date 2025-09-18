@@ -9,6 +9,7 @@ namespace Core.Services;
 
 public class InterestProductService(
     IInterestProductRepository interestProductRepository,
+    IInterestProductAccountLinkRepository interestProductAccountLinkRepository,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : IInterestProductService
 {
@@ -60,6 +61,7 @@ public class InterestProductService(
             throw new NotFoundException();
         }
 
+        await interestProductAccountLinkRepository.MarkAsInactiveAsync(interestProductId, deletedBy, cancellationToken);
         await interestProductRepository.DeleteAsync(interestProductId, deletedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }

@@ -16,6 +16,9 @@ public static class CreateInterestProductAccountLinkRequestDtoMapper
         {
             AccountId = new AccountId(accountId),
             InterestProductId = new InterestProductId(createInterestProductAccountLinkRequestDto.InterestProductId),
+            ExpiresAt = createInterestProductAccountLinkRequestDto.ExpiresAt.HasValue
+                ? new  ExpiresAt(createInterestProductAccountLinkRequestDto.ExpiresAt.Value)
+                : null,
             CreatedBy = new Username(username)
         };
     }

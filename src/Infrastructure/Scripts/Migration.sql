@@ -2471,5 +2471,20 @@ BEGIN
     VALUES ('20250918185216_RemoveInterestProductAccountLinkIndex', '9.0.9');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250918191013_AddExpiresAtToInterestProductAccountLinks') THEN
+    ALTER TABLE "InterestProductAccountLinks" ADD "ExpiresAt" timestamp with time zone;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250918191013_AddExpiresAtToInterestProductAccountLinks') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20250918191013_AddExpiresAtToInterestProductAccountLinks', '9.0.9');
+    END IF;
+END $EF$;
 COMMIT;
 

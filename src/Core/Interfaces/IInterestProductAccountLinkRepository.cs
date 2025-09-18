@@ -14,4 +14,5 @@ public interface IInterestProductAccountLinkRepository
    Task DeleteAsync(AccountId accountId, InterestProductId interestProductId, Username deletedBy, CancellationToken cancellationToken);
    Task<int> CountAsync(QueryInterestProductAccountLinksRequest queryInterestProductAccountLinksRequest, CancellationToken cancellationToken);
    Task<List<InterestProductAccountLink>> QueryAsync(QueryInterestProductAccountLinksRequest queryInterestProductAccountLinksRequest, CancellationToken cancellationToken);
+   Task MarkAsInactiveAsync(InterestProductId interestProductId, Username disabledBy, CancellationToken cancellationToken);
 }
