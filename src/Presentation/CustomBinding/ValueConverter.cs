@@ -1,4 +1,7 @@
 using System.Collections;
+using System.ComponentModel;
+using System.Numerics;
+using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -6,6 +9,43 @@ namespace Presentation.CustomBinding;
 
 public static class ValueConverter
 {
+    private static readonly Dictionary<Type, Func<object, object?>> DirectConverters = new()
+    {
+        [typeof(string)] = raw => raw.ToString(),
+        [typeof(char)] = raw =>
+        {
+            var s = raw.ToString();
+            if (string.IsNullOrEmpty(s) || s.Length != 1)
+            {
+                throw new FormatException("Invalid char.");
+            }
+
+            return s[0];
+        },
+        [typeof(bool)] = raw =>
+        {
+            var s = raw is bool b ? b.ToString() : raw.ToString()!;
+            var isTrue = s.Equals("1") || s.Equals("true", StringComparison.OrdinalIgnoreCase);
+            var isFalse = s.Equals("0") || s.Equals("false", StringComparison.OrdinalIgnoreCase);
+
+            return isTrue || (isFalse
+                ? false
+                : throw new FormatException("Invalid bool."));
+        },
+        [typeof(decimal)] = raw => raw is decimal d ? d : decimal.Parse(raw.ToString()!),
+        [typeof(Guid)] = raw => raw is Guid g ? g : Guid.Parse(raw.ToString()!),
+        [typeof(DateTime)] = raw => raw is DateTime dt ? dt : DateTime.Parse(raw.ToString()!),
+        [typeof(DateTimeOffset)] = raw => raw is DateTimeOffset dto ? dto : DateTimeOffset.Parse(raw.ToString()!),
+        [typeof(TimeSpan)] = raw => raw is TimeSpan ts ? ts : TimeSpan.Parse(raw.ToString()!),
+        [typeof(Uri)] = raw => raw as Uri ?? new Uri(raw.ToString()!),
+        [typeof(byte[])] = raw => raw as byte[] ?? Convert.FromBase64String(raw.ToString()!),
+        [typeof(JsonDocument)] = raw => raw as JsonDocument ?? JsonDocument.Parse(raw.ToString()!),
+        [typeof(BigInteger)] = raw => raw is BigInteger bi ? bi : BigInteger.Parse(raw.ToString()!),
+        [typeof(Version)] = raw => raw as Version ?? Version.Parse(raw.ToString()!),
+        [typeof(DateOnly)] = raw => raw is DateOnly d ? d : DateOnly.Parse(raw.ToString()!),
+        [typeof(TimeOnly)] = raw => raw is TimeOnly t ? t : TimeOnly.Parse(raw.ToString()!)
+    };
+
     public static object? ConvertValue(ModelBindingContext bindingContext, object? raw, Type targetType, string propertyName)
     {
         var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
@@ -23,119 +63,9 @@ public static class ValueConverter
 
         try
         {
-            if (underlyingType == typeof(string))
+            if (DirectConverters.TryGetValue(underlyingType, out var converter))
             {
-                return raw.ToString();
-            }
-
-            if (underlyingType == typeof(char))
-            {
-                var s = raw.ToString();
-                if (string.IsNullOrEmpty(s))
-                {
-                    bindingContext.ModelState.AddModelError(propertyName, "Cannot convert empty string to char.");
-                    return null;
-                }
-
-                if (s.Length > 1)
-                {
-                    bindingContext.ModelState.AddModelError(propertyName, "Cannot convert string to char.");
-                    return null;
-                }
-
-                return s[0];
-            }
-
-            if (underlyingType == typeof(bool))
-            {
-                var s = raw is bool b
-                    ? b.ToString()
-                    : raw.ToString()!;
-
-                if (s.Equals("1") || s.Equals("true", StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-
-                if (s.Equals("0") || s.Equals("false", StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-                
-                bindingContext.ModelState.AddModelError(propertyName, $"Cannot convert '{raw}' to bool.");
-                return null;
-            }
-
-            if (underlyingType.IsPrimitive)
-            {
-                return Convert.ChangeType(raw, underlyingType);
-            }
-
-            if (underlyingType == typeof(decimal))
-            {
-                return raw is decimal d
-                    ? d
-                    : decimal.Parse(raw.ToString()!);
-            }
-
-            if (underlyingType == typeof(Guid))
-            {
-                return raw is Guid g 
-                    ? g 
-                    : Guid.Parse(raw.ToString()!);
-            }
-
-            if (underlyingType == typeof(DateTime))
-            {
-                return raw is DateTime dt
-                    ? dt
-                    : DateTime.Parse(raw.ToString()!);
-            }
-
-            if (underlyingType == typeof(DateTimeOffset))
-            {
-                return raw is DateTimeOffset dto
-                    ? dto
-                    : DateTimeOffset.Parse(raw.ToString()!);
-            }
-
-            if (underlyingType == typeof(TimeSpan))
-            {
-                return raw is TimeSpan ts
-                    ? ts
-                    : TimeSpan.Parse(raw.ToString()!);
-            }
-
-            if (underlyingType == typeof(Uri))
-            {
-                return raw as Uri ?? new Uri(raw.ToString()!);
-            }
-
-            if (underlyingType == typeof(byte[]))
-            {
-                if (raw is byte[] bytes)
-                {
-                    return bytes;
-                }
-                
-                var s = raw.ToString()!;
-                
-                try
-                {
-                    return Convert.FromBase64String(s);
-                }
-                catch
-                {
-                    bindingContext.ModelState.AddModelError(propertyName, $"Cannot convert '{s}' to byte[].");
-                    return null;
-                }
-            }
-
-            if (underlyingType == typeof(JsonDocument))
-            {
-                return raw is JsonDocument jd
-                    ? jd
-                    : JsonDocument.Parse(raw.ToString()!);
+                return converter(raw);
             }
 
             if (underlyingType.IsEnum)
@@ -143,11 +73,15 @@ public static class ValueConverter
                 return Enum.Parse(underlyingType, raw.ToString()!, ignoreCase: true);
             }
 
+            if (underlyingType.IsPrimitive)
+            {
+                return Convert.ChangeType(raw, underlyingType);
+            }
+
             if (underlyingType.IsArray && raw is IEnumerable enumerableRaw)
             {
                 var elementType = underlyingType.GetElementType()!;
                 var list = new List<object?>();
-                
                 foreach (var item in enumerableRaw)
                 {
                     list.Add(ConvertValue(bindingContext, item, elementType, propertyName));
@@ -165,19 +99,17 @@ public static class ValueConverter
             if (underlyingType.IsGenericType)
             {
                 var genericDef = underlyingType.GetGenericTypeDefinition();
-                var elementType = underlyingType.GetGenericArguments()[0];
+                var args = underlyingType.GetGenericArguments();
 
-                if (genericDef == typeof(List<>) || genericDef == typeof(HashSet<>))
+                if ((genericDef == typeof(List<>) || genericDef == typeof(HashSet<>)) && raw is IEnumerable enumerable2)
                 {
+                    var elementType = args[0];
                     var listType = genericDef.MakeGenericType(elementType);
                     var collection = (IList)Activator.CreateInstance(listType)!;
 
-                    if (raw is IEnumerable enumerableRaw2)
+                    foreach (var item in enumerable2)
                     {
-                        foreach (var item in enumerableRaw2)
-                        {
-                            collection.Add(ConvertValue(bindingContext, item, elementType, propertyName));
-                        }
+                        collection.Add(ConvertValue(bindingContext, item, elementType, propertyName));
                     }
 
                     return collection;
@@ -185,8 +117,8 @@ public static class ValueConverter
 
                 if (genericDef == typeof(Dictionary<,>) && raw is IDictionary rawDict)
                 {
-                    var keyType = underlyingType.GetGenericArguments()[0];
-                    var valueType = underlyingType.GetGenericArguments()[1];
+                    var keyType = args[0];
+                    var valueType = args[1];
                     var dictType = typeof(Dictionary<,>).MakeGenericType(keyType, valueType);
                     var dict = (IDictionary)Activator.CreateInstance(dictType)!;
 
@@ -200,14 +132,40 @@ public static class ValueConverter
                     return dict;
                 }
             }
+
+            var tryParse = underlyingType.GetMethod(
+                "TryParse",
+                BindingFlags.Public | BindingFlags.Static,
+                [typeof(string), underlyingType.MakeByRefType()]);
+
+            if (tryParse != null && tryParse.ReturnType == typeof(bool))
+            {
+                var parameters = new object?[] { raw.ToString(), null };
+                var success = (bool)tryParse.Invoke(null, parameters)!;
+                if (success)
+                {
+                    return parameters[1];
+                }
+            }
+
+            var typeConverter = TypeDescriptor.GetConverter(underlyingType);
+            if (typeConverter.CanConvertFrom(raw.GetType()))
+            {
+                return typeConverter.ConvertFrom(raw);
+            }
+
+            if (typeConverter.CanConvertFrom(typeof(string)))
+            {
+                return typeConverter.ConvertFrom(raw.ToString()!);
+            }
         }
-        catch (Exception ex) when (ex is not FormatException)
+        catch (Exception ex)
         {
-            bindingContext.ModelState.AddModelError(propertyName, $"Failed to convert '{raw}' to type {targetType.Name}");
+            bindingContext.ModelState.AddModelError(propertyName, $"Failed to convert '{raw}' to {targetType.Name}: {ex.Message}");
             return null;
         }
-        
-        bindingContext.ModelState.AddModelError(propertyName, $"Failed to convert '{raw}' to type {targetType.Name}");
+
+        bindingContext.ModelState.AddModelError(propertyName, $"Unsupported conversion to {targetType.Name}");
         return null;
     }
 }
