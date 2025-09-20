@@ -12,26 +12,8 @@ public static class ValueConverter
     private static readonly Dictionary<Type, Func<object, object?>> DirectConverters = new()
     {
         [typeof(string)] = raw => raw.ToString(),
-        [typeof(char)] = raw =>
-        {
-            var s = raw.ToString();
-            if (string.IsNullOrEmpty(s) || s.Length != 1)
-            {
-                throw new FormatException("Invalid char.");
-            }
-
-            return s[0];
-        },
-        [typeof(bool)] = raw =>
-        {
-            var s = raw is bool b ? b.ToString() : raw.ToString()!;
-            var isTrue = s.Equals("1") || s.Equals("true", StringComparison.OrdinalIgnoreCase);
-            var isFalse = s.Equals("0") || s.Equals("false", StringComparison.OrdinalIgnoreCase);
-
-            return isTrue || (isFalse
-                ? false
-                : throw new FormatException("Invalid bool."));
-        },
+        [typeof(char)] = raw => raw is char c ? c : char.Parse(raw.ToString()!),
+        [typeof(bool)] = raw => raw is bool b ? b : bool.Parse(raw.ToString()!),
         [typeof(decimal)] = raw => raw is decimal d ? d : decimal.Parse(raw.ToString()!),
         [typeof(Guid)] = raw => raw is Guid g ? g : Guid.Parse(raw.ToString()!),
         [typeof(DateTime)] = raw => raw is DateTime dt ? dt : DateTime.Parse(raw.ToString()!),
