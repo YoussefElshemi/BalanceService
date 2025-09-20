@@ -1,12 +1,13 @@
-using System.ComponentModel.DataAnnotations;
 using System.Net.Mime;
 using Core.Interfaces;
 using Core.ValueObjects;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Constants;
+using Presentation.CustomBinding;
 using Presentation.Mappers;
+using Presentation.Mappers.InterestProductAccountLinks;
 using Presentation.Models;
+using Presentation.Models.InterestProductAccountLinks;
 
 namespace Presentation.Controllers;
 
@@ -26,17 +27,14 @@ public class InterestProductAccountLinksController : Controller
     [HttpPost]
     [ProducesResponseType(typeof(InterestProductAccountLinkDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateInterestProductAccountLink(
-        [FromRoute] Guid accountId,
-        [FromBody] CreateInterestProductAccountLinkRequestDto createInterestProductAccountLinkRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] CreateInterestProductAccountLinkRequestDto createInterestProductAccountLinkRequestDto,
         [FromServices] IValidator<CreateInterestProductAccountLinkRequestDto> createInterestProductAccountLinkRequestDtoValidator,
         [FromServices] IInterestProductAccountLinkService interestProductAccountLinkService,
         CancellationToken cancellationToken)
     {
         await createInterestProductAccountLinkRequestDtoValidator.ValidateAndThrowAsync(createInterestProductAccountLinkRequestDto, cancellationToken);
 
-        var createInterestProductAccountLinkRequest = createInterestProductAccountLinkRequestDto.ToModel(accountId, username);
+        var createInterestProductAccountLinkRequest = createInterestProductAccountLinkRequestDto.ToModel();
 
         var interestProductAccountLink = await interestProductAccountLinkService.CreateAsync(createInterestProductAccountLinkRequest, cancellationToken);
 
@@ -54,8 +52,7 @@ public class InterestProductAccountLinksController : Controller
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultsDto<InterestProductAccountLinkDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> QueryInterestProductAccountLinks(
-        [FromQuery] QueryInterestProductAccountLinksRequestDto queryInterestProductAccountLinksRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] QueryInterestProductAccountLinksRequestDto queryInterestProductAccountLinksRequestDto,
         [FromServices] IValidator<QueryInterestProductAccountLinksRequestDto> queryInterestProductAccountLinksRequestDtoValidator,
         [FromServices] IInterestProductAccountLinkService interestProductAccountLinkServiceService,
         CancellationToken cancellationToken)
@@ -76,15 +73,13 @@ public class InterestProductAccountLinksController : Controller
     [ProducesResponseType(typeof(InterestProductAccountLinkDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetInterestProductAccountLinkById(
-        [FromRoute] Guid accountId,
-        [FromRoute] Guid interestProductId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] GetInterestProductAccountLinkRequestDto getInterestProductAccountLinkRequestDto,
         [FromServices] IInterestProductAccountLinkService interestProductAccountLinkService,
         CancellationToken cancellationToken)
     {
         var interestProductAccountLink = await interestProductAccountLinkService.GetByIdAsync(
-            new AccountId(accountId),
-            new InterestProductId(interestProductId),
+            new AccountId(getInterestProductAccountLinkRequestDto.AccountId),
+            new InterestProductId(getInterestProductAccountLinkRequestDto.InterestProductId),
             cancellationToken);
     
         return Ok(interestProductAccountLink.ToDto());
@@ -97,18 +92,15 @@ public class InterestProductAccountLinksController : Controller
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ActivateAccountById(
-        [FromRoute] Guid accountId,
-        [FromRoute] Guid interestProductId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+    public async Task<IActionResult> ActivateInterestProductAccountLinkById(
+        [FromHybrid] ActivateInterestProductAccountLinkRequestDto activateInterestProductAccountLinkRequestDto,
         [FromServices] IInterestProductAccountLinkService interestProductAccountLinkService,
         CancellationToken cancellationToken)
     {
         await interestProductAccountLinkService.ActivateAsync(
-            new AccountId(accountId),
-            new InterestProductId(interestProductId),
-            new Username(username),
+            new AccountId(activateInterestProductAccountLinkRequestDto.AccountId),
+            new InterestProductId(activateInterestProductAccountLinkRequestDto.InterestProductId),
+            new Username(activateInterestProductAccountLinkRequestDto.Username),
             cancellationToken);
     
         return NoContent();
@@ -121,46 +113,36 @@ public class InterestProductAccountLinksController : Controller
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeactivateAccountById(
-        [FromRoute] Guid accountId,
-        [FromRoute] Guid interestProductId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+    public async Task<IActionResult> DeactivateInterestProductAccountLinkById(
+        [FromHybrid] DeactivateInterestProductAccountLinkRequestDto deactivateInterestProductAccountLinkRequestDto,
         [FromServices] IInterestProductAccountLinkService interestProductAccountLinkService,
         CancellationToken cancellationToken)
     {
         await interestProductAccountLinkService.DeactivateAsync(
-            new AccountId(accountId),
-            new InterestProductId(interestProductId),
-            new Username(username),
+            new AccountId(deactivateInterestProductAccountLinkRequestDto.AccountId),
+            new InterestProductId(deactivateInterestProductAccountLinkRequestDto.InterestProductId),
+            new Username(deactivateInterestProductAccountLinkRequestDto.Username),
             cancellationToken);
     
         return NoContent();
     }
 
     /// <summary>
-    /// Updates an existing interest product.
+    /// Updates an existing interest product account link.
     /// </summary>
     [HttpPut("{interestProductId:guid}")]
     [ProducesResponseType(typeof(InterestProductAccountLinkDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<IActionResult> UpdateInterestProduct(
-        [FromRoute] Guid accountId,
-        [FromRoute] Guid interestProductId,
-        [FromBody] UpdateInterestProductAccountLinkRequestDto updateInterestProductAccountLinkRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+    public async Task<IActionResult> UpdateInterestProductAccountLinkById(
+        [FromHybrid] UpdateInterestProductAccountLinkRequestDto updateInterestProductAccountLinkRequestDto,
         [FromServices] IValidator<UpdateInterestProductAccountLinkRequestDto> updateInterestProductAccountLinkRequestDtoValidator,
         [FromServices] IInterestProductAccountLinkService interestProductAccountLinkService,
         CancellationToken cancellationToken)
     {
         await updateInterestProductAccountLinkRequestDtoValidator.ValidateAndThrowAsync(updateInterestProductAccountLinkRequestDto, cancellationToken);
-    
-        var updateInterestProductAccountLinkRequest = updateInterestProductAccountLinkRequestDto.ToModel(
-            accountId, 
-            interestProductId,
-            username);
+
+        var updateInterestProductAccountLinkRequest = updateInterestProductAccountLinkRequestDto.ToModel();
     
         var interestProductAccountLink = await interestProductAccountLinkService.UpdateAsync(
             updateInterestProductAccountLinkRequest,
@@ -170,24 +152,21 @@ public class InterestProductAccountLinksController : Controller
     }
     
     /// <summary>
-    /// Deletes an interest product.
+    /// Deletes an interest product account link.
     /// </summary>
     [HttpDelete("{interestProductId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteInterestProduct(
-        [FromRoute] Guid accountId,
-        [FromRoute] Guid interestProductId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+    public async Task<IActionResult> DeleteInterestProductAccountLinkById(
+        [FromHybrid] DeleteInterestProductAccountLinkRequestDto deleteInterestProductAccountLinkRequestDto,
         [FromServices] IInterestProductAccountLinkService interestProductAccountLinkService,
         CancellationToken cancellationToken)
     {
         await interestProductAccountLinkService.DeleteAsync(
-            new AccountId(accountId),
-            new InterestProductId(interestProductId),
-            new Username(username),
+            new AccountId(deleteInterestProductAccountLinkRequestDto.AccountId),
+            new InterestProductId(deleteInterestProductAccountLinkRequestDto.InterestProductId),
+            new Username(deleteInterestProductAccountLinkRequestDto.Username),
             cancellationToken);
     
         return NoContent();

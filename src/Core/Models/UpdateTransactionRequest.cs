@@ -5,6 +5,7 @@ namespace Core.Models;
 
 public record UpdateTransactionRequest
 {
+    public required TransactionId TransactionId { get; init; }
     public required TransactionType Type { get; init; }
     public required TransactionSource Source { get; init; }
     public required TransactionDescription? Description { get; init; }

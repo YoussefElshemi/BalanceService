@@ -5,6 +5,7 @@ namespace Core.Models;
 
 public record UpdateHoldRequest
 {
+    public required HoldId HoldId { get; init; }
     public required HoldType Type { get; init; }
     public required ExpiresAt? ExpiresAt { get; init; }
     public required HoldDescription? Description { get; init; }

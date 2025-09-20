@@ -11,8 +11,8 @@ using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Presentation.CustomBinding;
 using Presentation.ExceptionHandlers;
-
 using IAccountHistoryUpdateProcessor = Infrastructure.Services.Interfaces.IHistoryUpdateProcessor<
     Infrastructure.Entities.History.AccountHistoryEntity,
     Core.Models.AccountHistory,
@@ -176,6 +176,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddSwaggerGen(options =>
         {
+            options.OperationFilter<HybridOperationFilter>();
             options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "Balance Service",

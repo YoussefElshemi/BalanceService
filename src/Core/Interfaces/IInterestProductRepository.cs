@@ -11,5 +11,5 @@ public interface IInterestProductRepository
     Task<bool> ExistsAsync(InterestProductId interestProductId, CancellationToken cancellationToken);
     Task<int> CountAsync(QueryInterestProductsRequest queryInterestProductsRequest, CancellationToken cancellationToken);
     Task<List<InterestProduct>> QueryAsync(QueryInterestProductsRequest queryInterestProductsRequest, CancellationToken cancellationToken);
-    Task<InterestProduct> UpdateAsync(InterestProductId interestProductId, UpdateInterestProductRequest updateInterestProductRequest, CancellationToken cancellationToken);
+    Task<InterestProduct> UpdateAsync(UpdateInterestProductRequest updateInterestProductRequest, CancellationToken cancellationToken);
 }

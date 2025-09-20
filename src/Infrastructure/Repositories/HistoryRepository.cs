@@ -15,22 +15,22 @@ public class HistoryRepository<TEntity, TModel>(
     TimeProvider timeProvider) : IHistoryRepository<TEntity, TModel>
     where TEntity : class, IHistoryEntity<TModel>
 {
-    public Task<int> CountChangesAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    public Task<int> CountChangesAsync(GetHistoryRequest getHistoryRequest, CancellationToken cancellationToken)
     {
-        var query = BuildSearchQuery(getChangesRequest);
+        var query = BuildSearchQuery(getHistoryRequest);
 
         return query.CountAsync(cancellationToken);
     }
 
-    public async Task<List<ChangeEvent>> GetChangesAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    public async Task<List<ChangeEvent>> GetChangesAsync(GetHistoryRequest getHistoryRequest, CancellationToken cancellationToken)
     {
-        var query = BuildSearchQuery(getChangesRequest);
+        var query = BuildSearchQuery(getHistoryRequest);
 
         var entities = await query
             .OrderBy(x => x.Timestamp)
             .ThenBy(x => x.Field)
-            .Skip((getChangesRequest.PageNumber - 1) * getChangesRequest.PageSize)
-            .Take(getChangesRequest.PageSize)
+            .Skip((getHistoryRequest.PageNumber - 1) * getHistoryRequest.PageSize)
+            .Take(getHistoryRequest.PageSize)
             .ToListAsync(cancellationToken);
 
         return entities.Select(x => x.ToModel()).ToList();
@@ -73,7 +73,7 @@ public class HistoryRepository<TEntity, TModel>(
         dbContext.Entry(entity).Property(e => e.ProcessedAt).IsModified = true;
     }
 
-    private IQueryable<ChangeEventEntity> BuildSearchQuery(GetChangesRequest getChangesRequest)
+    private IQueryable<ChangeEventEntity> BuildSearchQuery(GetHistoryRequest getHistoryRequest)
     {
         var tableName = dbContext.Model.FindEntityType(typeof(TEntity))!.GetTableName();
         var idColumn = TEntity.GetIdColumn();
@@ -89,7 +89,7 @@ public class HistoryRepository<TEntity, TModel>(
             ""{nameof(ChangeEventEntity.HistoryTypeId)}"",
             ROW_NUMBER() OVER (PARTITION BY ""{idColumn}"" ORDER BY ""{nameof(ChangeEventEntity.Timestamp)}"") AS row_num
         FROM ""{tableName}""
-        WHERE ""{idColumn}"" = '{getChangesRequest.EntityId}'
+        WHERE ""{idColumn}"" = '{getHistoryRequest.EntityId}'
     "));
 
         var sql = $@"
@@ -100,7 +100,7 @@ public class HistoryRepository<TEntity, TModel>(
         FROM Changes 
         WHERE ""{nameof(ChangeEventEntity.OldValue)}"" IS DISTINCT FROM ""{nameof(ChangeEventEntity.NewValue)}""";
 
-        if (getChangesRequest.IgnoreInsert == true)
+        if (getHistoryRequest.IgnoreInsert == true)
         {
             sql += $@"
           AND NOT (row_num = 1 AND ""{nameof(ChangeEventEntity.HistoryTypeId)}"" = {(int)HistoryType.Insert})";

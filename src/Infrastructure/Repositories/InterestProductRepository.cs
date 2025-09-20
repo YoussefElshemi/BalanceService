@@ -68,14 +68,13 @@ public class InterestProductRepository(
     }
 
     public async Task<InterestProduct> UpdateAsync(
-        InterestProductId interestProductId,
         UpdateInterestProductRequest updateInterestProductRequest,
         CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();
         var interestProductEntity = await dbContext.InterestProducts
             .AsTracking()
-            .FirstAsync(x => x.InterestProductId == interestProductId, cancellationToken);
+            .FirstAsync(x => x.InterestProductId == updateInterestProductRequest.InterestProductId, cancellationToken);
 
         interestProductEntity.Name = updateInterestProductRequest.Name;
         interestProductEntity.AnnualInterestRate = updateInterestProductRequest.AnnualInterestRate;

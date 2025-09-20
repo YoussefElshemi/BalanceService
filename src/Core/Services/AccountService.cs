@@ -85,21 +85,21 @@ public class AccountService(
         return accountRepository.ExistsAsync(accountId, cancellationToken);
     }
 
-    public async Task<Account> UpdateAsync(AccountId accountId, UpdateAccountRequest updateAccountRequest, CancellationToken cancellationToken)
+    public async Task<Account> UpdateAsync(UpdateAccountRequest updateAccountRequest, CancellationToken cancellationToken)
     {
-        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, updateAccountRequest.AccountId.ToString());
 
-        if (!await accountRepository.ExistsAsync(accountId, cancellationToken))
+        if (!await accountRepository.ExistsAsync(updateAccountRequest.AccountId, cancellationToken))
         {
             throw new NotFoundException();
         }
 
-        if (accountId == updateAccountRequest.ParentAccountId)
+        if (updateAccountRequest.AccountId == updateAccountRequest.ParentAccountId)
         {
             throw new UnprocessableRequestException($"{nameof(AccountId)} must not match {nameof(UpdateAccountRequest.ParentAccountId)}");
         }
 
-        var account = await accountRepository.UpdateAsync(accountId, updateAccountRequest, cancellationToken);
+        var account = await accountRepository.UpdateAsync(updateAccountRequest, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         
         return account;
@@ -184,15 +184,15 @@ public class AccountService(
         await UpdateStatusAsync(updateAccountStatusRequest, cancellationToken);
     }
 
-    public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetHistoryRequest getHistoryRequest, CancellationToken cancellationToken)
     {
-        if (!await accountRepository.ExistsAsync(new AccountId(getChangesRequest.EntityId), cancellationToken))
+        if (!await accountRepository.ExistsAsync(new AccountId(getHistoryRequest.EntityId), cancellationToken))
         {
             throw new NotFoundException();
         }
         
-        var count = await accountHistoryService.CountChangesAsync(getChangesRequest, cancellationToken);
-        var changeEvents = await accountHistoryService.GetChangesAsync(getChangesRequest, cancellationToken);
+        var count = await accountHistoryService.CountChangesAsync(getHistoryRequest, cancellationToken);
+        var changeEvents = await accountHistoryService.GetChangesAsync(getHistoryRequest, cancellationToken);
 
         return new PagedResults<ChangeEvent>
         {
@@ -200,9 +200,9 @@ public class AccountService(
             MetaData = new PagedMetadata
             {
                 TotalRecords = count,
-                TotalPages = (count + getChangesRequest.PageSize - 1) / getChangesRequest.PageSize,
-                PageSize = getChangesRequest.PageSize,
-                PageNumber = getChangesRequest.PageNumber
+                TotalPages = (count + getHistoryRequest.PageSize - 1) / getHistoryRequest.PageSize,
+                PageSize = getHistoryRequest.PageSize,
+                PageNumber = getHistoryRequest.PageNumber
             }
         };
     }

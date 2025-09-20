@@ -55,12 +55,12 @@ public class AccountRepository(
             .AnyAsync(x => x.AccountId == accountId && x.IsDeleted == false, cancellationToken);
     }
 
-    public async Task<Account> UpdateAsync(AccountId accountId, UpdateAccountRequest updateAccountRequest, CancellationToken cancellationToken)
+    public async Task<Account> UpdateAsync(UpdateAccountRequest updateAccountRequest, CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();
         var accountEntity = await dbContext.Accounts
             .AsTracking()
-            .FirstAsync(x => x.AccountId == accountId, cancellationToken);
+            .FirstAsync(x => x.AccountId == updateAccountRequest.AccountId, cancellationToken);
 
         accountEntity.ParentAccountId = updateAccountRequest.ParentAccountId;
         accountEntity.AccountName = updateAccountRequest.AccountName;

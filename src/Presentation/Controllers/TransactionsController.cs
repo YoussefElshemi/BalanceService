@@ -1,12 +1,13 @@
-using System.ComponentModel.DataAnnotations;
 using System.Net.Mime;
 using Core.Interfaces;
 using Core.ValueObjects;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Constants;
+using Presentation.CustomBinding;
 using Presentation.Mappers;
+using Presentation.Mappers.Transactions;
 using Presentation.Models;
+using Presentation.Models.Transactions;
 
 namespace Presentation.Controllers;
 
@@ -29,16 +30,14 @@ public class TransactionsController : Controller
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> CreateTransaction(
-        [FromBody] CreateTransactionRequestDto createTransactionRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] CreateTransactionRequestDto createTransactionRequestDto,
         [FromServices] IValidator<CreateTransactionRequestDto> createTransactionRequestDtoValidator,
         [FromServices] ITransactionService transactionService,
         CancellationToken cancellationToken)
     {
         await createTransactionRequestDtoValidator.ValidateAndThrowAsync(createTransactionRequestDto, cancellationToken);
 
-        var createTransactionRequest = createTransactionRequestDto.ToModel(username);
+        var createTransactionRequest = createTransactionRequestDto.ToModel();
 
         var transaction = await transactionService.CreateAsync(createTransactionRequest, cancellationToken);
 
@@ -56,8 +55,7 @@ public class TransactionsController : Controller
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultsDto<TransactionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> QueryTransactions(
-        [FromQuery] QueryTransactionsRequestDto queryTransactionsRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] QueryTransactionsRequestDto queryTransactionsRequestDto,
         [FromServices] IValidator<QueryTransactionsRequestDto> queryTransactionsRequestDtoValidator,
         [FromServices] ITransactionService transactionService,
         CancellationToken cancellationToken)
@@ -78,12 +76,13 @@ public class TransactionsController : Controller
     [ProducesResponseType(typeof(TransactionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTransactionById(
-        [FromRoute] Guid transactionId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] GetTransactionRequestDto getTransactionRequestDto,
         [FromServices] ITransactionService transactionService,
         CancellationToken cancellationToken)
     {
-        var transaction = await transactionService.GetByIdAsync(new TransactionId(transactionId), cancellationToken);
+        var transaction = await transactionService.GetByIdAsync(
+            new TransactionId(getTransactionRequestDto.TransactionId),
+            cancellationToken);
 
         return Ok(transaction.ToDto());
     }
@@ -97,13 +96,14 @@ public class TransactionsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> PostTransactionById(
-        [FromRoute] Guid transactionId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] PostTransactionRequestDto postTransactionRequestDto,
         [FromServices] ITransactionService transactionService,
         CancellationToken cancellationToken)
     {
-        await transactionService.PostAsync(new TransactionId(transactionId), new Username(username), cancellationToken);
+        await transactionService.PostAsync(
+            new TransactionId(postTransactionRequestDto.TransactionId),
+            new Username(postTransactionRequestDto.Username),
+            cancellationToken);
 
         return NoContent();
     }
@@ -117,13 +117,14 @@ public class TransactionsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> ReverseTransactionById(
-        [FromRoute] Guid transactionId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] ReverseTransactionRequestDto reverseTransactionRequestDto,
         [FromServices] ITransactionService transactionService,
         CancellationToken cancellationToken)
     {
-        var reversedTransaction = await transactionService.ReverseAsync(new TransactionId(transactionId), new Username(username), cancellationToken);
+        var reversedTransaction = await transactionService.ReverseAsync(
+            new TransactionId(reverseTransactionRequestDto.TransactionId),
+            new Username(reverseTransactionRequestDto.Username),
+            cancellationToken);
 
         return CreatedAtAction(
             actionName: nameof(GetTransactionById),
@@ -140,18 +141,16 @@ public class TransactionsController : Controller
     [ProducesResponseType(typeof(PagedResultsDto<ChangeEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTransactionHistoryById(
-        [FromRoute] Guid transactionId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [FromQuery] GetChangesRequestDto getChangesRequestDto,
-        [FromServices] IValidator<GetChangesRequestDto> getChangesRequestDtoValidator,
+        [FromHybrid] GetTransactionHistoryRequestDto getTransactionHistoryRequestDto,
+        [FromServices] IValidator<GetHistoryRequestDto> getHistoryRequestDtoValidator,
         [FromServices] ITransactionService transactionService,
         CancellationToken cancellationToken)
     {
-        await getChangesRequestDtoValidator.ValidateAndThrowAsync(getChangesRequestDto, cancellationToken);
+        await getHistoryRequestDtoValidator.ValidateAndThrowAsync(getTransactionHistoryRequestDto, cancellationToken);
 
-        var getChangesRequest = getChangesRequestDto.ToModel(transactionId);
+        var getHistoryRequest = getTransactionHistoryRequestDto.ToModel(getTransactionHistoryRequestDto.TransactionId);
 
-        var results = await transactionService.GetHistoryAsync(getChangesRequest, cancellationToken);
+        var results = await transactionService.GetHistoryAsync(getHistoryRequest, cancellationToken);
 
         return Ok(results.ToDto(x => x.ToDto()));
         
@@ -165,19 +164,16 @@ public class TransactionsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> UpdateTransaction(
-        [FromRoute] Guid transactionId,
-        [FromBody] UpdateTransactionRequestDto updateTransactionRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] UpdateTransactionRequestDto updateTransactionRequestDto,
         [FromServices] IValidator<UpdateTransactionRequestDto> updateTransactionRequestDtoValidator,
         [FromServices] ITransactionService transactionService,
         CancellationToken cancellationToken)
     {
         await updateTransactionRequestDtoValidator.ValidateAndThrowAsync(updateTransactionRequestDto, cancellationToken);
 
-        var updateTransactionRequest = updateTransactionRequestDto.ToModel(username);
+        var updateTransactionRequest = updateTransactionRequestDto.ToModel();
     
-        var updatedTransaction = await transactionService.UpdateAsync(new TransactionId(transactionId), updateTransactionRequest, cancellationToken);
+        var updatedTransaction = await transactionService.UpdateAsync(updateTransactionRequest, cancellationToken);
     
         return Ok(updatedTransaction.ToDto());
     }
@@ -190,13 +186,14 @@ public class TransactionsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> DeleteTransaction(
-        [FromRoute] Guid transactionId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] DeleteTransactionRequestDto deleteTransactionRequestDto,
         [FromServices] ITransactionService transactionService,
         CancellationToken cancellationToken)
     {
-        await transactionService.DeleteAsync(new TransactionId(transactionId), new Username(username), cancellationToken);
+        await transactionService.DeleteAsync(
+            new TransactionId(deleteTransactionRequestDto.TransactionId),
+            new Username(deleteTransactionRequestDto.Username),
+            cancellationToken);
 
         return NoContent();
     }

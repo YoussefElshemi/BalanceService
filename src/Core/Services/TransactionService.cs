@@ -89,18 +89,18 @@ public class TransactionService(
         return transactionRepository.ExistsAsync(transactionId, cancellationToken);
     }
 
-    public async Task<Transaction> UpdateAsync(TransactionId transactionId, UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken)
+    public async Task<Transaction> UpdateAsync(UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken)
     {
-        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransactionId, transactionId.ToString());
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.TransactionId, updateTransactionRequest.TransactionId.ToString());
 
-        var transaction = await GetByIdAsync(transactionId, cancellationToken);
+        var transaction = await GetByIdAsync(updateTransactionRequest.TransactionId, cancellationToken);
         
         if (transaction.Status != TransactionStatus.Draft)
         {
             throw new UnprocessableRequestException($"{nameof(Transaction)} must be in a {nameof(TransactionStatus.Draft)} status to be updated");
         }
 
-        var updatedTransaction = await transactionRepository.UpdateAsync(transactionId, updateTransactionRequest, cancellationToken);
+        var updatedTransaction = await transactionRepository.UpdateAsync(updateTransactionRequest, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return updatedTransaction;
@@ -172,15 +172,15 @@ public class TransactionService(
         };
     }
 
-    public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetHistoryRequest getHistoryRequest, CancellationToken cancellationToken)
     {
-        if (!await transactionRepository.ExistsAsync(new TransactionId(getChangesRequest.EntityId), cancellationToken))
+        if (!await transactionRepository.ExistsAsync(new TransactionId(getHistoryRequest.EntityId), cancellationToken))
         {
             throw new NotFoundException();
         }
         
-        var count = await transactionHistoryService.CountChangesAsync(getChangesRequest, cancellationToken);
-        var changeEvents = await transactionHistoryService.GetChangesAsync(getChangesRequest, cancellationToken);
+        var count = await transactionHistoryService.CountChangesAsync(getHistoryRequest, cancellationToken);
+        var changeEvents = await transactionHistoryService.GetChangesAsync(getHistoryRequest, cancellationToken);
 
         return new PagedResults<ChangeEvent>
         {
@@ -188,9 +188,9 @@ public class TransactionService(
             MetaData = new PagedMetadata
             {
                 TotalRecords = count,
-                TotalPages = (count + getChangesRequest.PageSize - 1) / getChangesRequest.PageSize,
-                PageSize = getChangesRequest.PageSize,
-                PageNumber = getChangesRequest.PageNumber
+                TotalPages = (count + getHistoryRequest.PageSize - 1) / getHistoryRequest.PageSize,
+                PageSize = getHistoryRequest.PageSize,
+                PageNumber = getHistoryRequest.PageNumber
             }
         };
     }

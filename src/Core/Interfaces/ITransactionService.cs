@@ -11,8 +11,8 @@ public interface ITransactionService
     Task<bool> ExistsAsync(TransactionId transactionId, CancellationToken cancellationToken);
     Task PostAsync(TransactionId transaction, Username postedBy, CancellationToken cancellationToken);
     Task DeleteAsync(TransactionId transactionId, Username deletedBy, CancellationToken cancellationToken);
-    Task<Transaction> UpdateAsync(TransactionId transactionId, UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken);
+    Task<Transaction> UpdateAsync(UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken);
     Task<Transaction> ReverseAsync(TransactionId transactionId, Username reversedBy, CancellationToken cancellationToken);
     Task<PagedResults<Transaction>> QueryAsync(QueryTransactionsRequest queryTransactionsRequest, CancellationToken cancellationToken);
-    Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken);
+    Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetHistoryRequest getHistoryRequest, CancellationToken cancellationToken);
 }

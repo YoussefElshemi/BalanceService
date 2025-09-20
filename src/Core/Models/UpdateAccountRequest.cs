@@ -6,6 +6,7 @@ namespace Core.Models;
 
 public record UpdateAccountRequest
 {
+    public required AccountId AccountId { get; init; }
     public required AccountName AccountName { get; init; }
     public required CurrencyCode CurrencyCode { get; init; }
     public required MinimumRequiredBalance MinimumRequiredBalance { get; init; }

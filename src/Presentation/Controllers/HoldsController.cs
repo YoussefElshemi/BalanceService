@@ -1,12 +1,15 @@
-using System.ComponentModel.DataAnnotations;
 using System.Net.Mime;
 using Core.Interfaces;
 using Core.ValueObjects;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Constants;
+using Presentation.CustomBinding;
 using Presentation.Mappers;
+using Presentation.Mappers.Holds;
+using Presentation.Mappers.Transactions;
 using Presentation.Models;
+using Presentation.Models.Holds;
+using Presentation.Models.Transactions;
 
 namespace Presentation.Controllers;
 
@@ -29,16 +32,14 @@ public class HoldsController : Controller
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> CreateHold(
-        [FromBody] CreateHoldRequestDto createHoldRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] CreateHoldRequestDto createHoldRequestDto,
         [FromServices] IValidator<CreateHoldRequestDto> createHoldRequestDtoValidator,
         [FromServices] IHoldService holdService,
         CancellationToken cancellationToken)
     {
         await createHoldRequestDtoValidator.ValidateAndThrowAsync(createHoldRequestDto, cancellationToken);
 
-        var createHoldRequest = createHoldRequestDto.ToModel(username);
+        var createHoldRequest = createHoldRequestDto.ToModel();
 
         var hold = await holdService.CreateAsync(createHoldRequest, cancellationToken);
 
@@ -56,8 +57,7 @@ public class HoldsController : Controller
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultsDto<HoldDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> QueryHolds(
-        [FromQuery] QueryHoldsRequestDto queryHoldsRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] QueryHoldsRequestDto queryHoldsRequestDto,
         [FromServices] IValidator<QueryHoldsRequestDto> queryHoldsRequestDtoValidator,
         [FromServices] IHoldService holdService,
         CancellationToken cancellationToken)
@@ -78,12 +78,11 @@ public class HoldsController : Controller
     [ProducesResponseType(typeof(HoldDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetHoldById(
-        [FromRoute] Guid holdId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] GetHoldRequestDto getHoldRequestDto,
         [FromServices] IHoldService holdService,
         CancellationToken cancellationToken)
     {
-        var hold = await holdService.GetByIdAsync(new HoldId(holdId), cancellationToken);
+        var hold = await holdService.GetByIdAsync(new HoldId(getHoldRequestDto.HoldId), cancellationToken);
     
         return Ok(hold.ToDto());
     }
@@ -97,13 +96,14 @@ public class HoldsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> ReleaseHoldById(
-        [FromRoute] Guid holdId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromBody] ReleaseHoldRequestDto releaseHoldRequestDto,
         [FromServices] IHoldService holdService,
         CancellationToken cancellationToken)
     {
-        await holdService.ReleaseAsync(new HoldId(holdId), new Username(username), cancellationToken);
+        await holdService.ReleaseAsync(
+            new HoldId(releaseHoldRequestDto.HoldId),
+            new Username(releaseHoldRequestDto.Username),
+            cancellationToken);
 
         return NoContent();
     }
@@ -117,13 +117,14 @@ public class HoldsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> SettleHoldById(
-        [FromRoute] Guid holdId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] SettleHoldRequestDto settleHoldRequestDto,
         [FromServices] IHoldService holdService,
         CancellationToken cancellationToken)
     {
-        var transaction = await holdService.SettleAsync(new HoldId(holdId), new Username(username), cancellationToken);
+        var transaction = await holdService.SettleAsync(
+            new HoldId(settleHoldRequestDto.HoldId),
+            new Username(settleHoldRequestDto.Username),
+            cancellationToken);
 
         return CreatedAtAction(
             actionName: nameof(TransactionsController.GetTransactionById),
@@ -140,18 +141,16 @@ public class HoldsController : Controller
     [ProducesResponseType(typeof(PagedResultsDto<ChangeEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetHoldHistoryById(
-        [FromRoute] Guid holdId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [FromQuery] GetChangesRequestDto getChangesRequestDto,
-        [FromServices] IValidator<GetChangesRequestDto> getChangesRequestDtoValidator,
+        [FromHybrid] GetHoldHistoryRequestDto getHoldHistoryRequestDto,
+        [FromServices] IValidator<GetHistoryRequestDto> getHistoryRequestDtoValidator,
         [FromServices] IHoldService holdService,
         CancellationToken cancellationToken)
     {
-        await getChangesRequestDtoValidator.ValidateAndThrowAsync(getChangesRequestDto, cancellationToken);
+        await getHistoryRequestDtoValidator.ValidateAndThrowAsync(getHoldHistoryRequestDto, cancellationToken);
 
-        var getChangesRequest = getChangesRequestDto.ToModel(holdId);
+        var getHistoryRequest = getHoldHistoryRequestDto.ToModel(getHoldHistoryRequestDto.HoldId);
 
-        var results = await holdService.GetHistoryAsync(getChangesRequest, cancellationToken);
+        var results = await holdService.GetHistoryAsync(getHistoryRequest, cancellationToken);
 
         return Ok(results.ToDto(x => x.ToDto()));
         
@@ -165,19 +164,16 @@ public class HoldsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> UpdateHold(
-        [FromRoute] Guid holdId,
-        [FromBody] UpdateHoldRequestDto updateHoldRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] UpdateHoldRequestDto updateHoldRequestDto,
         [FromServices] IValidator<UpdateHoldRequestDto> updateHoldRequestDtoValidator,
         [FromServices] IHoldService holdService,
         CancellationToken cancellationToken)
     {
         await updateHoldRequestDtoValidator.ValidateAndThrowAsync(updateHoldRequestDto, cancellationToken);
 
-        var updateHoldRequest = updateHoldRequestDto.ToModel(username);
+        var updateHoldRequest = updateHoldRequestDto.ToModel();
     
-        var updatedHold = await holdService.UpdateAsync(new HoldId(holdId), updateHoldRequest, cancellationToken);
+        var updatedHold = await holdService.UpdateAsync(updateHoldRequest, cancellationToken);
     
         return Ok(updatedHold.ToDto());
     }
@@ -190,13 +186,14 @@ public class HoldsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> DeleteHold(
-        [FromRoute] Guid holdId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] DeleteHoldRequestDto deleteHoldRequestDto,
         [FromServices] IHoldService holdService,
         CancellationToken cancellationToken)
     {
-        await holdService.DeleteAsync(new HoldId(holdId), new Username(username), cancellationToken);
+        await holdService.DeleteAsync(
+            new HoldId(deleteHoldRequestDto.HoldId),
+            new Username(deleteHoldRequestDto.Username),
+            cancellationToken);
     
         return NoContent();
     }

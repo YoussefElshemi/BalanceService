@@ -9,5 +9,5 @@ public interface IInterestProductService
     Task<InterestProduct> GetByIdAsync(InterestProductId interestProductId, CancellationToken cancellationToken);
     Task DeleteAsync(InterestProductId interestProductId, Username deletedBy, CancellationToken cancellationToken);
     Task<PagedResults<InterestProduct>> QueryAsync(QueryInterestProductsRequest queryInterestProductsRequest, CancellationToken cancellationToken);
-    Task<InterestProduct> UpdateAsync(InterestProductId interestProductId, UpdateInterestProductRequest updateInterestProductRequest, CancellationToken cancellationToken);
+    Task<InterestProduct> UpdateAsync(UpdateInterestProductRequest updateInterestProductRequest, CancellationToken cancellationToken);
 }

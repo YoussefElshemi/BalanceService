@@ -12,14 +12,14 @@ public abstract class HistoryService<TEntity, TModel>(
     protected abstract Dictionary<ChangeEventField, ChangeEventField> FieldMappings { get; }
     protected abstract Dictionary<string, Func<ChangeEventValue?, ChangeEventValue?>> ValueMappers { get; }
 
-    public Task<int> CountChangesAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    public Task<int> CountChangesAsync(GetHistoryRequest getHistoryRequest, CancellationToken cancellationToken)
     {
-        return repository.CountChangesAsync(getChangesRequest, cancellationToken);
+        return repository.CountChangesAsync(getHistoryRequest, cancellationToken);
     }
 
-    public async Task<List<ChangeEvent>> GetChangesAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    public async Task<List<ChangeEvent>> GetChangesAsync(GetHistoryRequest getHistoryRequest, CancellationToken cancellationToken)
     {
-        var changes = await repository.GetChangesAsync(getChangesRequest, cancellationToken);
+        var changes = await repository.GetChangesAsync(getHistoryRequest, cancellationToken);
         return MapToDomain(changes);
     }
 

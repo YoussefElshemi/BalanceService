@@ -72,12 +72,12 @@ public class HoldRepository(
         holdEntity.UpdatedAt = utcDateTime;
     }
 
-    public async Task<Hold> UpdateAsync(HoldId holdId, UpdateHoldRequest updateHoldRequest, CancellationToken cancellationToken)
+    public async Task<Hold> UpdateAsync(UpdateHoldRequest updateHoldRequest, CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();
         var holdEntity = await dbContext.Holds
             .AsTracking()
-            .FirstAsync(x => x.HoldId == holdId, cancellationToken);
+            .FirstAsync(x => x.HoldId == updateHoldRequest.HoldId, cancellationToken);
 
         holdEntity.HoldTypeId = (int)updateHoldRequest.Type;
         holdEntity.ExpiresAt =  updateHoldRequest.ExpiresAt;

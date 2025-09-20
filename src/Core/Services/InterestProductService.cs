@@ -85,18 +85,17 @@ public class InterestProductService(
     }
 
     public async Task<InterestProduct> UpdateAsync(
-        InterestProductId interestProductId,
         UpdateInterestProductRequest updateInterestProductRequest,
         CancellationToken cancellationToken)
     {
-        Activity.Current?.AddTag(OpenTelemetryTags.Service.InterestProductId, interestProductId.ToString());
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.InterestProductId, updateInterestProductRequest.InterestProductId.ToString());
 
-        if (!await interestProductRepository.ExistsAsync(interestProductId, cancellationToken))
+        if (!await interestProductRepository.ExistsAsync(updateInterestProductRequest.InterestProductId, cancellationToken))
         {
             throw new NotFoundException();
         }
 
-        var interestProduct = await interestProductRepository.UpdateAsync(interestProductId, updateInterestProductRequest, cancellationToken);
+        var interestProduct = await interestProductRepository.UpdateAsync(updateInterestProductRequest, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         
         return interestProduct;

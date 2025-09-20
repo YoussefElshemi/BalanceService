@@ -5,6 +5,7 @@ namespace Core.Models;
 
 public record UpdateInterestProductRequest
 {
+    public required InterestProductId InterestProductId { get; init; }
     public required InterestProductName Name { get; init; }
     public required InterestRate AnnualInterestRate { get; init; }
     public required InterestPayoutFrequency InterestPayoutFrequency { get; init; }

@@ -1,12 +1,13 @@
-using System.ComponentModel.DataAnnotations;
 using System.Net.Mime;
 using Core.Interfaces;
 using Core.ValueObjects;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Constants;
+using Presentation.CustomBinding;
 using Presentation.Mappers;
+using Presentation.Mappers.Accounts;
 using Presentation.Models;
+using Presentation.Models.Accounts;
 
 namespace Presentation.Controllers;
 
@@ -26,16 +27,14 @@ public class AccountsController : Controller
     [HttpPost]
     [ProducesResponseType(typeof(AccountDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateAccount(
-        [FromBody] CreateAccountRequestDto createAccountRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] CreateAccountRequestDto createAccountRequestDto,
         [FromServices] IValidator<CreateAccountRequestDto> createAccountRequestDtoValidator,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
     {
         await createAccountRequestDtoValidator.ValidateAndThrowAsync(createAccountRequestDto, cancellationToken);
 
-        var createAccountRequest = createAccountRequestDto.ToModel(username);
+        var createAccountRequest = createAccountRequestDto.ToModel();
 
         var account = await accountService.CreateAsync(createAccountRequest, cancellationToken);
 
@@ -53,8 +52,7 @@ public class AccountsController : Controller
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultsDto<AccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> QueryAccounts(
-        [FromQuery] QueryAccountsRequestDto queryAccountsRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] QueryAccountsRequestDto queryAccountsRequestDto,
         [FromServices] IValidator<QueryAccountsRequestDto> queryAccountsRequestDtoValidator,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
@@ -75,12 +73,11 @@ public class AccountsController : Controller
     [ProducesResponseType(typeof(AccountDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAccountById(
-        [FromRoute] Guid accountId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] GetAccountRequestDto getAccountRequestDto,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
     {
-        var account = await accountService.GetByIdAsync(new AccountId(accountId), cancellationToken);
+        var account = await accountService.GetByIdAsync(new AccountId(getAccountRequestDto.AccountId), cancellationToken);
 
         return Ok(account.ToDto());
     }
@@ -93,13 +90,14 @@ public class AccountsController : Controller
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ActivateAccountById(
-        [FromRoute] Guid accountId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] ActivateAccountRequestDto activateAccountRequestDto,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
     {
-        await accountService.ActivateAsync(new AccountId(accountId), new Username(username), cancellationToken);
+        await accountService.ActivateAsync(
+            new AccountId(activateAccountRequestDto.AccountId),
+            new Username(activateAccountRequestDto.Username),
+            cancellationToken);
 
         return NoContent();
     }
@@ -112,13 +110,14 @@ public class AccountsController : Controller
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> FreezeAccountById(
-        [FromRoute] Guid accountId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] FreezeAccountRequestDto freezeAccountRequestDto,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
     {
-        await accountService.FreezeAsync(new AccountId(accountId), new Username(username), cancellationToken);
+        await accountService.FreezeAsync(
+            new AccountId(freezeAccountRequestDto.AccountId),
+            new Username(freezeAccountRequestDto.Username),
+            cancellationToken);
 
         return NoContent();
     }
@@ -131,13 +130,14 @@ public class AccountsController : Controller
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CloseAccountById(
-        [FromRoute] Guid accountId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] CloseAccountRequestDto closeAccountRequestDto,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
     {
-        await accountService.CloseAsync(new AccountId(accountId), new Username(username), cancellationToken);
+        await accountService.CloseAsync(
+            new AccountId(closeAccountRequestDto.AccountId),
+            new Username(closeAccountRequestDto.Username),
+            cancellationToken);
 
         return NoContent();
     }
@@ -149,12 +149,13 @@ public class AccountsController : Controller
     [ProducesResponseType(typeof(AccountBalanceDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAccountBalancesById(
-        [FromRoute] Guid accountId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] GetAccountBalancesRequestDto getAccountBalancesRequestDto,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
     {
-        var balances = await accountService.GetBalancesByIdAsync(new AccountId(accountId), cancellationToken);
+        var balances = await accountService.GetBalancesByIdAsync(
+            new AccountId(getAccountBalancesRequestDto.AccountId),
+            cancellationToken);
 
         return Ok(balances.ToDto());
     }
@@ -166,18 +167,16 @@ public class AccountsController : Controller
     [ProducesResponseType(typeof(PagedResultsDto<ChangeEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAccountHistoryById(
-        [FromRoute] Guid accountId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [FromQuery] GetChangesRequestDto getChangesRequestDto,
-        [FromServices] IValidator<GetChangesRequestDto> getChangesRequestDtoValidator,
+        [FromHybrid] GetAccountHistoryRequestDto getAccountHistoryRequestDto,
+        [FromServices] IValidator<GetHistoryRequestDto> getHistoryRequestDtoValidator,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
     {
-        await getChangesRequestDtoValidator.ValidateAndThrowAsync(getChangesRequestDto, cancellationToken);
+        await getHistoryRequestDtoValidator.ValidateAndThrowAsync(getAccountHistoryRequestDto, cancellationToken);
 
-        var getChangesRequest = getChangesRequestDto.ToModel(accountId);
+        var getHistoryRequest = getAccountHistoryRequestDto.ToModel(getAccountHistoryRequestDto.AccountId);
 
-        var results = await accountService.GetHistoryAsync(getChangesRequest, cancellationToken);
+        var results = await accountService.GetHistoryAsync(getHistoryRequest, cancellationToken);
 
         return Ok(results.ToDto(x => x.ToDto()));
         
@@ -191,19 +190,16 @@ public class AccountsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> UpdateAccount(
-        [FromRoute] Guid accountId,
-        [FromBody] UpdateAccountRequestDto updateAccountRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] UpdateAccountRequestDto updateAccountRequestDto,
         [FromServices] IValidator<UpdateAccountRequestDto> updateAccountRequestDtoValidator,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
     {
         await updateAccountRequestDtoValidator.ValidateAndThrowAsync(updateAccountRequestDto, cancellationToken);
 
-        var updateAccountRequest = updateAccountRequestDto.ToModel(username);
+        var updateAccountRequest = updateAccountRequestDto.ToModel();
 
-        var account = await accountService.UpdateAsync(new AccountId(accountId), updateAccountRequest, cancellationToken);
+        var account = await accountService.UpdateAsync(updateAccountRequest, cancellationToken);
 
         return Ok(account.ToDto());
     }
@@ -216,13 +212,14 @@ public class AccountsController : Controller
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAccount(
-        [FromRoute] Guid accountId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] DeleteAccountRequestDto deleteAccountRequestDto,
         [FromServices] IAccountService accountService,
         CancellationToken cancellationToken)
     {
-        await accountService.DeleteAsync(new AccountId(accountId), new Username(username), cancellationToken);
+        await accountService.DeleteAsync(
+            new AccountId(deleteAccountRequestDto.AccountId),
+            new Username(deleteAccountRequestDto.Username),
+            cancellationToken);
 
         return NoContent();
     }

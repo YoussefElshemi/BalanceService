@@ -59,12 +59,12 @@ public class TransactionRepository(
         transactionEntity.DeletedAt = utcDateTime;
     }
 
-    public async Task<Transaction> UpdateAsync(TransactionId transactionId, UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken)
+    public async Task<Transaction> UpdateAsync(UpdateTransactionRequest updateTransactionRequest, CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();
         var transactionEntity = await dbContext.Transactions
             .AsTracking()
-            .FirstAsync(x => x.TransactionId == transactionId, cancellationToken);
+            .FirstAsync(x => x.TransactionId == updateTransactionRequest.TransactionId, cancellationToken);
 
         transactionEntity.TransactionTypeId = (int)updateTransactionRequest.Type;
         transactionEntity.TransactionSourceId = (int)updateTransactionRequest.Source;

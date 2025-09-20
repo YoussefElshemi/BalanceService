@@ -3,9 +3,9 @@ using Core.Interfaces;
 using Core.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Constants;
-using Presentation.Mappers;
-using Presentation.Models;
+using Presentation.CustomBinding;
+using Presentation.Mappers.Statements;
+using Presentation.Models.Statements;
 
 namespace Presentation.Controllers;
 
@@ -25,8 +25,7 @@ public class StatementsController : Controller
     [HttpGet]
     [ProducesResponseType(typeof(StatementDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStatement(
-        [FromQuery] GetStatementRequestDto getStatementRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] GetStatementRequestDto getStatementRequestDto,
         [FromServices] IValidator<GetStatementRequestDto> getStatementRequestDtoValidator,
         [FromServices] IStatementService statementService,
         CancellationToken cancellationToken)
@@ -47,8 +46,7 @@ public class StatementsController : Controller
     [Produces(MediaTypeNames.Application.Pdf)]
     [ProducesResponseType(typeof(StatementDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GeneratePdfStatement(
-        [FromQuery] GenerateStatementRequestDto generateStatementRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] GenerateStatementRequestDto generateStatementRequestDto,
         [FromServices] IValidator<GenerateStatementRequestDto> generateStatementRequestDtoValidator,
         [FromServices] IStatementService statementService,
         CancellationToken cancellationToken)
@@ -69,8 +67,7 @@ public class StatementsController : Controller
     [Produces(MediaTypeNames.Text.Csv)]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> GenerateCsvStatement(
-        [FromQuery] GenerateStatementRequestDto generateCsvStatementRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromBody] GenerateStatementRequestDto generateCsvStatementRequestDto,
         [FromServices] IValidator<GenerateStatementRequestDto> generateCsvStatementRequestDtoValidator,
         [FromServices] IStatementService statementService,
         CancellationToken cancellationToken)

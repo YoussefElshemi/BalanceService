@@ -1,12 +1,13 @@
-using System.ComponentModel.DataAnnotations;
 using System.Net.Mime;
 using Core.Interfaces;
 using Core.ValueObjects;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Constants;
+using Presentation.CustomBinding;
 using Presentation.Mappers;
+using Presentation.Mappers.InterestProducts;
 using Presentation.Models;
+using Presentation.Models.InterestProducts;
 
 namespace Presentation.Controllers;
 
@@ -29,16 +30,14 @@ public class InterestProductsController : Controller
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> CreateInterestProduct(
-        [FromBody] CreateInterestProductRequestDto createInterestProductRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] CreateInterestProductRequestDto createInterestProductRequestDto,
         [FromServices] IValidator<CreateInterestProductRequestDto> createInterestProductRequestDtoValidator,
         [FromServices] IInterestProductService interestProductService,
         CancellationToken cancellationToken)
     {
         await createInterestProductRequestDtoValidator.ValidateAndThrowAsync(createInterestProductRequestDto, cancellationToken);
 
-        var createInterestProductRequest = createInterestProductRequestDto.ToModel(username);
+        var createInterestProductRequest = createInterestProductRequestDto.ToModel();
 
         var interestProduct = await interestProductService.CreateAsync(createInterestProductRequest, cancellationToken);
 
@@ -56,8 +55,7 @@ public class InterestProductsController : Controller
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultsDto<InterestProductDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> QueryInterestProducts(
-        [FromQuery] QueryInterestProductsRequestDto queryInterestProductsRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] QueryInterestProductsRequestDto queryInterestProductsRequestDto,
         [FromServices] IValidator<QueryInterestProductsRequestDto> queryInterestProductsRequestDtoValidator,
         [FromServices] IInterestProductService interestProductService,
         CancellationToken cancellationToken)
@@ -78,12 +76,13 @@ public class InterestProductsController : Controller
     [ProducesResponseType(typeof(InterestProductDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetInterestProductById(
-        [FromRoute] Guid interestProductId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
+        [FromHybrid] GetInterestProductRequestDto getInterestProductRequestDto,
         [FromServices] IInterestProductService interestProductService,
         CancellationToken cancellationToken)
     {
-        var interestProduct = await interestProductService.GetByIdAsync(new InterestProductId(interestProductId), cancellationToken);
+        var interestProduct = await interestProductService.GetByIdAsync(
+            new InterestProductId(getInterestProductRequestDto.InterestProductId),
+            cancellationToken);
     
         return Ok(interestProduct.ToDto());
     }
@@ -96,19 +95,16 @@ public class InterestProductsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> UpdateInterestProduct(
-        [FromRoute] Guid interestProductId,
-        [FromBody] UpdateInterestProductRequestDto updateInterestProductRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] UpdateInterestProductRequestDto updateInterestProductRequestDto,
         [FromServices] IValidator<UpdateInterestProductRequestDto> updateInterestProductRequestDtoValidator,
         [FromServices] IInterestProductService interestProductService,
         CancellationToken cancellationToken)
     {
         await updateInterestProductRequestDtoValidator.ValidateAndThrowAsync(updateInterestProductRequestDto, cancellationToken);
     
-        var updateInterestProductRequest = updateInterestProductRequestDto.ToModel(username);
+        var updateInterestProductRequest = updateInterestProductRequestDto.ToModel();
     
-        var updatedInterestProduct = await interestProductService.UpdateAsync(new InterestProductId(interestProductId), updateInterestProductRequest, cancellationToken);
+        var updatedInterestProduct = await interestProductService.UpdateAsync(updateInterestProductRequest, cancellationToken);
     
         return Ok(updatedInterestProduct.ToDto());
     }
@@ -121,13 +117,14 @@ public class InterestProductsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> DeleteInterestProduct(
-        [FromRoute] Guid interestProductId,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required][FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] DeleteInterestProductRequestDto deleteInterestProductRequestDto,
         [FromServices] IInterestProductService interestProductService,
         CancellationToken cancellationToken)
     {
-        await interestProductService.DeleteAsync(new InterestProductId(interestProductId), new Username(username), cancellationToken);
+        await interestProductService.DeleteAsync(
+            new InterestProductId(deleteInterestProductRequestDto.InterestProductId),
+            new Username(deleteInterestProductRequestDto.Username),
+            cancellationToken);
     
         return NoContent();
     }

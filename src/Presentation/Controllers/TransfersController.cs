@@ -1,11 +1,12 @@
-using System.ComponentModel.DataAnnotations;
 using System.Net.Mime;
 using Core.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Constants;
+using Presentation.CustomBinding;
 using Presentation.Mappers;
+using Presentation.Mappers.Transfers;
 using Presentation.Models;
+using Presentation.Models.Transfers;
 
 namespace Presentation.Controllers;
 
@@ -28,16 +29,14 @@ public class TransfersController : Controller
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> CreateTransfer(
-        [FromBody] CreateTransferRequestDto createTransferRequestDto,
-        [FromHeader(Name = HeaderNames.CorrelationId)] Guid correlationId,
-        [Required] [FromHeader(Name = HeaderNames.Username)] string username,
+        [FromHybrid] CreateTransferRequestDto createTransferRequestDto,
         [FromServices] IValidator<CreateTransferRequestDto> createTransferRequestDtoValidator,
         [FromServices] ITransferService transferService,
         CancellationToken cancellationToken)
     {
         await createTransferRequestDtoValidator.ValidateAndThrowAsync(createTransferRequestDto, cancellationToken);
 
-        var createTransferRequest = createTransferRequestDto.ToModel(username);
+        var createTransferRequest = createTransferRequestDto.ToModel();
 
         var transfer = await transferService.CreateAsync(createTransferRequest, cancellationToken);
 

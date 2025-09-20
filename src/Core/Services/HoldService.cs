@@ -147,18 +147,18 @@ public class HoldService(
         return transaction;
     }
 
-    public async Task<Hold> UpdateAsync(HoldId holdId, UpdateHoldRequest updateHoldRequest, CancellationToken cancellationToken)
+    public async Task<Hold> UpdateAsync(UpdateHoldRequest updateHoldRequest, CancellationToken cancellationToken)
     {
-        Activity.Current?.AddTag(OpenTelemetryTags.Service.HoldId, holdId.ToString());
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.HoldId, updateHoldRequest.HoldId.ToString());
 
-        var hold = await GetByIdAsync(holdId, cancellationToken);
+        var hold = await GetByIdAsync(updateHoldRequest.HoldId, cancellationToken);
 
         if (hold.Status != HoldStatus.Active)
         {
             throw new UnprocessableRequestException($"{nameof(Hold)} must be in a {nameof(HoldStatus.Active)} status to be updated");
         }
 
-        var updatedHold = await holdRepository.UpdateAsync(holdId, updateHoldRequest, cancellationToken);
+        var updatedHold = await holdRepository.UpdateAsync(updateHoldRequest, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         
         return updatedHold;
@@ -188,15 +188,15 @@ public class HoldService(
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetChangesRequest getChangesRequest, CancellationToken cancellationToken)
+    public async Task<PagedResults<ChangeEvent>> GetHistoryAsync(GetHistoryRequest getHistoryRequest, CancellationToken cancellationToken)
     {
-        if (!await holdRepository.ExistsAsync(new HoldId(getChangesRequest.EntityId), cancellationToken))
+        if (!await holdRepository.ExistsAsync(new HoldId(getHistoryRequest.EntityId), cancellationToken))
         {
             throw new NotFoundException();
         }
 
-        var count = await holdHistoryService.CountChangesAsync(getChangesRequest, cancellationToken);
-        var changeEvents = await holdHistoryService.GetChangesAsync(getChangesRequest, cancellationToken);
+        var count = await holdHistoryService.CountChangesAsync(getHistoryRequest, cancellationToken);
+        var changeEvents = await holdHistoryService.GetChangesAsync(getHistoryRequest, cancellationToken);
 
         return new PagedResults<ChangeEvent>
         {
@@ -204,9 +204,9 @@ public class HoldService(
             MetaData = new PagedMetadata
             {
                 TotalRecords = count,
-                TotalPages = (count + getChangesRequest.PageSize - 1) / getChangesRequest.PageSize,
-                PageSize = getChangesRequest.PageSize,
-                PageNumber = getChangesRequest.PageNumber
+                TotalPages = (count + getHistoryRequest.PageSize - 1) / getHistoryRequest.PageSize,
+                PageSize = getHistoryRequest.PageSize,
+                PageNumber = getHistoryRequest.PageNumber
             }
         };
     }
