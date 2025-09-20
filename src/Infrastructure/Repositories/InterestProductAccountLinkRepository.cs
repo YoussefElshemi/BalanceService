@@ -32,18 +32,35 @@ public class InterestProductAccountLinkRepository(
         return interestProductAccountLinkEntity?.ToModel();
     }
 
-    public async Task UpdateActiveAsync(
-        UpdateInterestProductAccountLinkActiveRequest updateInterestProductAccountLinkActiveRequest,
+    public async Task ActivateAsync(
+        AccountId accountId,
+        InterestProductId interestProductId,
+        Username activatedBy,
         CancellationToken cancellationToken)
     {
         var utcDateTime = timeProvider.GetUtcNow();
         var interestProductAccountLinkEntity = await dbContext.InterestProductAccountLinks
             .AsTracking()
-            .FirstAsync(x => x.AccountId == updateInterestProductAccountLinkActiveRequest.AccountId &&
-                             x.InterestProductId == updateInterestProductAccountLinkActiveRequest.InterestProductId, cancellationToken);
+            .FirstAsync(x => x.AccountId == accountId && x.InterestProductId == interestProductId, cancellationToken);
 
-        interestProductAccountLinkEntity.IsActive = updateInterestProductAccountLinkActiveRequest.IsActive;
-        interestProductAccountLinkEntity.UpdatedBy = updateInterestProductAccountLinkActiveRequest.UpdatedBy;
+        interestProductAccountLinkEntity.IsActive = true;
+        interestProductAccountLinkEntity.UpdatedBy = activatedBy;
+        interestProductAccountLinkEntity.UpdatedAt = utcDateTime;
+    }
+
+    public async Task DeactivateAsync(
+        AccountId accountId,
+        InterestProductId interestProductId,
+        Username deactivatedBy,
+        CancellationToken cancellationToken)
+    {
+        var utcDateTime = timeProvider.GetUtcNow();
+        var interestProductAccountLinkEntity = await dbContext.InterestProductAccountLinks
+            .AsTracking()
+            .FirstAsync(x => x.AccountId == accountId && x.InterestProductId == interestProductId, cancellationToken);
+
+        interestProductAccountLinkEntity.IsActive = false;
+        interestProductAccountLinkEntity.UpdatedBy = deactivatedBy;
         interestProductAccountLinkEntity.UpdatedAt = utcDateTime;
     }
 

@@ -13,6 +13,9 @@ public static class UpdateInterestProductAccountLinkRequestDtoMapper
         {
             AccountId = new AccountId(updateInterestProductAccountLinkRequestDto.AccountId),
             InterestProductId = new InterestProductId(updateInterestProductAccountLinkRequestDto.InterestProductId),
+            ExpiresAt = updateInterestProductAccountLinkRequestDto.ExpiresAt.HasValue
+                ? new ExpiresAt(updateInterestProductAccountLinkRequestDto.ExpiresAt.Value)
+                : null,
             UpdatedBy = new Username(updateInterestProductAccountLinkRequestDto.Username)
         };
     }

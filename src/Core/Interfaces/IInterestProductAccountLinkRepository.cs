@@ -6,8 +6,9 @@ namespace Core.Interfaces;
 public interface IInterestProductAccountLinkRepository
 {
    Task CreateAsync(InterestProductAccountLink interestProductAccountLink, CancellationToken cancellationToken);
-   Task<InterestProductAccountLink?> GetByIdAsync(AccountId accountId, InterestProductId interestProductId, CancellationToken cancellationToken);
-   Task UpdateActiveAsync(UpdateInterestProductAccountLinkActiveRequest updateInterestProductAccountLinkActiveRequest, CancellationToken cancellationToken);
+   Task<InterestProductAccountLink?> GetByIdAsync(AccountId accountId, InterestProductId interestProductId, CancellationToken cancellationToken); 
+   Task ActivateAsync(AccountId accountId, InterestProductId interestProductId, Username activatedBy, CancellationToken cancellationToken);
+   Task DeactivateAsync(AccountId accountId, InterestProductId interestProductId, Username deactivatedBy, CancellationToken cancellationToken);
    Task<List<InterestProductAccountLink>> GetActiveAsync(CancellationToken cancellationToken);
    Task<bool> ExistsAsync(AccountId accountId, InterestProductId interestProductId, CancellationToken cancellationToken);
    Task<InterestProductAccountLink> UpdateAsync(UpdateInterestProductAccountLinkRequest updateInterestProductAccountLinkRequest, CancellationToken cancellationToken);

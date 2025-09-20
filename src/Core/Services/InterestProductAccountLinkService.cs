@@ -85,15 +85,7 @@ public class InterestProductAccountLinkService(
             throw new UnprocessableRequestException($"{nameof(InterestProductAccountLink)} is expired");
         }
 
-        var updateInterestProductAccountLinkActiveRequest = new UpdateInterestProductAccountLinkActiveRequest
-        {
-            AccountId = accountId,
-            InterestProductId = interestProductId,
-            UpdatedBy = activatedBy,
-            IsActive = true
-        };
-
-        await interestProductAccountLinkRepository.UpdateActiveAsync(updateInterestProductAccountLinkActiveRequest, cancellationToken);
+        await interestProductAccountLinkRepository.ActivateAsync(accountId, interestProductId, activatedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -112,15 +104,7 @@ public class InterestProductAccountLinkService(
             throw new UnprocessableRequestException($"{nameof(InterestProductAccountLink)} must be active");
         }
 
-        var updateInterestProductAccountLinkActiveRequest = new UpdateInterestProductAccountLinkActiveRequest
-        {
-            AccountId = accountId,
-            InterestProductId = interestProductId,
-            UpdatedBy = deactivatedBy,
-            IsActive = false
-        };
-
-        await interestProductAccountLinkRepository.UpdateActiveAsync(updateInterestProductAccountLinkActiveRequest, cancellationToken);
+        await interestProductAccountLinkRepository.DeactivateAsync(accountId, interestProductId, deactivatedBy, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
