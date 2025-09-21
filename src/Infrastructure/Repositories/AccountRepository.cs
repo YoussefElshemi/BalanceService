@@ -48,6 +48,18 @@ public class AccountRepository(
         return accountEntity?.ToModel();
     }
 
+    public async Task<List<Account>> GetByIdsAsync(List<AccountId> accountIds, CancellationToken cancellationToken)
+    {
+        var ids = accountIds.Select(x => (Guid)x).ToHashSet();
+
+        var accountEntities = await dbContext.Accounts
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.AccountId) && x.IsDeleted == false)
+            .ToListAsync(cancellationToken);
+
+        return accountEntities.Select(x => x.ToModel()).ToList();
+    }
+
     public Task<bool> ExistsAsync(AccountId accountId, CancellationToken cancellationToken)
     {
         return dbContext.Accounts

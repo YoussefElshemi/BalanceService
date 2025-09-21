@@ -12,6 +12,7 @@ public class TransactionService(
     ITransactionRepository transactionRepository,
     IHistoryService<TransactionHistory> transactionHistoryService,
     IAccountRulesService accountRulesService,
+    IAccountService accountService,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : ITransactionService
 {
@@ -27,17 +28,21 @@ public class TransactionService(
         var utcDateTime = timeProvider.GetUtcNow();
         var transactions = new List<Transaction>();
 
-        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, string.Join(", ", createTransactionRequests.Select(x => x.AccountId.ToString())));
+        var accountIds = createTransactionRequests.Select(x => x.AccountId).Distinct().ToList();
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, string.Join(", ", accountIds.Select(x => x.ToString())));
 
-        // TODO: this will select account from db for each one, optimise
+        var accounts = await accountService.GetByIdsAsync(accountIds, cancellationToken);
 
         foreach (var createTransactionRequest in createTransactionRequests)
         {
+            var account = accounts.FirstOrDefault(x => x.AccountId == createTransactionRequest.AccountId)
+                          ?? throw new NotFoundException();
+
             var operationType = createTransactionRequest.Direction == TransactionDirection.Credit
                 ? AccountOperationType.CreditTransaction
                 : AccountOperationType.DebitTransaction;
 
-            await accountRulesService.ThrowIfNotAllowedAsync(createTransactionRequest.AccountId, operationType, cancellationToken);
+            accountRulesService.ThrowIfNotAllowed(account.Status, operationType);
 
             var transaction = new Transaction
             {

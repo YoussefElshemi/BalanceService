@@ -78,6 +78,15 @@ public class AccountService(
         return account;
     }
 
+    public async Task<List<Account>> GetByIdsAsync(List<AccountId> accountIds, CancellationToken cancellationToken)
+    {
+        Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, string.Join(", ", accountIds.Select(x => x.ToString())));
+
+        var accounts = await accountRepository.GetByIdsAsync(accountIds, cancellationToken);
+
+        return accounts;
+    }
+
     public Task<bool> ExistsAsync(AccountId accountId, CancellationToken cancellationToken)
     {
         Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, accountId.ToString());
