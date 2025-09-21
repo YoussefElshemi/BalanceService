@@ -28,23 +28,33 @@ public static class ValueConverter
         [typeof(TimeOnly)] = raw => raw is TimeOnly t ? t : TimeOnly.Parse(raw.ToString()!)
     };
 
-    public static object? ConvertValue(ModelBindingContext bindingContext, object? raw, Type targetType, string propertyName)
+    public static object? ConvertValue<T>(
+        ModelBindingContext bindingContext,
+        object? raw,
+        Type targetType,
+        string actualPropertyName,
+        string propertyName)
     {
-        var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-
         if (raw == null)
         {
-            if (Nullable.GetUnderlyingType(targetType) != null || !underlyingType.IsValueType)
+            if (Nullable.GetUnderlyingType(targetType) != null)
             {
                 return null;
             }
 
-            bindingContext.ModelState.AddModelError(propertyName, $"Cannot convert null to {targetType.Name}.");
+            var prop = typeof(T).GetProperty(actualPropertyName);
+            if (prop == null || !prop.IsNullable())
+            {
+                bindingContext.ModelState.AddModelError(propertyName, $"The {propertyName} field is required and cannot be null.");
+            }
+
             return null;
         }
 
         try
         {
+            var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
             if (DirectConverters.TryGetValue(underlyingType, out var converter))
             {
                 return converter(raw);
@@ -66,7 +76,7 @@ public static class ValueConverter
                 var list = new List<object?>();
                 foreach (var item in enumerableRaw)
                 {
-                    list.Add(ConvertValue(bindingContext, item, elementType, propertyName));
+                    list.Add(ConvertValue<T>(bindingContext, item, elementType, actualPropertyName, propertyName));
                 }
 
                 var array = Array.CreateInstance(elementType, list.Count);
@@ -89,9 +99,11 @@ public static class ValueConverter
                     var listType = genericDef.MakeGenericType(elementType);
                     var collection = (IList)Activator.CreateInstance(listType)!;
 
+                    var index = 0;
                     foreach (var item in enumerable2)
                     {
-                        collection.Add(ConvertValue(bindingContext, item, elementType, propertyName));
+                        collection.Add(ConvertValue<T>(bindingContext, item, elementType, actualPropertyName, $"{propertyName}[{index}]"));
+                        index++;
                     }
 
                     return collection;
@@ -106,8 +118,12 @@ public static class ValueConverter
 
                     foreach (var key in rawDict.Keys)
                     {
-                        var convertedKey = ConvertValue(bindingContext, key, keyType, propertyName);
-                        var convertedValue = ConvertValue(bindingContext, rawDict[key], valueType, propertyName);
+                        var keyPath = $"{propertyName}[{key}].Key";
+                        var valuePath = $"{propertyName}[{key}].Value";
+
+                        var convertedKey = ConvertValue<T>(bindingContext, key, keyType, actualPropertyName, keyPath);
+                        var convertedValue = ConvertValue<T>(bindingContext, rawDict[key], valueType, actualPropertyName, valuePath);
+
                         dict[convertedKey!] = convertedValue;
                     }
 

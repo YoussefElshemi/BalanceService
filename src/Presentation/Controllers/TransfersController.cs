@@ -3,9 +3,7 @@ using Core.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.CustomBinding;
-using Presentation.Mappers;
 using Presentation.Mappers.Transfers;
-using Presentation.Models;
 using Presentation.Models.Transfers;
 
 namespace Presentation.Controllers;

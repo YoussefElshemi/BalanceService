@@ -2,7 +2,6 @@ using System.Collections;
 using System.ComponentModel;
 using System.Net.Mime;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -64,7 +63,7 @@ public class HybridOperationFilter(IOptions<JsonOptions> jsonOptions) : IOperati
                     {
                         Name = queryParamName,
                         In = ParameterLocation.Query,
-                        Required = !IsNullable(prop.PropertyType) || IsRequired(prop),
+                        Required = !prop.IsNullable() || prop.IsRequired(),
                         Schema = context.SchemaGenerator.GenerateSchema(prop.PropertyType, context.SchemaRepository),
                         Example = GetOpenApiDefaultValue(defaultValue, prop.PropertyType)
                     });
@@ -122,7 +121,7 @@ public class HybridOperationFilter(IOptions<JsonOptions> jsonOptions) : IOperati
                     {
                         Name = headerName,
                         In = ParameterLocation.Header,
-                        Required = !IsNullable(prop.PropertyType) || IsRequired(prop),
+                        Required = !prop.IsNullable() || prop.IsRequired(),
                         Schema = context.SchemaGenerator.GenerateSchema(prop.PropertyType, context.SchemaRepository),
                         Example = GetOpenApiDefaultValue(defaultValue, prop.PropertyType)
                     });
@@ -191,7 +190,7 @@ public class HybridOperationFilter(IOptions<JsonOptions> jsonOptions) : IOperati
                     propSchema.Default = GetOpenApiDefaultValue(defaultValue, bodyProp.PropertyType);
                     schema.Properties[GetParameterName(bodyProp.Name)] = propSchema;
 
-                    if (IsRequired(bodyProp))
+                    if (bodyProp.IsRequired())
                     {
                         schema.Required.Add(bodyProp.Name);
                     }
@@ -237,19 +236,6 @@ public class HybridOperationFilter(IOptions<JsonOptions> jsonOptions) : IOperati
             : name;
     }
 
-    private static bool IsNullable(Type type)
-    {
-        return Nullable.GetUnderlyingType(type) != null || !type.IsValueType;
-    }
-
-    private static bool IsRequired(PropertyInfo propertyInfo)
-    {
-        var hasRequiredKeyword = propertyInfo.GetCustomAttribute<RequiredMemberAttribute>() != null;
-        var hasRequiredAttr = propertyInfo.GetCustomAttribute<System.ComponentModel.DataAnnotations.RequiredAttribute>() != null;
-
-        return hasRequiredKeyword || hasRequiredAttr;
-    }
-
     private static object? GetDefaultValue(PropertyInfo prop)
     {
         var defaultAttr = prop.GetCustomAttribute<DefaultValueAttribute>();
@@ -267,6 +253,10 @@ public class HybridOperationFilter(IOptions<JsonOptions> jsonOptions) : IOperati
 
         if (type == typeof(string)) return new OpenApiString((string)value);
         if (type == typeof(char)) return new OpenApiString(value.ToString());
+        if (type == typeof(TimeSpan)) return new OpenApiString(value.ToString());
+        if (type == typeof(Guid)) return new OpenApiString(value.ToString());
+        if (type == typeof(Uri)) return new OpenApiString(value.ToString());
+        if (type.IsEnum) return new OpenApiString(value.ToString());
         if (type == typeof(bool)) return new OpenApiBoolean((bool)value);
         if (type == typeof(byte)) return new OpenApiByte((byte)value);
         if (type == typeof(short)) return new OpenApiInteger((short)value);
@@ -278,15 +268,8 @@ public class HybridOperationFilter(IOptions<JsonOptions> jsonOptions) : IOperati
         if (type == typeof(float)) return new OpenApiFloat((float)value);
         if (type == typeof(double)) return new OpenApiDouble((double)value);
         if (type == typeof(decimal)) return new OpenApiDouble(Convert.ToDouble(value));
-
         if (type == typeof(DateTime)) return new OpenApiDateTime((DateTime)value);
         if (type == typeof(DateTimeOffset)) return new OpenApiDateTime(((DateTimeOffset)value).DateTime);
-        if (type == typeof(TimeSpan)) return new OpenApiString(value.ToString());
-
-        if (type == typeof(Guid) || type == typeof(Uri) || type.IsEnum)
-        {
-            return new OpenApiString(value.ToString());
-        }
 
         if (typeof(IEnumerable).IsAssignableFrom(type) && type != typeof(string))
         {

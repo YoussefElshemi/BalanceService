@@ -23,10 +23,10 @@ public class HybridSourceBinder<T> : IModelBinder where T : new()
 
         Dictionary<string, object?>? bodyDict = null;
         var fromBodyProps = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                     .Where(p => p.GetCustomAttribute<FromBodyAttribute>() != null)
-                                     .ToList();
+            .Where(p => p.GetCustomAttribute<FromBodyAttribute>() != null)
+            .ToList();
 
-        if (fromBodyProps.Count != 0 && request.ContentLength > 0)
+        if (fromBodyProps.Count > 0)
         {
             request.EnableBuffering();
 
@@ -39,82 +39,78 @@ public class HybridSourceBinder<T> : IModelBinder where T : new()
                 : JsonSerializer.Deserialize<Dictionary<string, object?>>(bodyString, jsonSerializerOptions);
         }
 
-        foreach (var prop in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        foreach (var property in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
+            var propertyType = property.PropertyType;
+            var propertyName = property.Name;
             object? value = null;
 
-            var fromRoute = prop.GetCustomAttribute<FromRouteAttribute>();
+            var fromRoute = property.GetCustomAttribute<FromRouteAttribute>();
             if (fromRoute != null)
             {
-                var key = fromRoute.Name ?? prop.Name;
+                var key = fromRoute.Name ?? propertyName;
                 var routeVal = request.RouteValues
                     .FirstOrDefault(kvp => string.Equals(kvp.Key, key, caseSensitivity)).Value;
 
-                if (routeVal != null)
-                {
-                    value = ValueConverter.ConvertValue(bindingContext, routeVal, prop.PropertyType, prop.Name);
-                }
+                value = ValueConverter.ConvertValue<T>(bindingContext, routeVal, propertyType, propertyName, propertyName);
             }
 
-            var fromHeader = prop.GetCustomAttribute<FromHeaderAttribute>();
+            var fromHeader = property.GetCustomAttribute<FromHeaderAttribute>();
             if (fromHeader != null)
             {
-                var key = fromHeader.Name ?? prop.Name;
-                var headerVal = request.Headers
+                var key = fromHeader.Name ?? propertyName;
+                var headerValues = request.Headers
                     .FirstOrDefault(h => string.Equals(h.Key, key, caseSensitivity)).Value;
 
-                if (!string.IsNullOrEmpty(headerVal))
-                {
-                    value = ValueConverter.ConvertValue(bindingContext, headerVal.ToString(), prop.PropertyType, prop.Name);
-                }
+                var headerValue = headerValues.Count > 0
+                    ? headerValues.ToString()
+                    : null;
+
+                value = ValueConverter.ConvertValue<T>(bindingContext, headerValue, propertyType, propertyName, propertyName);
             }
 
-            var fromQuery = prop.GetCustomAttribute<FromQueryAttribute>();
+            var fromQuery = property.GetCustomAttribute<FromQueryAttribute>();
             if (fromQuery != null)
             {
-                var key = fromQuery.Name ?? prop.Name;
+                var key = fromQuery.Name ?? propertyName;
                 var queryVal = request.Query
                     .FirstOrDefault(q => string.Equals(q.Key, key, caseSensitivity)).Value;
 
                 if (!string.IsNullOrEmpty(queryVal))
                 {
-                    value = ValueConverter.ConvertValue(bindingContext, queryVal.ToString(), prop.PropertyType, prop.Name);
+                    value = ValueConverter.ConvertValue<T>(bindingContext, queryVal.ToString(), propertyType, propertyName, propertyName);
                 }
             }
 
-            var fromForm = prop.GetCustomAttribute<FromFormAttribute>();
+            var fromForm = property.GetCustomAttribute<FromFormAttribute>();
             if (fromForm != null && request.HasFormContentType)
             {
-                var key = fromForm.Name ?? prop.Name;
+                var key = fromForm.Name ?? propertyName;
                 var formVal = request.Form
                     .FirstOrDefault(f => string.Equals(f.Key, key, caseSensitivity)).Value;
 
-                if (!string.IsNullOrEmpty(formVal))
-                {
-                    value = ValueConverter.ConvertValue(bindingContext, formVal.ToString(), prop.PropertyType, prop.Name);
-                }
+                value = ValueConverter.ConvertValue<T>(bindingContext, formVal.ToString(), propertyType, propertyName, propertyName);
             }
 
-            var fromBody = prop.GetCustomAttribute<FromBodyAttribute>();
+            var fromBody = property.GetCustomAttribute<FromBodyAttribute>();
             if (fromBody != null && bodyDict != null)
             {
-                var bodyVal = bodyDict.FirstOrDefault(kvp =>
-                    string.Equals(
-                        kvp.Key,
-                        jsonSerializerOptions.PropertyNamingPolicy?.ConvertName(prop.Name) ?? prop.Name,
-                        caseSensitivity
-                    )
-                ).Value;
+                var fieldName = jsonSerializerOptions.PropertyNamingPolicy?.ConvertName(property.Name) ?? property.Name;
+                bodyDict.TryGetValue(fieldName, out var bodyVal);
 
-                if (bodyVal != null)
+                if (bodyVal is JsonElement jsonElement)
                 {
-                    value = ValueConverter.ConvertValue(bindingContext, bodyVal, prop.PropertyType, prop.Name);
+                    value = JsonSerializer.Deserialize(jsonElement.GetRawText(), property.PropertyType, jsonSerializerOptions);
+                }
+                else
+                {
+                    value = ValueConverter.ConvertValue<T>(bindingContext, bodyVal, property.PropertyType, property.Name, fieldName);
                 }
             }
 
             if (value != null)
             {
-                prop.SetValue(dto, value);
+                property.SetValue(dto, value);
             }
         }
 

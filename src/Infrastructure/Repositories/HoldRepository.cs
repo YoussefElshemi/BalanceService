@@ -118,7 +118,7 @@ public class HoldRepository(
             .Where(q => q.HoldStatusId == (int)HoldStatus.Active && q.ExpiresAt <= timeProvider.GetUtcNow())
             .ToListAsync(cancellationToken);
 
-        if (holdEntities.Count != 0)
+        if (holdEntities.Count > 0)
         {
             foreach (var holdEntity in holdEntities)
             {
