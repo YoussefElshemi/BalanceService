@@ -2,21 +2,42 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Options;
 
 namespace Presentation.CustomBinding;
 
 public class HybridSourceBinder<T> : IModelBinder where T : new()
 {
-    private readonly JsonSerializerOptions? _jsonSerializerSettings = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
     public async Task BindModelAsync(ModelBindingContext bindingContext)
     {
         var httpContext = bindingContext.HttpContext;
         var request = httpContext.Request;
         var dto = new T();
+
+        var jsonSerializerOptions = httpContext.RequestServices.GetService<IOptions<JsonOptions>>()?.Value.JsonSerializerOptions
+                                    ?? new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
+        var caseSensitivity = jsonSerializerOptions.PropertyNameCaseInsensitive
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        Dictionary<string, object?>? bodyDict = null;
+        var fromBodyProps = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                     .Where(p => p.GetCustomAttribute<FromBodyAttribute>() != null)
+                                     .ToList();
+
+        if (fromBodyProps.Count != 0 && request.ContentLength > 0)
+        {
+            request.EnableBuffering();
+
+            using var reader = new StreamReader(request.Body, leaveOpen: true);
+            var bodyString = await reader.ReadToEndAsync();
+            request.Body.Position = 0;
+
+            bodyDict = string.IsNullOrWhiteSpace(bodyString)
+                ? new Dictionary<string, object?>()
+                : JsonSerializer.Deserialize<Dictionary<string, object?>>(bodyString, jsonSerializerOptions);
+        }
 
         foreach (var prop in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
@@ -27,7 +48,7 @@ public class HybridSourceBinder<T> : IModelBinder where T : new()
             {
                 var key = fromRoute.Name ?? prop.Name;
                 var routeVal = request.RouteValues
-                    .FirstOrDefault(kvp => string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase)).Value;
+                    .FirstOrDefault(kvp => string.Equals(kvp.Key, key, caseSensitivity)).Value;
 
                 if (routeVal != null)
                 {
@@ -40,7 +61,7 @@ public class HybridSourceBinder<T> : IModelBinder where T : new()
             {
                 var key = fromHeader.Name ?? prop.Name;
                 var headerVal = request.Headers
-                    .FirstOrDefault(h => string.Equals(h.Key, key, StringComparison.OrdinalIgnoreCase)).Value;
+                    .FirstOrDefault(h => string.Equals(h.Key, key, caseSensitivity)).Value;
 
                 if (!string.IsNullOrEmpty(headerVal))
                 {
@@ -53,7 +74,7 @@ public class HybridSourceBinder<T> : IModelBinder where T : new()
             {
                 var key = fromQuery.Name ?? prop.Name;
                 var queryVal = request.Query
-                    .FirstOrDefault(q => string.Equals(q.Key, key, StringComparison.OrdinalIgnoreCase)).Value;
+                    .FirstOrDefault(q => string.Equals(q.Key, key, caseSensitivity)).Value;
 
                 if (!string.IsNullOrEmpty(queryVal))
                 {
@@ -62,16 +83,11 @@ public class HybridSourceBinder<T> : IModelBinder where T : new()
             }
 
             var fromForm = prop.GetCustomAttribute<FromFormAttribute>();
-            if (fromForm != null)
+            if (fromForm != null && request.HasFormContentType)
             {
-                if (!request.HasFormContentType)
-                {
-                    continue;
-                }
-
                 var key = fromForm.Name ?? prop.Name;
                 var formVal = request.Form
-                    .FirstOrDefault(f => string.Equals(f.Key, key, StringComparison.OrdinalIgnoreCase)).Value;
+                    .FirstOrDefault(f => string.Equals(f.Key, key, caseSensitivity)).Value;
 
                 if (!string.IsNullOrEmpty(formVal))
                 {
@@ -80,25 +96,15 @@ public class HybridSourceBinder<T> : IModelBinder where T : new()
             }
 
             var fromBody = prop.GetCustomAttribute<FromBodyAttribute>();
-            if (fromBody != null)
+            if (fromBody != null && bodyDict != null)
             {
-                Dictionary<string, object?>? bodyDict = null;
-
-                if (bodyDict == null && request.ContentLength > 0)
-                {
-                    request.EnableBuffering();
-
-                    using var reader = new StreamReader(request.Body, leaveOpen: true);
-                    var bodyString = await reader.ReadToEndAsync();
-                    request.Body.Position = 0;
-
-                    bodyDict = string.IsNullOrWhiteSpace(bodyString)
-                        ? new Dictionary<string, object?>()
-                        : JsonSerializer.Deserialize<Dictionary<string, object?>>(bodyString, _jsonSerializerSettings);
-                }
-
-                var key = prop.Name;
-                var bodyVal = bodyDict?.FirstOrDefault(kvp => string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase)).Value;
+                var bodyVal = bodyDict.FirstOrDefault(kvp =>
+                    string.Equals(
+                        kvp.Key,
+                        jsonSerializerOptions.PropertyNamingPolicy?.ConvertName(prop.Name) ?? prop.Name,
+                        caseSensitivity
+                    )
+                ).Value;
 
                 if (bodyVal != null)
                 {

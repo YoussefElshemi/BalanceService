@@ -3,16 +3,20 @@ using System.ComponentModel;
 using System.Net.Mime;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Presentation.CustomBinding;
 
-public class HybridOperationFilter : IOperationFilter
+public class HybridOperationFilter(IOptions<JsonOptions> jsonOptions) : IOperationFilter
 {
+    private readonly JsonSerializerOptions _jsonSerializerOptions = jsonOptions.Value.JsonSerializerOptions;
+
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
         var toRemove = new List<OpenApiParameter>();
@@ -54,7 +58,7 @@ public class HybridOperationFilter : IOperationFilter
                         .FirstOrDefault(p => p.Source == BindingSource.Query &&
                                              string.Equals(p.Name, prop.Name, StringComparison.OrdinalIgnoreCase));
 
-                    var queryParamName = prop.GetCustomAttribute<FromQueryAttribute>()?.Name ?? GetParameterName(queryParamParam?.Name ?? prop.Name);
+                    var queryParamName = prop.GetCustomAttribute<FromQueryAttribute>()?.Name ?? queryParamParam?.Name ?? prop.Name;
 
                     operation.Parameters.Add(new OpenApiParameter
                     {
@@ -83,7 +87,7 @@ public class HybridOperationFilter : IOperationFilter
                         .FirstOrDefault(p => p.Source == BindingSource.Path &&
                                              string.Equals(p.Name, prop.Name, StringComparison.OrdinalIgnoreCase));
 
-                    var routeName = prop.GetCustomAttribute<FromRouteAttribute>()?.Name ?? GetParameterName(routeParam?.Name ?? prop.Name);
+                    var routeName = prop.GetCustomAttribute<FromRouteAttribute>()?.Name ?? routeParam?.Name ?? prop.Name;
 
                     operation.Parameters.Add(new OpenApiParameter
                     {
@@ -110,7 +114,7 @@ public class HybridOperationFilter : IOperationFilter
                         .FirstOrDefault(p => p.Source == BindingSource.Header &&
                                              string.Equals(p.Name, prop.Name, StringComparison.OrdinalIgnoreCase));
 
-                    var headerName = prop.GetCustomAttribute<FromHeaderAttribute>()?.Name ?? GetParameterName(headerParam?.Name ?? prop.Name);
+                    var headerName = prop.GetCustomAttribute<FromHeaderAttribute>()?.Name ?? headerParam?.Name ?? prop.Name;
 
                     var defaultValue = GetDefaultValue(prop);
 
@@ -221,19 +225,16 @@ public class HybridOperationFilter : IOperationFilter
         }
     }
 
-    private static string GetParameterName(string name)
+    private string GetParameterName(string name)
     {
         if (string.IsNullOrEmpty(name))
         {
             return name;
         }
 
-        if (name.Length == 1)
-        {
-            return name.ToLowerInvariant();
-        }
-
-        return char.ToLowerInvariant(name[0]) + name[1..];
+        return _jsonSerializerOptions.PropertyNamingPolicy != null
+            ?  _jsonSerializerOptions.PropertyNamingPolicy.ConvertName(name)
+            : name;
     }
 
     private static bool IsNullable(Type type)
