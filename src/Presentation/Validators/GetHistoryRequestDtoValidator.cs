@@ -1,4 +1,3 @@
-using Core.Interfaces;
 using FluentValidation;
 using Presentation.Models;
 
@@ -6,7 +5,7 @@ namespace Presentation.Validators;
 
 public class GetHistoryRequestDtoValidator : AbstractValidator<GetHistoryRequestDto>
 {
-    public GetHistoryRequestDtoValidator(IAccountService accountService)
+    public GetHistoryRequestDtoValidator()
     {
         RuleFor(x => x.PageSize)
             .NotEmpty()

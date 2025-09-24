@@ -68,38 +68,28 @@ public class HistoryUpdateProcessor<TEntity, TModel, TDto, TConfig>(
 
     private async Task ProcessUpdateAsync(TModel model, CancellationToken cancellationToken)
     {
-        try
+        await unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
-            await historyRepository.UpdateProcessingStatusAsync(model.GetPrimaryKey(), ProcessingStatus.Processing, cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            return;
-        }
-    
-        try
-        {
+            await historyRepository.UpdateProcessingStatusAsync(
+                model.GetPrimaryKey(),
+                ProcessingStatus.Processing,
+                ct);
+
+            await unitOfWork.SaveChangesAsync(ct);
+
             await _circuitBreaker.ExecuteAsync(async () =>
             {
                 await amazonSns.PublishAsync(new PublishRequest
                 {
                     TopicArn = _config.TopicArn,
-                    Message = JsonSerializer.Serialize(model.ToDto())
-                }, cancellationToken);
+                    Message = JsonSerializer.Serialize(model.ToDto()),
+                    MessageGroupId = "default",
+                    MessageDeduplicationId = model.GetPrimaryKey().ToString()
+                }, ct);
             });
-    
-            await historyRepository.MarkAsProcessedAsync(model.GetPrimaryKey(), cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            
-        }
-        catch (Exception)
-        {
-            await historyRepository.UpdateProcessingStatusAsync(model.GetPrimaryKey(), ProcessingStatus.NotProcessed, cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-        }
+
+            await historyRepository.MarkAsProcessedAsync(model.GetPrimaryKey(), ct);
+            await unitOfWork.SaveChangesAsync(ct);
+        }, cancellationToken);
     }
 }

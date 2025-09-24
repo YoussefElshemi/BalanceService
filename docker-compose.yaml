@@ -56,9 +56,9 @@ services:
       "
         sleep 5
       
-        aws --endpoint-url=http://localstack:4566 sns create-topic --name account-updated-topic --region eu-west-1
-        aws --endpoint-url=http://localstack:4566 sns create-topic --name transaction-updated-topic --region eu-west-1
-        aws --endpoint-url=http://localstack:4566 sns create-topic --name hold-updated-topic --region eu-west-1
+        aws --endpoint-url=http://localstack:4566 sns create-topic --name account-updated-topic.fifo --attributes FifoTopic=true,ContentBasedDeduplication=false --region eu-west-1
+        aws --endpoint-url=http://localstack:4566 sns create-topic --name transaction-updated-topic.fifo --attributes FifoTopic=true,ContentBasedDeduplication=false --region eu-west-1
+        aws --endpoint-url=http://localstack:4566 sns create-topic --name hold-updated-topic.fifo --attributes FifoTopic=true,ContentBasedDeduplication=false--region eu-west-1
       "
     volumes:
       - ./dev_env:/project/dev_env

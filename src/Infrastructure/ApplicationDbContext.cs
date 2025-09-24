@@ -52,6 +52,55 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         }
     }
 
+    public async Task ExecuteInTransactionAsync(
+        Func<CancellationToken, Task> operation,
+        CancellationToken cancellationToken = default)
+    {
+        var strategy = base.Database.CreateExecutionStrategy();
+
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await base.Database.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                await operation(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
+    }
+
+    public async Task<T> ExecuteInTransactionAsync<T>(
+        Func<CancellationToken, Task<T>> operation,
+        CancellationToken cancellationToken = default)
+    {
+        var strategy = base.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await base.Database.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                var result = await operation(cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+
+                return result;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
