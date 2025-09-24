@@ -67,7 +67,7 @@ public class StatementsController : Controller
     [Produces(MediaTypeNames.Text.Csv)]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> GenerateCsvStatement(
-        [FromBody] GenerateStatementRequestDto generateCsvStatementRequestDto,
+        [FromHybrid] GenerateStatementRequestDto generateCsvStatementRequestDto,
         [FromServices] IValidator<GenerateStatementRequestDto> generateCsvStatementRequestDtoValidator,
         [FromServices] IStatementService statementService,
         CancellationToken cancellationToken)

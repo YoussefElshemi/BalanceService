@@ -96,7 +96,7 @@ public class HoldsController : Controller
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> ReleaseHoldById(
-        [FromBody] ReleaseHoldRequestDto releaseHoldRequestDto,
+        [FromHybrid] ReleaseHoldRequestDto releaseHoldRequestDto,
         [FromServices] IHoldService holdService,
         CancellationToken cancellationToken)
     {
