@@ -95,6 +95,15 @@ public class HybridSourceBinder<T> : IModelBinder where T : new()
             var fromBody = property.GetCustomAttribute<FromBodyAttribute>();
             if (fromBody != null && bodyDict != null)
             {
+                var comparer = jsonSerializerOptions.PropertyNameCaseInsensitive
+                    ? StringComparer.OrdinalIgnoreCase
+                    : StringComparer.Ordinal;
+
+                if (!ReferenceEquals(bodyDict.Comparer, comparer))
+                {
+                    bodyDict = new Dictionary<string, object?>(bodyDict, comparer);
+                }
+
                 var fieldName = jsonSerializerOptions.PropertyNamingPolicy?.ConvertName(property.Name) ?? property.Name;
                 bodyDict.TryGetValue(fieldName, out var bodyVal);
 
