@@ -3,6 +3,7 @@ using Core.Configs;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Presentation.Extensions;
+using Presentation.Filters;
 using Presentation.Middlewares;
 using QuestPDF.Infrastructure;
 
@@ -30,7 +31,10 @@ builder.Services
     .AddProblemDetails()
     .AddEndpointsApiExplorer()
     .AddSwaggerGen()
-    .AddControllers()
+    .AddControllers(options =>
+    {
+        options.Filters.Add<HeaderValidationFilter>();
+    })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
