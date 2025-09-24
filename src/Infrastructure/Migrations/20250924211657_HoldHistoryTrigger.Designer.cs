@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250913112535_HoldBalanceValidationTrigger")]
-    partial class HoldBalanceValidationTrigger
+    [Migration("20250924211657_HoldHistoryTrigger")]
+    partial class HoldHistoryTrigger
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -79,7 +79,10 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("ParentAccountId")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("PendingBalance")
+                    b.Property<decimal>("PendingCreditBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("PendingDebitBalance")
                         .HasColumnType("numeric");
 
                     b.Property<uint>("RowVersion")
@@ -166,8 +169,25 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("ParentAccountId")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("PendingBalance")
+                    b.Property<decimal>("PendingCreditBalance")
                         .HasColumnType("numeric");
+
+                    b.Property<decimal>("PendingDebitBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ProcessingStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
@@ -190,6 +210,8 @@ namespace Infrastructure.Migrations
                     b.HasIndex("HistoryTypeId");
 
                     b.HasIndex("ParentAccountId");
+
+                    b.HasIndex("ProcessingStatusId");
 
                     b.ToTable("AccountHistory", (string)null);
                 });
@@ -475,8 +497,22 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ProcessingStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("Reference")
                         .HasColumnType("text");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.Property<Guid?>("SettledTransactionId")
                         .HasColumnType("uuid");
@@ -504,6 +540,8 @@ namespace Infrastructure.Migrations
                     b.HasIndex("HoldStatusId");
 
                     b.HasIndex("HoldTypeId");
+
+                    b.HasIndex("ProcessingStatusId");
 
                     b.HasIndex("SettledTransactionId")
                         .IsUnique();
@@ -620,6 +658,358 @@ namespace Infrastructure.Migrations
                         {
                             HoldTypeId = 4,
                             Name = "Regulatory"
+                        });
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestAccrualEntity", b =>
+                {
+                    b.Property<Guid>("InterestAccrualId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AccruedAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("AccruedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("DailyInterestRate")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("InterestProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPosted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("PostedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("InterestAccrualId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("InterestProductId");
+
+                    b.ToTable("InterestAccruals", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestPayoutFrequencyEntity", b =>
+                {
+                    b.Property<int>("InterestPayoutFrequencyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("InterestPayoutFrequencyId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("InterestPayoutFrequencyId");
+
+                    b.ToTable("InterestPayoutFrequencies", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            InterestPayoutFrequencyId = 1,
+                            Name = "Daily"
+                        },
+                        new
+                        {
+                            InterestPayoutFrequencyId = 2,
+                            Name = "Weekly"
+                        },
+                        new
+                        {
+                            InterestPayoutFrequencyId = 3,
+                            Name = "Monthly"
+                        },
+                        new
+                        {
+                            InterestPayoutFrequencyId = 4,
+                            Name = "Quarterly"
+                        },
+                        new
+                        {
+                            InterestPayoutFrequencyId = 5,
+                            Name = "Yearly"
+                        });
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductAccountLinkEntity", b =>
+                {
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InterestProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("AccountId", "InterestProductId");
+
+                    b.HasIndex("InterestProductId");
+
+                    b.ToTable("InterestProductAccountLinks", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductEntity", b =>
+                {
+                    b.Property<Guid>("InterestProductId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AccrualBasis")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("AnnualInterestRate")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("InterestPayoutFrequencyId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("InterestProductId");
+
+                    b.HasIndex("InterestPayoutFrequencyId");
+
+                    b.ToTable("InterestProducts", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.JobEntity", b =>
+                {
+                    b.Property<Guid>("JobId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("JobName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("JobId");
+
+                    b.HasIndex("JobName")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = FALSE");
+
+                    b.ToTable("Jobs", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.JobRunEntity", b =>
+                {
+                    b.Property<Guid>("JobRunId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ExecutedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsExecuted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<DateTimeOffset>("ScheduledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("JobRunId");
+
+                    b.HasIndex("JobId", "ScheduledAt")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = FALSE");
+
+                    b.ToTable("JobRuns", (string)null);
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.ProcessingStatusEntity", b =>
+                {
+                    b.Property<int>("ProcessingStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProcessingStatusId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ProcessingStatusId");
+
+                    b.ToTable("ProcessingStatuses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ProcessingStatusId = 1,
+                            Name = "NotProcessed"
+                        },
+                        new
+                        {
+                            ProcessingStatusId = 2,
+                            Name = "Processing"
+                        },
+                        new
+                        {
+                            ProcessingStatusId = 3,
+                            Name = "Processed"
                         });
                 });
 
@@ -783,8 +1173,22 @@ namespace Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("PostedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ProcessingStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("Reference")
                         .HasColumnType("text");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
@@ -816,6 +1220,8 @@ namespace Infrastructure.Migrations
                     b.HasIndex("AccountId");
 
                     b.HasIndex("HistoryTypeId");
+
+                    b.HasIndex("ProcessingStatusId");
 
                     b.HasIndex("TransactionDirectionId");
 
@@ -861,6 +1267,11 @@ namespace Infrastructure.Migrations
                         {
                             TransactionSourceId = 3,
                             Name = "Manual"
+                        },
+                        new
+                        {
+                            TransactionSourceId = 4,
+                            Name = "Internal"
                         });
                 });
 
@@ -929,6 +1340,11 @@ namespace Infrastructure.Migrations
                         {
                             TransactionTypeId = 3,
                             Name = "Transfer"
+                        },
+                        new
+                        {
+                            TransactionTypeId = 4,
+                            Name = "AccruedInterest"
                         });
                 });
 
@@ -983,6 +1399,12 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("ParentAccountId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Infrastructure.Entities.ProcessingStatusEntity", "ProcessingStatusEntity")
+                        .WithMany("AccountHistoryEntities")
+                        .HasForeignKey("ProcessingStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("AccountStatusEntity");
 
                     b.Navigation("AccountTypeEntity");
@@ -990,6 +1412,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("HistoryTypeEntity");
 
                     b.Navigation("ParentAccountEntity");
+
+                    b.Navigation("ProcessingStatusEntity");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.HoldEntity", b =>
@@ -1066,6 +1490,12 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Infrastructure.Entities.ProcessingStatusEntity", "ProcessingStatusEntity")
+                        .WithMany("HoldHistoryEntities")
+                        .HasForeignKey("ProcessingStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Infrastructure.Entities.TransactionEntity", "SettledTransactionEntity")
                         .WithOne()
                         .HasForeignKey("Infrastructure.Entities.HoldHistoryEntity", "SettledTransactionId")
@@ -1081,7 +1511,69 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("HoldTypeEntity");
 
+                    b.Navigation("ProcessingStatusEntity");
+
                     b.Navigation("SettledTransactionEntity");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestAccrualEntity", b =>
+                {
+                    b.HasOne("Infrastructure.Entities.AccountEntity", "AccountEntity")
+                        .WithMany("InterestAccrualEntities")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.InterestProductEntity", "InterestProductEntity")
+                        .WithMany("InterestAccrualEntities")
+                        .HasForeignKey("InterestProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountEntity");
+
+                    b.Navigation("InterestProductEntity");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductAccountLinkEntity", b =>
+                {
+                    b.HasOne("Infrastructure.Entities.AccountEntity", "AccountEntity")
+                        .WithMany("InterestProductAccountLinkEntities")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.InterestProductEntity", "InterestProductEntity")
+                        .WithMany("InterestProductAccountLinkEntities")
+                        .HasForeignKey("InterestProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountEntity");
+
+                    b.Navigation("InterestProductEntity");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductEntity", b =>
+                {
+                    b.HasOne("Infrastructure.Entities.InterestPayoutFrequencyEntity", "InterestPayoutFrequencyEntity")
+                        .WithMany("InterestProductEntities")
+                        .HasForeignKey("InterestPayoutFrequencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InterestPayoutFrequencyEntity");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.JobRunEntity", b =>
+                {
+                    b.HasOne("Infrastructure.Entities.JobEntity", "JobEntity")
+                        .WithMany("JobRunEntities")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobEntity");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.TransactionEntity", b =>
@@ -1141,6 +1633,12 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Infrastructure.Entities.ProcessingStatusEntity", "ProcessingStatusEntity")
+                        .WithMany("TransactionHistoryEntities")
+                        .HasForeignKey("ProcessingStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Infrastructure.Entities.TransactionDirectionEntity", "TransactionDirectionEntity")
                         .WithMany()
                         .HasForeignKey("TransactionDirectionId")
@@ -1169,6 +1667,8 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("HistoryTypeEntity");
 
+                    b.Navigation("ProcessingStatusEntity");
+
                     b.Navigation("TransactionDirectionEntity");
 
                     b.Navigation("TransactionSourceEntity");
@@ -1183,6 +1683,10 @@ namespace Infrastructure.Migrations
                     b.Navigation("ChildAccountEntities");
 
                     b.Navigation("HoldEntities");
+
+                    b.Navigation("InterestAccrualEntities");
+
+                    b.Navigation("InterestProductAccountLinkEntities");
 
                     b.Navigation("TransactionEntities");
                 });
@@ -1219,6 +1723,32 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Infrastructure.Entities.HoldTypeEntity", b =>
                 {
                     b.Navigation("HoldEntities");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestPayoutFrequencyEntity", b =>
+                {
+                    b.Navigation("InterestProductEntities");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.InterestProductEntity", b =>
+                {
+                    b.Navigation("InterestAccrualEntities");
+
+                    b.Navigation("InterestProductAccountLinkEntities");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.JobEntity", b =>
+                {
+                    b.Navigation("JobRunEntities");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.ProcessingStatusEntity", b =>
+                {
+                    b.Navigation("AccountHistoryEntities");
+
+                    b.Navigation("HoldHistoryEntities");
+
+                    b.Navigation("TransactionHistoryEntities");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.TransactionDirectionEntity", b =>

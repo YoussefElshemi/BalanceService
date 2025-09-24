@@ -1,7 +1,6 @@
 ﻿using Core.Enums;
 using Infrastructure.Constants;
 using Infrastructure.Entities;
-using Infrastructure.Entities.History;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -18,7 +17,7 @@ namespace Infrastructure.Migrations
         private const int DeleteId = (int)HistoryType.Delete;
 
         private static readonly string[] Columns =
-        {
+        [
             nameof(AccountHistoryEntity.AccountHistoryId),
             nameof(AccountHistoryEntity.HistoryTypeId),
             nameof(AccountHistoryEntity.Timestamp),
@@ -27,7 +26,8 @@ namespace Infrastructure.Migrations
             nameof(AccountHistoryEntity.CurrencyCode),
             nameof(AccountHistoryEntity.LedgerBalance),
             nameof(AccountHistoryEntity.AvailableBalance),
-            nameof(AccountHistoryEntity.PendingBalance),
+            nameof(AccountHistoryEntity.PendingDebitBalance),
+            nameof(AccountHistoryEntity.PendingCreditBalance),
             nameof(AccountHistoryEntity.HoldBalance),
             nameof(AccountHistoryEntity.MinimumRequiredBalance),
             nameof(AccountHistoryEntity.AccountTypeId),
@@ -41,7 +41,7 @@ namespace Infrastructure.Migrations
             nameof(AccountHistoryEntity.CreatedBy),
             nameof(AccountHistoryEntity.UpdatedAt),
             nameof(AccountHistoryEntity.UpdatedBy)
-        };
+        ];
 
         protected override void Up(MigrationBuilder migrationBuilder)
         {

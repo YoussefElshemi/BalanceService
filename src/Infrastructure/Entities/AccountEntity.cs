@@ -12,15 +12,20 @@ public record AccountEntity : DeletableBaseEntity
     public required decimal LedgerBalance { get; init; }
 
     /// <summary>
-    /// Available balance = LedgerBalance + pending credits - pending debits - holds.
+    /// Available balance = LedgerBalance - PendingDebitBalance - HoldBalance.
     /// This is what the user can spend right now.
     /// </summary>
     public required decimal AvailableBalance { get; init; }
 
     /// <summary>
-    /// Pending balance = total of transactions that are authorized but not yet posted.
+    /// Pending debit balance = total of debit transactions that are authorized but not yet posted.
     /// </summary>
-    public required decimal PendingBalance { get; init; }
+    public required decimal PendingDebitBalance { get; init; }
+
+    /// <summary>
+    /// Pending credit balance = total of credit transactions that are authorized but not yet posted.
+    /// </summary>
+    public required decimal PendingCreditBalance { get; init; }
 
     /// <summary>
     /// On-hold balance = funds locked due to disputes, fraud, or compliance holds.

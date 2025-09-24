@@ -1,6 +1,6 @@
 using Core.Configs;
 using Core.Models;
-using Infrastructure.Entities.History;
+using Infrastructure.Entities;
 
 namespace Infrastructure.Services.Interfaces;
 

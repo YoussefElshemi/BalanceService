@@ -1,7 +1,7 @@
 using Core.Configs;
 using Core.Dtos;
 using Core.Models;
-using Infrastructure.Entities.History;
+using Infrastructure.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 

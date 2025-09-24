@@ -12,7 +12,8 @@ public static class AccountBalanceMapper
             AccountId = account.AccountId,
             AvailableBalance = account.AvailableBalance,
             LedgerBalance = account.LedgerBalance,
-            PendingBalance = account.PendingBalance,
+            PendingDebitBalance = account.PendingDebitBalance,
+            PendingCreditBalance = account.PendingCreditBalance,
             HoldBalance = account.HoldBalance
         };
     }

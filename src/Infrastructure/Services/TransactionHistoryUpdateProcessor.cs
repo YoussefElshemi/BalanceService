@@ -3,7 +3,7 @@ using Core.Configs;
 using Core.Dtos;
 using Core.Interfaces;
 using Core.Models;
-using Infrastructure.Entities.History;
+using Infrastructure.Entities;
 using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Services;

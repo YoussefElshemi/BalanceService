@@ -19,6 +19,7 @@ public partial class HoldBalanceTrigger : Migration
 
     private const string HoldBalanceColumn = nameof(AccountEntity.HoldBalance);
     private const string LedgerBalanceColumn = nameof(AccountEntity.LedgerBalance);
+    private const string PendingDebitBalanceColumn = nameof(AccountEntity.PendingDebitBalance);
     private const string AvailableBalanceColumn = nameof(AccountEntity.AvailableBalance);
 
     private const string AccountIdColumn = nameof(AccountEntity.AccountId);
@@ -43,7 +44,7 @@ public partial class HoldBalanceTrigger : Migration
                     if (new.""{IsDeletedColumn}"" = false and new.""{StatusColumn}"" = {ActiveStatusId}) then
                         update ""{TableNames.Accounts}""
                         set ""{HoldBalanceColumn}"" = ""{HoldBalanceColumn}"" + new.""{AmountColumn}"",
-                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - (""{HoldBalanceColumn}"" + new.""{AmountColumn}""),
+                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - ""{PendingDebitBalanceColumn}"" - (""{HoldBalanceColumn}"" + new.""{AmountColumn}""),
                             ""{UpdatedByColumn}"" = new.""{UpdatedByColumn}"",
                             ""{UpdatedAtColumn}"" = new.""{UpdatedAtColumn}""
                         where ""{AccountIdColumn}"" = new.""{AccountIdColumn}""; 
@@ -59,7 +60,7 @@ public partial class HoldBalanceTrigger : Migration
                         if (old.""{StatusColumn}"" = {ActiveStatusId} and old.""{IsDeletedColumn}"" = false) then
                             update ""{TableNames.Accounts}""
                             set ""{HoldBalanceColumn}"" = ""{HoldBalanceColumn}"" - old.""{AmountColumn}"",
-                                ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - (""{HoldBalanceColumn}"" - old.""{AmountColumn}""),
+                                ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - ""{PendingDebitBalanceColumn}"" - (""{HoldBalanceColumn}"" - old.""{AmountColumn}""),
                                 ""{UpdatedByColumn}"" = new.""{UpdatedByColumn}"",
                                 ""{UpdatedAtColumn}"" = new.""{UpdatedAtColumn}""
                             where ""{AccountIdColumn}"" = old.""{AccountIdColumn}""; 
@@ -69,7 +70,7 @@ public partial class HoldBalanceTrigger : Migration
                         if (new.""{StatusColumn}"" = {ActiveStatusId} and new.""{IsDeletedColumn}"" = false) then
                             update ""{TableNames.Accounts}""
                             set ""{HoldBalanceColumn}"" = ""{HoldBalanceColumn}"" + new.""{AmountColumn}"",
-                                ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - (""{HoldBalanceColumn}"" + new.""{AmountColumn}""),
+                                ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - ""{PendingDebitBalanceColumn}"" - (""{HoldBalanceColumn}"" + new.""{AmountColumn}""),
                                 ""{UpdatedByColumn}"" = new.""{UpdatedByColumn}"",
                                 ""{UpdatedAtColumn}"" = new.""{UpdatedAtColumn}""
                             where ""{AccountIdColumn}"" = new.""{AccountIdColumn}""; 
@@ -80,7 +81,7 @@ public partial class HoldBalanceTrigger : Migration
                     if (old.""{StatusColumn}"" = {ActiveStatusId} and new.""{StatusColumn}"" in ({SettledStatusId}, {ReleasedStatusId}, {ExpiredStatusId})) then
                         update ""{TableNames.Accounts}""
                         set ""{HoldBalanceColumn}"" = ""{HoldBalanceColumn}"" - old.""{AmountColumn}"",
-                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - (""{HoldBalanceColumn}"" - old.""{AmountColumn}""),
+                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - ""{PendingDebitBalanceColumn}"" - (""{HoldBalanceColumn}"" - old.""{AmountColumn}""),
                             ""{UpdatedByColumn}"" = new.""{UpdatedByColumn}"",
                             ""{UpdatedAtColumn}"" = new.""{UpdatedAtColumn}""
                         where ""{AccountIdColumn}"" = old.""{AccountIdColumn}""; 
@@ -90,7 +91,7 @@ public partial class HoldBalanceTrigger : Migration
                     if (old.""{StatusColumn}"" = {ActiveStatusId} and old.""{IsDeletedColumn}"" = false and new.""{IsDeletedColumn}"" = true) then
                         update ""{TableNames.Accounts}""
                         set ""{HoldBalanceColumn}"" = ""{HoldBalanceColumn}"" - old.""{AmountColumn}"",
-                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - (""{HoldBalanceColumn}"" - old.""{AmountColumn}""),
+                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - ""{PendingDebitBalanceColumn}"" - (""{HoldBalanceColumn}"" - old.""{AmountColumn}""),
                             ""{UpdatedByColumn}"" = new.""{DeletedByColumn}"",
                             ""{UpdatedAtColumn}"" = new.""{DeletedAtColumn}""
                         where ""{AccountIdColumn}"" = old.""{AccountIdColumn}""; 
@@ -100,7 +101,7 @@ public partial class HoldBalanceTrigger : Migration
                     if (new.""{StatusColumn}"" = {ActiveStatusId} and old.""{IsDeletedColumn}"" = true and new.""{IsDeletedColumn}"" = false) then
                         update ""{TableNames.Accounts}""
                         set ""{HoldBalanceColumn}"" = ""{HoldBalanceColumn}"" + new.""{AmountColumn}"",
-                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - (""{HoldBalanceColumn}"" + new.""{AmountColumn}""),
+                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - ""{PendingDebitBalanceColumn}"" - (""{HoldBalanceColumn}"" + new.""{AmountColumn}""),
                             ""{UpdatedAtColumn}"" = new.""{UpdatedAtColumn}""
                         where ""{AccountIdColumn}"" = new.""{AccountIdColumn}""; 
                     end if;
@@ -113,7 +114,7 @@ public partial class HoldBalanceTrigger : Migration
                     if (old.""{IsDeletedColumn}"" = false and old.""{StatusColumn}"" = {ActiveStatusId}) then
                         update ""{TableNames.Accounts}""
                         set ""{HoldBalanceColumn}"" = ""{HoldBalanceColumn}"" - old.""{AmountColumn}"",
-                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - (""{HoldBalanceColumn}"" - old.""{AmountColumn}""),
+                            ""{AvailableBalanceColumn}"" = ""{LedgerBalanceColumn}"" - ""{PendingDebitBalanceColumn}"" - (""{HoldBalanceColumn}"" - old.""{AmountColumn}""),
                             ""{UpdatedAtColumn}"" = now() at time zone 'utc'
                         where ""{AccountIdColumn}"" = old.""{AccountIdColumn}""; 
                     end if;

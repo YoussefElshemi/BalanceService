@@ -14,19 +14,19 @@ using Microsoft.OpenApi.Models;
 using Presentation.CustomBinding;
 using Presentation.ExceptionHandlers;
 using IAccountHistoryUpdateProcessor = Infrastructure.Services.Interfaces.IHistoryUpdateProcessor<
-    Infrastructure.Entities.History.AccountHistoryEntity,
+    Infrastructure.Entities.AccountHistoryEntity,
     Core.Models.AccountHistory,
     Core.Dtos.HistoryDto<Core.Dtos.AccountHistoryDto>,
     Core.Configs.AccountUpdateNotificationConfig>;
 
 using ITransactionHistoryUpdateProcessor = Infrastructure.Services.Interfaces.IHistoryUpdateProcessor<
-    Infrastructure.Entities.History.TransactionHistoryEntity,
+    Infrastructure.Entities.TransactionHistoryEntity,
     Core.Models.TransactionHistory,
     Core.Dtos.HistoryDto<Core.Dtos.TransactionHistoryDto>,
     Core.Configs.TransactionUpdateNotificationConfig>;
 
 using IHoldHistoryUpdateProcessor = Infrastructure.Services.Interfaces.IHistoryUpdateProcessor<
-    Infrastructure.Entities.History.HoldHistoryEntity,
+    Infrastructure.Entities.HoldHistoryEntity,
     Core.Models.HoldHistory,
     Core.Dtos.HistoryDto<Core.Dtos.HoldHistoryDto>,
     Core.Configs.HoldUpdateNotificationConfig>;

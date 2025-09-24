@@ -1,5 +1,3 @@
-using Infrastructure.Entities.History;
-
 namespace Infrastructure.Entities;
 
 public record ProcessingStatusEntity

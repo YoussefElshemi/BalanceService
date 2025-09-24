@@ -2,7 +2,7 @@ using Core.Enums;
 using Core.Models;
 using Core.ValueObjects;
 
-namespace Infrastructure.Entities.History;
+namespace Infrastructure.Entities;
 
 public record HoldHistoryEntity : IHistoryEntity<HoldHistory>
 {

@@ -1,6 +1,6 @@
 # locust -f multi_balance_test.py --host http://localhost:5000 --headless --skip-log-setup --users 30 --spawn-rate 10 --run-time 60s --stop-timeout 60s
 
-from locust import FastHttpUser, task, constant, events, stats
+from locust import FastHttpUser, task, constant, events
 import uuid
 import random
 import threading
@@ -40,7 +40,8 @@ class BalanceUser(FastHttpUser):
         self.expected_balances = {
             "ledgerBalance": 0,
             "availableBalance": 0,
-            "pendingBalance": 0,
+            "pendingCreditBalance": 0,
+            "pendingDebitBalance": 0,
             "holdBalance": 0,
         }
         self.lock = threading.Lock()
@@ -90,7 +91,8 @@ class BalanceUser(FastHttpUser):
         actual_balances = {
             "ledgerBalance": actual["ledgerBalance"],
             "availableBalance": actual["availableBalance"],
-            "pendingBalance": actual["pendingBalance"],
+            "pendingCreditBalance": actual["pendingCreditBalance"],
+            "pendingDebitBalance": actual["pendingDebitBalance"],
             "holdBalance": actual["holdBalance"],
         }
 
@@ -99,30 +101,37 @@ class BalanceUser(FastHttpUser):
         WITH tx_effects AS (
             SELECT
                 "AccountId",
-                CASE
-                    WHEN "TransactionDirectionId" = 1 THEN "Amount"   -- Credit +
-                    ELSE -"Amount"                                    -- Debit -
-                END AS signed_amount,
-                "TransactionStatusId"
+                "TransactionStatusId",
+                CASE WHEN "TransactionDirectionId" = 1 THEN "Amount" ELSE 0 END AS credit_amount,
+                CASE WHEN "TransactionDirectionId" = 2 THEN "Amount" ELSE 0 END AS debit_amount
             FROM public."Transactions"
             WHERE "IsDeleted" = false
               AND "AccountId" = %(account_id)s
         ),
         hold_effects AS (
             SELECT
-                h."AccountId",
+                "AccountId",
                 SUM("Amount") AS hold_amount
-            FROM public."Holds" h
-            WHERE h."IsDeleted" = false
-              AND h."HoldStatusId" = 1 -- active holds only
-              AND h."AccountId" = %(account_id)s
-            GROUP BY h."AccountId"
+            FROM public."Holds"
+            WHERE "IsDeleted" = false
+              AND "HoldStatusId" = 1 -- active holds only
+              AND "AccountId" = %(account_id)s
+            GROUP BY "AccountId"
         )
         SELECT
-            COALESCE(SUM(CASE WHEN "TransactionStatusId" IN (2,3) THEN signed_amount END), 0) AS "LedgerBalance",
-            COALESCE(SUM(CASE WHEN "TransactionStatusId" IN (2,3) THEN signed_amount END), 0)
+            -- Ledger = posted credits - posted debits
+            COALESCE(SUM(CASE WHEN "TransactionStatusId" IN (2,3) THEN credit_amount - debit_amount END), 0) AS "LedgerBalance",
+
+            -- Available = ledger - pending debits - active holds
+            COALESCE(SUM(CASE WHEN "TransactionStatusId" IN (2,3) THEN credit_amount - debit_amount END), 0)
+              - COALESCE(SUM(CASE WHEN "TransactionStatusId" = 1 THEN debit_amount END), 0)
               - COALESCE(MAX(h.hold_amount), 0) AS "AvailableBalance",
-            COALESCE(SUM(CASE WHEN "TransactionStatusId" = 1 THEN signed_amount END), 0) AS "PendingBalance",
+
+            -- Pending draft balances
+            COALESCE(SUM(CASE WHEN "TransactionStatusId" = 1 THEN credit_amount END), 0) AS "PendingCreditBalance",
+            COALESCE(SUM(CASE WHEN "TransactionStatusId" = 1 THEN debit_amount END), 0) AS "PendingDebitBalance",
+
+            -- Active holds
             COALESCE(MAX(h.hold_amount), 0) AS "HoldBalance"
         FROM tx_effects t
         LEFT JOIN hold_effects h ON t."AccountId" = h."AccountId";
@@ -135,14 +144,16 @@ class BalanceUser(FastHttpUser):
                 db_balances = {
                     "ledgerBalance": float(row[0]),
                     "availableBalance": float(row[1]),
-                    "pendingBalance": float(row[2]),
-                    "holdBalance": float(row[3]),
+                    "pendingCreditBalance": float(row[2]),
+                    "pendingDebitBalance": float(row[3]),
+                    "holdBalance": float(row[4]),
                 }
 
         checks = {
             "ledgerBalance": self.expected_balances["ledgerBalance"] == actual_balances["ledgerBalance"] == db_balances["ledgerBalance"],
             "availableBalance": self.expected_balances["availableBalance"] == actual_balances["availableBalance"] == db_balances["availableBalance"],
-            "pendingBalance": self.expected_balances["pendingBalance"] == actual_balances["pendingBalance"] == db_balances["pendingBalance"],
+            "pendingDebitBalance": self.expected_balances["pendingDebitBalance"] == actual_balances["pendingDebitBalance"] == db_balances["pendingDebitBalance"],
+            "pendingCreditBalance": self.expected_balances["pendingCreditBalance"] == actual_balances["pendingCreditBalance"] == db_balances["pendingCreditBalance"],
             "holdBalance": self.expected_balances["holdBalance"] == actual_balances["holdBalance"] == db_balances["holdBalance"],
         }
         
@@ -183,20 +194,32 @@ class BalanceUser(FastHttpUser):
                 tx_id = tx_res.json()["transactionId"]
 
                 with self.lock:
-                    self.expected_balances["pendingBalance"] += amount if direction == "Credit" else -amount
+                    if direction == "Credit":
+                        self.expected_balances["pendingCreditBalance"] += amount
+                    else:
+                        self.expected_balances["availableBalance"] -= amount
+                        self.expected_balances["pendingDebitBalance"] += amount
 
                 if random.random() < 0.8:
                     self.client.post(f"/transactions/{tx_id}/post", headers=new_headers())
                     with self.lock:
-                        self.expected_balances["ledgerBalance"] += amount if direction == "Credit" else -amount
-                        self.expected_balances["availableBalance"] += amount if direction == "Credit" else -amount
-                        self.expected_balances["pendingBalance"] -= amount if direction == "Credit" else -amount
+                        if direction == "Credit":
+                            self.expected_balances["ledgerBalance"] += amount
+                            self.expected_balances["availableBalance"] += amount
+                            self.expected_balances["pendingCreditBalance"] -= amount
+                        else:
+                            self.expected_balances["ledgerBalance"] -= amount
+                            self.expected_balances["pendingDebitBalance"] -= amount
 
                     if random.random() < 0.1:
                         self.client.post(f"/transactions/{tx_id}/reverse", headers=new_headers())
                         with self.lock:
-                            self.expected_balances["ledgerBalance"] -= amount if direction == "Credit" else -amount
-                            self.expected_balances["availableBalance"] -= amount if direction == "Credit" else -amount
+                            if direction == "Credit":
+                                self.expected_balances["ledgerBalance"] -= amount
+                                self.expected_balances["availableBalance"] -= amount
+                            else:
+                                self.expected_balances["ledgerBalance"] += amount
+                                self.expected_balances["availableBalance"] += amount
 
         # ---------------- Holds ----------------
         elif roll < 0.7:

@@ -3,7 +3,6 @@ using Core.Interfaces;
 using Core.Models;
 using Core.ValueObjects;
 using Infrastructure.Entities;
-using Infrastructure.Entities.History;
 
 namespace Infrastructure.Services;
 

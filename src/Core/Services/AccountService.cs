@@ -26,7 +26,8 @@ public class AccountService(
             CurrencyCode = createAccountRequest.CurrencyCode,
             AvailableBalance = new AvailableBalance(0),
             LedgerBalance = new LedgerBalance(0),
-            PendingBalance = new PendingBalance(0),
+            PendingDebitBalance = new PendingDebitBalance(0),
+            PendingCreditBalance = new PendingCreditBalance(0),
             HoldBalance = new HoldBalance(0),
             MinimumRequiredBalance = createAccountRequest.MinimumRequiredBalance,
             Type = createAccountRequest.AccountType,
@@ -177,7 +178,8 @@ public class AccountService(
         List<decimal> balances = [
             account.AvailableBalance,
             account.LedgerBalance,
-            account.PendingBalance,
+            account.PendingDebitBalance,
+            account.PendingCreditBalance,
             account.HoldBalance
         ];
 

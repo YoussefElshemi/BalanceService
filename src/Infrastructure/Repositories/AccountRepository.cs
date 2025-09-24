@@ -108,7 +108,8 @@ public class AccountRepository(
                 AccountId = accountId,
                 AvailableBalance = new AvailableBalance(x.AvailableBalance),
                 LedgerBalance = new LedgerBalance(x.LedgerBalance),
-                PendingBalance = new PendingBalance(x.PendingBalance),
+                PendingDebitBalance = new PendingDebitBalance(x.PendingDebitBalance),
+                PendingCreditBalance = new PendingCreditBalance(x.PendingCreditBalance),
                 HoldBalance = new HoldBalance(x.HoldBalance),
             })
             .FirstOrDefaultAsync(cancellationToken);

@@ -1,6 +1,6 @@
 using Core.Enums;
 using Infrastructure.Constants;
-using Infrastructure.Entities.History;
+using Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

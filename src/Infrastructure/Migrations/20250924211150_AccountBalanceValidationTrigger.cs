@@ -22,9 +22,10 @@ namespace Infrastructure.Migrations
         private const int PendingClosureStatusId = (int)AccountStatus.PendingClosure;
         private const int ClosedStatusId = (int)AccountStatus.Closed;
 
-        private const string AvailableBalanceColumn = nameof(AccountEntity.AvailableBalance);
         private const string LedgerBalanceColumn = nameof(AccountEntity.LedgerBalance);
-        private const string PendingBalanceColumn = nameof(AccountEntity.PendingBalance);
+        private const string AvailableBalanceColumn = nameof(AccountEntity.AvailableBalance);
+        private const string PendingCreditBalanceColumn = nameof(AccountEntity.PendingCreditBalance);
+        private const string PendingDebitBalanceColumn = nameof(AccountEntity.PendingDebitBalance);
         private const string HoldBalanceColumn = nameof(AccountEntity.HoldBalance);
         private const string MinimumRequiredBalanceColumn = nameof(AccountEntity.MinimumRequiredBalance);
         private const string AccountStatusColumn = nameof(AccountEntity.AccountStatusId);
@@ -34,7 +35,6 @@ namespace Infrastructure.Migrations
         private const string DirectionColumn = nameof(TransactionEntity.TransactionDirectionId);
         private const string StatusColumn = nameof(TransactionEntity.TransactionStatusId);
 
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql($@"
@@ -45,32 +45,32 @@ namespace Infrastructure.Migrations
                     projected_available_balance numeric;
                     min_required_balance numeric;
                     acc_status int;
-                    available_balance numeric;
                     ledger_balance numeric;
-                    pending_balance numeric;
+                    pending_credit_balance numeric;
+                    pending_debit_balance numeric;
                     hold_balance numeric;
                     total_balance_before numeric;
                     total_balance_after numeric;
                     draft_effect numeric := 0;
                 begin
                     -- Always load balances
-                    select ""{AvailableBalanceColumn}"",
+                    select ""{LedgerBalanceColumn}"",
+                           ""{PendingCreditBalanceColumn}"",
+                           ""{PendingDebitBalanceColumn}"",
+                           ""{HoldBalanceColumn}"",
                            ""{MinimumRequiredBalanceColumn}"",
-                           ""{AccountStatusColumn}"",
-                           ""{LedgerBalanceColumn}"",
-                           ""{PendingBalanceColumn}"",
-                           ""{HoldBalanceColumn}""
-                    into available_balance, min_required_balance, acc_status, ledger_balance, pending_balance, hold_balance
+                           ""{AccountStatusColumn}""
+                    into ledger_balance, pending_credit_balance, pending_debit_balance, hold_balance, min_required_balance, acc_status
                     from ""{TableNames.Accounts}""
                     where ""{AccountIdColumn}"" = new.""{AccountIdColumn}"";
 
-                    -- Projected balance for AvailableBalance (only matters for Posted)
-                    projected_available_balance := available_balance +
-                                        (case
-                                             when new.""{DirectionColumn}"" = {CreditTransactionDirectionId} then new.""{AmountColumn}""
-                                             when new.""{DirectionColumn}"" = {DebitTransactionDirectionId} then -new.""{AmountColumn}""
-                                             else 0
-                                         end);
+                    -- Projected AvailableBalance = Ledger - PendingDebits - Hold
+                    projected_available_balance := ledger_balance - pending_debit_balance - hold_balance +
+                        (case
+                             when new.""{DirectionColumn}"" = {CreditTransactionDirectionId} and new.""{StatusColumn}"" = {PostedStatusId} then new.""{AmountColumn}""
+                             when new.""{DirectionColumn}"" = {DebitTransactionDirectionId} and new.""{StatusColumn}"" = {PostedStatusId} then -new.""{AmountColumn}""
+                             else 0
+                         end);
 
                     -- Minimum balance check only for Posted transactions
                     if (new.""{StatusColumn}"" = {PostedStatusId}) then
@@ -80,24 +80,27 @@ namespace Infrastructure.Migrations
                         end if;
                     end if;
 
-                    -- PendingClosure convergence check for *all* transactions
+                    -- PendingClosure convergence check for all transactions
                     if (acc_status = {PendingClosureStatusId}) then
                         -- net exposure before
-                        total_balance_before := abs(available_balance + ledger_balance + pending_balance + hold_balance);
+                        total_balance_before := abs(ledger_balance - pending_debit_balance - hold_balance + pending_credit_balance);
 
-                        -- calculate effect depending on status
+                        -- effect depending on status
                         if (new.""{StatusColumn}"" = {PostedStatusId}) then
-                            -- Posted affects AvailableBalance
-                            total_balance_after := abs(projected_available_balance + ledger_balance + pending_balance + hold_balance);
+                            total_balance_after := abs(projected_available_balance + pending_credit_balance);
                         else
-                            -- Draft affects PendingBalance
+                            -- Draft affects PendingCredit / PendingDebit
                             draft_effect := case
                                                 when new.""{DirectionColumn}"" = {CreditTransactionDirectionId} then new.""{AmountColumn}""
-                                                when new.""{DirectionColumn}"" = {DebitTransactionDirectionId} then -new.""{AmountColumn}""
+                                                when new.""{DirectionColumn}"" = {DebitTransactionDirectionId} then new.""{AmountColumn}""
                                                 else 0
                                             end;
 
-                            total_balance_after := abs(available_balance + ledger_balance + (pending_balance + draft_effect) + hold_balance);
+                            if (new.""{DirectionColumn}"" = {CreditTransactionDirectionId}) then
+                                total_balance_after := abs(ledger_balance - pending_debit_balance - hold_balance + (pending_credit_balance + draft_effect));
+                            else
+                                total_balance_after := abs(ledger_balance - (pending_debit_balance + draft_effect) - hold_balance + pending_credit_balance);
+                            end if;
                         end if;
 
                         if (total_balance_after > total_balance_before) then
@@ -105,7 +108,7 @@ namespace Infrastructure.Migrations
                                 total_balance_before, total_balance_after;
                         end if;
 
-                        -- Auto-close if all balances zero after this transaction (only enforce on Posted)
+                        -- Auto-close if all balances zero after this transaction (only Posted)
                         if (new.""{StatusColumn}"" = {PostedStatusId} and total_balance_after = 0) then
                             update ""{TableNames.Accounts}""
                             set ""{AccountStatusColumn}"" = {ClosedStatusId}
@@ -127,7 +130,6 @@ namespace Infrastructure.Migrations
             ");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql($@"drop trigger if exists {TriggerPrefix}{ValidateAccountBalanceFunction} on ""{TableNames.Transactions}"";");

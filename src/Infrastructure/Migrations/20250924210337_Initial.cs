@@ -93,6 +93,52 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "InterestPayoutFrequencies",
+                columns: table => new
+                {
+                    InterestPayoutFrequencyId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InterestPayoutFrequencies", x => x.InterestPayoutFrequencyId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Jobs",
+                columns: table => new
+                {
+                    JobId = table.Column<Guid>(type: "uuid", nullable: false),
+                    JobName = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Jobs", x => x.JobId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProcessingStatuses",
+                columns: table => new
+                {
+                    ProcessingStatusId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProcessingStatuses", x => x.ProcessingStatusId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TransactionDirections",
                 columns: table => new
                 {
@@ -153,7 +199,8 @@ namespace Infrastructure.Migrations
                     CurrencyCode = table.Column<string>(type: "text", nullable: false),
                     LedgerBalance = table.Column<decimal>(type: "numeric", nullable: false),
                     AvailableBalance = table.Column<decimal>(type: "numeric", nullable: false),
-                    PendingBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    PendingDebitBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    PendingCreditBalance = table.Column<decimal>(type: "numeric", nullable: false),
                     HoldBalance = table.Column<decimal>(type: "numeric", nullable: false),
                     MinimumRequiredBalance = table.Column<decimal>(type: "numeric", nullable: false),
                     AccountTypeId = table.Column<int>(type: "integer", nullable: false),
@@ -193,6 +240,64 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "InterestProducts",
+                columns: table => new
+                {
+                    InterestProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    AnnualInterestRate = table.Column<decimal>(type: "numeric", nullable: false),
+                    InterestPayoutFrequencyId = table.Column<int>(type: "integer", nullable: false),
+                    AccrualBasis = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InterestProducts", x => x.InterestProductId);
+                    table.ForeignKey(
+                        name: "FK_InterestProducts_InterestPayoutFrequencies_InterestPayoutFr~",
+                        column: x => x.InterestPayoutFrequencyId,
+                        principalTable: "InterestPayoutFrequencies",
+                        principalColumn: "InterestPayoutFrequencyId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobRuns",
+                columns: table => new
+                {
+                    JobRunId = table.Column<Guid>(type: "uuid", nullable: false),
+                    JobId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ScheduledAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    IsExecuted = table.Column<bool>(type: "boolean", nullable: false),
+                    ExecutedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobRuns", x => x.JobRunId);
+                    table.ForeignKey(
+                        name: "FK_JobRuns_Jobs_JobId",
+                        column: x => x.JobId,
+                        principalTable: "Jobs",
+                        principalColumn: "JobId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AccountHistory",
                 columns: table => new
                 {
@@ -204,7 +309,8 @@ namespace Infrastructure.Migrations
                     CurrencyCode = table.Column<string>(type: "text", nullable: false),
                     LedgerBalance = table.Column<decimal>(type: "numeric", nullable: false),
                     AvailableBalance = table.Column<decimal>(type: "numeric", nullable: false),
-                    PendingBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    PendingDebitBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    PendingCreditBalance = table.Column<decimal>(type: "numeric", nullable: false),
                     HoldBalance = table.Column<decimal>(type: "numeric", nullable: false),
                     MinimumRequiredBalance = table.Column<decimal>(type: "numeric", nullable: false),
                     AccountTypeId = table.Column<int>(type: "integer", nullable: false),
@@ -217,7 +323,10 @@ namespace Infrastructure.Migrations
                     UpdatedBy = table.Column<string>(type: "text", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                    DeletedBy = table.Column<string>(type: "text", nullable: true),
+                    ProcessingStatusId = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                    ProcessedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -246,6 +355,12 @@ namespace Infrastructure.Migrations
                         principalTable: "HistoryTypes",
                         principalColumn: "HistoryTypeId",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AccountHistory_ProcessingStatuses_ProcessingStatusId",
+                        column: x => x.ProcessingStatusId,
+                        principalTable: "ProcessingStatuses",
+                        principalColumn: "ProcessingStatusId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -273,7 +388,10 @@ namespace Infrastructure.Migrations
                     UpdatedBy = table.Column<string>(type: "text", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                    DeletedBy = table.Column<string>(type: "text", nullable: true),
+                    ProcessingStatusId = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                    ProcessedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -289,6 +407,12 @@ namespace Infrastructure.Migrations
                         column: x => x.HistoryTypeId,
                         principalTable: "HistoryTypes",
                         principalColumn: "HistoryTypeId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TransactionHistory_ProcessingStatuses_ProcessingStatusId",
+                        column: x => x.ProcessingStatusId,
+                        principalTable: "ProcessingStatuses",
+                        principalColumn: "ProcessingStatusId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_TransactionHistory_TransactionDirections_TransactionDirecti~",
@@ -377,6 +501,78 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "InterestAccruals",
+                columns: table => new
+                {
+                    InterestAccrualId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    InterestProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DailyInterestRate = table.Column<decimal>(type: "numeric", nullable: false),
+                    AccruedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    AccruedAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    IsPosted = table.Column<bool>(type: "boolean", nullable: false),
+                    PostedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InterestAccruals", x => x.InterestAccrualId);
+                    table.ForeignKey(
+                        name: "FK_InterestAccruals_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_InterestAccruals_InterestProducts_InterestProductId",
+                        column: x => x.InterestProductId,
+                        principalTable: "InterestProducts",
+                        principalColumn: "InterestProductId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "InterestProductAccountLinks",
+                columns: table => new
+                {
+                    InterestProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InterestProductAccountLinks", x => new { x.AccountId, x.InterestProductId });
+                    table.ForeignKey(
+                        name: "FK_InterestProductAccountLinks_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_InterestProductAccountLinks_InterestProducts_InterestProduc~",
+                        column: x => x.InterestProductId,
+                        principalTable: "InterestProducts",
+                        principalColumn: "InterestProductId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "HoldHistory",
                 columns: table => new
                 {
@@ -401,7 +597,10 @@ namespace Infrastructure.Migrations
                     UpdatedBy = table.Column<string>(type: "text", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    DeletedBy = table.Column<string>(type: "text", nullable: true)
+                    DeletedBy = table.Column<string>(type: "text", nullable: true),
+                    ProcessingStatusId = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                    ProcessedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -435,6 +634,12 @@ namespace Infrastructure.Migrations
                         column: x => x.HoldTypeId,
                         principalTable: "HoldTypes",
                         principalColumn: "HoldTypeId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HoldHistory_ProcessingStatuses_ProcessingStatusId",
+                        column: x => x.ProcessingStatusId,
+                        principalTable: "ProcessingStatuses",
+                        principalColumn: "ProcessingStatusId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_HoldHistory_Transactions_SettledTransactionId",
@@ -574,6 +779,28 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "InterestPayoutFrequencies",
+                columns: new[] { "InterestPayoutFrequencyId", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Daily" },
+                    { 2, "Weekly" },
+                    { 3, "Monthly" },
+                    { 4, "Quarterly" },
+                    { 5, "Yearly" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "ProcessingStatuses",
+                columns: new[] { "ProcessingStatusId", "Name" },
+                values: new object[,]
+                {
+                    { 1, "NotProcessed" },
+                    { 2, "Processing" },
+                    { 3, "Processed" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "TransactionDirections",
                 columns: new[] { "TransactionDirectionId", "Name" },
                 values: new object[,]
@@ -589,7 +816,8 @@ namespace Infrastructure.Migrations
                 {
                     { 1, "Api" },
                     { 2, "Import" },
-                    { 3, "Manual" }
+                    { 3, "Manual" },
+                    { 4, "Internal" }
                 });
 
             migrationBuilder.InsertData(
@@ -609,7 +837,8 @@ namespace Infrastructure.Migrations
                 {
                     { 1, "InboundFunds" },
                     { 2, "SettledHold" },
-                    { 3, "Transfer" }
+                    { 3, "Transfer" },
+                    { 4, "AccruedInterest" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -636,6 +865,11 @@ namespace Infrastructure.Migrations
                 name: "IX_AccountHistory_ParentAccountId",
                 table: "AccountHistory",
                 column: "ParentAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccountHistory_ProcessingStatusId",
+                table: "AccountHistory",
+                column: "ProcessingStatusId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_AccountStatusId",
@@ -683,6 +917,11 @@ namespace Infrastructure.Migrations
                 column: "HoldTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_HoldHistory_ProcessingStatusId",
+                table: "HoldHistory",
+                column: "ProcessingStatusId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_HoldHistory_SettledTransactionId",
                 table: "HoldHistory",
                 column: "SettledTransactionId",
@@ -721,6 +960,40 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_InterestAccruals_AccountId",
+                table: "InterestAccruals",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InterestAccruals_InterestProductId",
+                table: "InterestAccruals",
+                column: "InterestProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InterestProductAccountLinks_InterestProductId",
+                table: "InterestProductAccountLinks",
+                column: "InterestProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InterestProducts_InterestPayoutFrequencyId",
+                table: "InterestProducts",
+                column: "InterestPayoutFrequencyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobRuns_JobId_ScheduledAt",
+                table: "JobRuns",
+                columns: new[] { "JobId", "ScheduledAt" },
+                unique: true,
+                filter: "\"IsDeleted\" = FALSE");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Jobs_JobName",
+                table: "Jobs",
+                column: "JobName",
+                unique: true,
+                filter: "\"IsDeleted\" = FALSE");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TransactionHistory_AccountId",
                 table: "TransactionHistory",
                 column: "AccountId");
@@ -729,6 +1002,11 @@ namespace Infrastructure.Migrations
                 name: "IX_TransactionHistory_HistoryTypeId",
                 table: "TransactionHistory",
                 column: "HistoryTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionHistory_ProcessingStatusId",
+                table: "TransactionHistory",
+                column: "ProcessingStatusId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TransactionHistory_TransactionDirectionId",
@@ -800,6 +1078,15 @@ namespace Infrastructure.Migrations
                 name: "Holds");
 
             migrationBuilder.DropTable(
+                name: "InterestAccruals");
+
+            migrationBuilder.DropTable(
+                name: "InterestProductAccountLinks");
+
+            migrationBuilder.DropTable(
+                name: "JobRuns");
+
+            migrationBuilder.DropTable(
                 name: "TransactionHistory");
 
             migrationBuilder.DropTable(
@@ -815,7 +1102,16 @@ namespace Infrastructure.Migrations
                 name: "Transactions");
 
             migrationBuilder.DropTable(
+                name: "InterestProducts");
+
+            migrationBuilder.DropTable(
+                name: "Jobs");
+
+            migrationBuilder.DropTable(
                 name: "HistoryTypes");
+
+            migrationBuilder.DropTable(
+                name: "ProcessingStatuses");
 
             migrationBuilder.DropTable(
                 name: "Accounts");
@@ -831,6 +1127,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "TransactionTypes");
+
+            migrationBuilder.DropTable(
+                name: "InterestPayoutFrequencies");
 
             migrationBuilder.DropTable(
                 name: "AccountStatuses");

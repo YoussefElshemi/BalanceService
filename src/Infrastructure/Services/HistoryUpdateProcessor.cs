@@ -7,7 +7,7 @@ using Core.Constants;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
-using Infrastructure.Entities.History;
+using Infrastructure.Entities;
 using Infrastructure.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

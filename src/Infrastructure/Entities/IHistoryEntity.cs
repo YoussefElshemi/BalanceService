@@ -1,4 +1,4 @@
-namespace Infrastructure.Entities.History;
+namespace Infrastructure.Entities;
 
 public interface IHistoryEntity<TModel>
 {

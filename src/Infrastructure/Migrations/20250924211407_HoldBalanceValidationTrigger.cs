@@ -19,9 +19,10 @@ namespace Infrastructure.Migrations
         private const int PendingClosureStatusId = (int)AccountStatus.PendingClosure;
         private const int ClosedStatusId = (int)AccountStatus.Closed;
 
-        private const string AvailableBalanceColumn = nameof(AccountEntity.AvailableBalance);
         private const string LedgerBalanceColumn = nameof(AccountEntity.LedgerBalance);
-        private const string PendingBalanceColumn = nameof(AccountEntity.PendingBalance);
+        private const string AvailableBalanceColumn = nameof(AccountEntity.AvailableBalance);
+        private const string PendingCreditBalanceColumn = nameof(AccountEntity.PendingCreditBalance);
+        private const string PendingDebitBalanceColumn = nameof(AccountEntity.PendingDebitBalance);
         private const string HoldBalanceColumn = nameof(AccountEntity.HoldBalance);
         private const string MinimumRequiredBalanceColumn = nameof(AccountEntity.MinimumRequiredBalance);
         private const string AccountStatusColumn = nameof(AccountEntity.AccountStatusId);
@@ -41,27 +42,25 @@ namespace Infrastructure.Migrations
                     projected_available_balance numeric;
                     min_required_balance numeric;
                     acc_status int;
-                    available_balance numeric;
                     ledger_balance numeric;
-                    pending_balance numeric;
+                    pending_debit_balance numeric;
                     hold_balance numeric;
                     total_balance_before numeric;
                     total_balance_after numeric;
                 begin
                     -- Only consider active holds that are not deleted
                     if (new.""{StatusColumn}"" = {ActiveStatusId} and new.""{IsDeletedColumn}"" = false) then
-                        select ""{AvailableBalanceColumn}"",
+                        select ""{LedgerBalanceColumn}"",
+                               ""{PendingDebitBalanceColumn}"",
+                               ""{HoldBalanceColumn}"",
                                ""{MinimumRequiredBalanceColumn}"",
-                               ""{AccountStatusColumn}"",
-                               ""{LedgerBalanceColumn}"",
-                               ""{PendingBalanceColumn}"",
-                               ""{HoldBalanceColumn}""
-                        into available_balance, min_required_balance, acc_status, ledger_balance, pending_balance, hold_balance
+                               ""{AccountStatusColumn}""
+                        into ledger_balance, pending_debit_balance, hold_balance, min_required_balance, acc_status
                         from ""{TableNames.Accounts}""
                         where ""{AccountIdColumn}"" = new.""{AccountIdColumn}"";
 
                         -- Basic projected balance check
-                        projected_available_balance := available_balance - new.""{AmountColumn}"";
+                        projected_available_balance := ledger_balance - pending_debit_balance - (hold_balance + new.""{AmountColumn}"");
 
                         if (projected_available_balance < min_required_balance) then
                             raise exception '{nameof(Account.AvailableBalance)} would be reduced below the configured {nameof(Account.MinimumRequiredBalance)}. {nameof(Account.MinimumRequiredBalance)}=%, Projected {nameof(Account.AvailableBalance)}=%',
@@ -70,11 +69,8 @@ namespace Infrastructure.Migrations
 
                         -- PendingClosure convergence rule
                         if (acc_status = {PendingClosureStatusId}) then
-                            -- net exposure before
-                            total_balance_before := abs(available_balance + ledger_balance + pending_balance + hold_balance);
-
-                            -- net exposure after adding the hold
-                            total_balance_after := abs(available_balance + ledger_balance + pending_balance + (hold_balance + new.""{AmountColumn}""));
+                            total_balance_before := ledger_balance - pending_debit_balance - hold_balance;
+                            total_balance_after := ledger_balance - pending_debit_balance - (hold_balance + new.""{AmountColumn}"");
 
                             if (total_balance_after > total_balance_before) then
                                 raise exception '{nameof(AccountStatus)} is {nameof(AccountStatus.PendingClosure)}, hold operation has increased balance exposure (before=%, after=%)',

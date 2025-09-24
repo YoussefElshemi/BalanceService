@@ -11,7 +11,8 @@ public record Account : DeletableBaseModel
     public required CurrencyCode CurrencyCode  { get; init; }
     public required AvailableBalance AvailableBalance  { get; init; }
     public required LedgerBalance LedgerBalance { get; init; }
-    public required PendingBalance PendingBalance { get; init; }
+    public required PendingDebitBalance PendingDebitBalance { get; init; }
+    public required PendingCreditBalance PendingCreditBalance { get; init; }
     public required HoldBalance HoldBalance { get; init; }
     public required MinimumRequiredBalance MinimumRequiredBalance { get; init; }
     public required AccountType Type { get; init; }

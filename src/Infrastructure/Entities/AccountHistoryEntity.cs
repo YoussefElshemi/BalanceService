@@ -3,7 +3,7 @@ using Core.Enums;
 using Core.Models;
 using Core.ValueObjects;
 
-namespace Infrastructure.Entities.History;
+namespace Infrastructure.Entities;
 
 public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
 {
@@ -16,7 +16,8 @@ public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
     public required string CurrencyCode { get; init; }
     public required decimal LedgerBalance { get; init; }
     public required decimal AvailableBalance { get; init; }
-    public required decimal PendingBalance { get; init; }
+    public required decimal PendingDebitBalance { get; init; }
+    public required decimal PendingCreditBalance { get; init; }
     public required decimal HoldBalance { get; init; }
     public required decimal MinimumRequiredBalance { get; init; }
     public required int AccountTypeId { get; init; }
@@ -49,7 +50,8 @@ public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
             CurrencyCode = Enum.Parse<CurrencyCode>(CurrencyCode),
             AvailableBalance = new AvailableBalance(AvailableBalance),
             LedgerBalance = new LedgerBalance(LedgerBalance),
-            PendingBalance = new PendingBalance(PendingBalance),
+            PendingDebitBalance = new PendingDebitBalance(PendingDebitBalance),
+            PendingCreditBalance = new PendingCreditBalance(PendingCreditBalance),
             HoldBalance = new HoldBalance(HoldBalance),
             MinimumRequiredBalance = new MinimumRequiredBalance(MinimumRequiredBalance),
             Type = (AccountType)AccountTypeId,
@@ -80,7 +82,8 @@ public record AccountHistoryEntity : IHistoryEntity<AccountHistory>
         nameof(CurrencyCode),
         nameof(LedgerBalance),
         nameof(AvailableBalance),
-        nameof(PendingBalance),
+        nameof(PendingDebitBalance),
+        nameof(PendingCreditBalance),
         nameof(HoldBalance),
         nameof(MinimumRequiredBalance),
         nameof(AccountTypeId),

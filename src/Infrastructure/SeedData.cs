@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using Core.Enums;
 using Infrastructure.Entities;
-using Infrastructure.Entities.History;
 
 namespace Infrastructure;
 

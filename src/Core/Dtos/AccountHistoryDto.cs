@@ -10,7 +10,8 @@ public record AccountHistoryDto
     public required CurrencyCode CurrencyCode  { get; init; }
     public required decimal AvailableBalance  { get; init; }
     public required decimal LedgerBalance  { get; init; }
-    public required decimal PendingBalance  { get; init; }
+    public required decimal PendingDebitBalance  { get; init; }
+    public required decimal PendingCreditBalance  { get; init; }
     public required decimal HoldBalance  { get; init; }
     public required decimal MinimumRequiredBalance  { get; init; }
     public required AccountType AccountType { get; init; }

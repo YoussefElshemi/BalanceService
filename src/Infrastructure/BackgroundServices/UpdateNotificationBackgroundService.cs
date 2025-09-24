@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Core.Configs;
 using Core.Models;
-using Infrastructure.Entities.History;
+using Infrastructure.Entities;
 using Infrastructure.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

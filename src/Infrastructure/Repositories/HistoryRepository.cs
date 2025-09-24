@@ -4,7 +4,7 @@ using Core.Enums;
 using Core.Exceptions;
 using Core.Interfaces;
 using Core.Models;
-using Infrastructure.Entities.History;
+using Infrastructure.Entities;
 using Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 

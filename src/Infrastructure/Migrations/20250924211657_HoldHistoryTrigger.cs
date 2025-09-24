@@ -1,7 +1,6 @@
 ﻿using Core.Enums;
 using Infrastructure.Constants;
 using Infrastructure.Entities;
-using Infrastructure.Entities.History;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -18,7 +17,7 @@ namespace Infrastructure.Migrations
         private const int DeleteId = (int)HistoryType.Delete;
 
         private static readonly string[] Columns =
-        {
+        [
             nameof(HoldHistoryEntity.HoldHistoryId),
             nameof(HoldHistoryEntity.HistoryTypeId),
             nameof(HoldHistoryEntity.Timestamp),
@@ -41,7 +40,7 @@ namespace Infrastructure.Migrations
             nameof(HoldHistoryEntity.CreatedBy),
             nameof(HoldHistoryEntity.UpdatedAt),
             nameof(HoldHistoryEntity.UpdatedBy)
-        };
+        ];
 
         protected override void Up(MigrationBuilder migrationBuilder)
         {

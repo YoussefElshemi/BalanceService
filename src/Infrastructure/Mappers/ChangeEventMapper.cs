@@ -1,6 +1,6 @@
 using Core.Models;
 using Core.ValueObjects;
-using Infrastructure.Entities.History;
+using Infrastructure.Entities;
 
 namespace Infrastructure.Mappers;
 

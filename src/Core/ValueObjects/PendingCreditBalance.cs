@@ -2,16 +2,16 @@ using System.Globalization;
 
 namespace Core.ValueObjects;
 
-public readonly record struct PendingBalance
+public readonly record struct PendingCreditBalance
 {
-    public PendingBalance(decimal value)
+    public PendingCreditBalance(decimal value)
     {
         Value = value;
     }
 
     private decimal Value { get; }
 
-    public static implicit operator decimal(PendingBalance valueObject)
+    public static implicit operator decimal(PendingCreditBalance valueObject)
     {
         return valueObject.Value;
     }
