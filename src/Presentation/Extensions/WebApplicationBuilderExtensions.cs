@@ -4,6 +4,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Exceptions.Core;
+using Serilog.Exceptions.EntityFrameworkCore.Destructurers;
 using Serilog.Formatting.Compact;
 using Serilog.Sinks.OpenTelemetry;
 using Environment = Core.Enums.Environment;
@@ -38,7 +39,9 @@ public static class WebApplicationBuilderExtensions
                 .Enrich.WithProperty(LogPropertyNames.Version, appConfig.Version)
                 .Enrich.WithProperty(LogPropertyNames.Environment, appConfig.Environment.ToString())
                 .Filter.ByExcluding("RequestPath like '/health%'")
-                .Enrich.WithExceptionDetails(new DestructuringOptionsBuilder().WithDefaultDestructurers());
+                .Enrich.WithExceptionDetails(new DestructuringOptionsBuilder()
+                    .WithDefaultDestructurers()
+                    .WithDestructurers([new DbUpdateExceptionDestructurer()]));
 #if(!DEBUG)
             loggerConfiguration
                 .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore"))
