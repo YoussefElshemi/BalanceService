@@ -28,11 +28,11 @@ namespace Infrastructure.Migrations
         private const string TransactionDirectionIdColumn = nameof(TransactionEntity.TransactionDirectionId);
         private const string TransactionStatusIdColumn = nameof(TransactionStatusEntity.TransactionStatusId);
 
-        private const string UpdatedByColumn = nameof(BaseEntity.UpdatedBy);
-        private const string UpdatedAtColumn = nameof(BaseEntity.UpdatedAt);
-        private const string IsDeletedColumn = nameof(DeletableBaseEntity.IsDeleted);
-        private const string DeletedByColumn = nameof(DeletableBaseEntity.DeletedBy);
-        private const string DeletedAtColumn = nameof(DeletableBaseEntity.DeletedAt);
+        private const string UpdatedByColumn = nameof(TransactionEntity.UpdatedBy);
+        private const string UpdatedAtColumn = nameof(TransactionEntity.UpdatedAt);
+        private const string IsDeletedColumn = nameof(TransactionEntity.IsDeleted);
+        private const string DeletedByColumn = nameof(TransactionEntity.DeletedBy);
+        private const string DeletedAtColumn = nameof(TransactionEntity.DeletedAt);
 
         protected override void Up(MigrationBuilder migrationBuilder)
         {

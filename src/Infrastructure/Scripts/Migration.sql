@@ -1317,7 +1317,7 @@ BEGIN
                         if (new."IsDeleted" = false and new."HoldStatusId" = 1) then
                             update "Accounts"
                             set "HoldBalance" = "HoldBalance" + new."Amount",
-                                "AvailableBalance" = "LedgerBalance" - "PendingDebitBalance" - ("HoldBalance" + new."Amount"),
+                                "AvailableBalance" = "AvailableBalance" - new."Amount",
                                 "UpdatedBy" = new."UpdatedBy",
                                 "UpdatedAt" = new."UpdatedAt"
                             where "AccountId" = new."AccountId"; 
@@ -1333,7 +1333,7 @@ BEGIN
                             if (old."HoldStatusId" = 1 and old."IsDeleted" = false) then
                                 update "Accounts"
                                 set "HoldBalance" = "HoldBalance" - old."Amount",
-                                    "AvailableBalance" = "LedgerBalance" - "PendingDebitBalance" - ("HoldBalance" - old."Amount"),
+                                    "AvailableBalance" = "AvailableBalance" - old."Amount",
                                     "UpdatedBy" = new."UpdatedBy",
                                     "UpdatedAt" = new."UpdatedAt"
                                 where "AccountId" = old."AccountId"; 
@@ -1343,7 +1343,7 @@ BEGIN
                             if (new."HoldStatusId" = 1 and new."IsDeleted" = false) then
                                 update "Accounts"
                                 set "HoldBalance" = "HoldBalance" + new."Amount",
-                                    "AvailableBalance" = "LedgerBalance" - "PendingDebitBalance" - ("HoldBalance" + new."Amount"),
+                                    "AvailableBalance" = "AvailableBalance" - new."Amount",
                                     "UpdatedBy" = new."UpdatedBy",
                                     "UpdatedAt" = new."UpdatedAt"
                                 where "AccountId" = new."AccountId"; 
@@ -1354,7 +1354,7 @@ BEGIN
                         if (old."HoldStatusId" = 1 and new."HoldStatusId" in (3, 2, 4)) then
                             update "Accounts"
                             set "HoldBalance" = "HoldBalance" - old."Amount",
-                                "AvailableBalance" = "LedgerBalance" - "PendingDebitBalance" - ("HoldBalance" - old."Amount"),
+                                "AvailableBalance" = "AvailableBalance" + old."Amount",
                                 "UpdatedBy" = new."UpdatedBy",
                                 "UpdatedAt" = new."UpdatedAt"
                             where "AccountId" = old."AccountId"; 
@@ -1364,7 +1364,7 @@ BEGIN
                         if (old."HoldStatusId" = 1 and old."IsDeleted" = false and new."IsDeleted" = true) then
                             update "Accounts"
                             set "HoldBalance" = "HoldBalance" - old."Amount",
-                                "AvailableBalance" = "LedgerBalance" - "PendingDebitBalance" - ("HoldBalance" - old."Amount"),
+                                "AvailableBalance" =  "AvailableBalance" - old."Amount",
                                 "UpdatedBy" = new."DeletedBy",
                                 "UpdatedAt" = new."DeletedAt"
                             where "AccountId" = old."AccountId"; 
@@ -1374,7 +1374,7 @@ BEGIN
                         if (new."HoldStatusId" = 1 and old."IsDeleted" = true and new."IsDeleted" = false) then
                             update "Accounts"
                             set "HoldBalance" = "HoldBalance" + new."Amount",
-                                "AvailableBalance" = "LedgerBalance" - "PendingDebitBalance" - ("HoldBalance" + new."Amount"),
+                                "AvailableBalance" =  "AvailableBalance" + new."Amount",
                                 "UpdatedAt" = new."UpdatedAt"
                             where "AccountId" = new."AccountId"; 
                         end if;
@@ -1387,7 +1387,7 @@ BEGIN
                         if (old."IsDeleted" = false and old."HoldStatusId" = 1) then
                             update "Accounts"
                             set "HoldBalance" = "HoldBalance" - old."Amount",
-                                "AvailableBalance" = "LedgerBalance" - "PendingDebitBalance" - ("HoldBalance" - old."Amount"),
+                                "AvailableBalance" = "AvailableBalance" - old."Amount",
                                 "UpdatedAt" = now() at time zone 'utc'
                             where "AccountId" = old."AccountId"; 
                         end if;
@@ -1430,74 +1430,81 @@ BEGIN
                     returns trigger as
                     $$
                     declare
-                        projected_available_balance numeric;
-                        min_required_balance numeric;
-                        acc_status int;
                         ledger_balance numeric;
+                        available_balance numeric;
                         pending_credit_balance numeric;
                         pending_debit_balance numeric;
                         hold_balance numeric;
-                        total_balance_before numeric;
-                        total_balance_after numeric;
-                        draft_effect numeric := 0;
+                        min_required_balance numeric;
+                        acc_status int;
+
+                        projected_ledger_balance numeric;
+                        projected_available_balance numeric;
+                        projected_pending_credit_balance numeric;
+                        projected_pending_debit_balance numeric;
+
+                        total_before numeric;
+                        total_after numeric;
                     begin
-                        -- Always load balances
+                        -- Always load current balances
                         select "LedgerBalance",
+                               "AvailableBalance",
                                "PendingCreditBalance",
                                "PendingDebitBalance",
                                "HoldBalance",
                                "MinimumRequiredBalance",
                                "AccountStatusId"
-                        into ledger_balance, pending_credit_balance, pending_debit_balance, hold_balance, min_required_balance, acc_status
+                        into ledger_balance, available_balance, pending_credit_balance, pending_debit_balance, hold_balance, min_required_balance, acc_status
                         from "Accounts"
                         where "AccountId" = new."AccountId";
 
-                        -- Projected AvailableBalance = Ledger - PendingDebits - Hold
-                        projected_available_balance := ledger_balance - pending_debit_balance - hold_balance +
-                            (case
-                                 when new."TransactionDirectionId" = 1 and new."TransactionStatusId" = 2 then new."Amount"
-                                 when new."TransactionDirectionId" = 2 and new."TransactionStatusId" = 2 then -new."Amount"
-                                 else 0
-                             end);
+                        -- Start from current balances
+                        projected_ledger_balance := ledger_balance;
+                        projected_available_balance := available_balance;
+                        projected_pending_credit_balance := pending_credit_balance;
+                        projected_pending_debit_balance := pending_debit_balance;
 
-                        -- Minimum balance check only for Posted transactions
-                        if (new."TransactionStatusId" = 2) then
-                            if (projected_available_balance < min_required_balance) then
-                                raise exception 'Transaction would reduce AvailableBalance below MinimumRequiredBalance. MinimumRequiredBalance=%, Projected AvailableBalance=%',
-                                    min_required_balance, projected_available_balance;
+                        -- Apply same effect as update_account_balance (validation only)
+                        if (new."TransactionStatusId" = 1) then
+                            if (new."TransactionDirectionId" = 1) then
+                                projected_pending_credit_balance := projected_pending_credit_balance + new."Amount";
+                            elsif (new."TransactionDirectionId" = 2) then
+                                projected_pending_debit_balance := projected_pending_debit_balance + new."Amount";
+                                projected_available_balance := projected_available_balance - new."Amount";
+                            end if;
+                        elsif (new."TransactionStatusId" = 2) then
+                            if (new."TransactionDirectionId" = 1) then
+                                projected_ledger_balance := projected_ledger_balance + new."Amount";
+                                projected_available_balance := projected_available_balance + new."Amount";
+                            elsif (new."TransactionDirectionId" = 2) then
+                                projected_ledger_balance := projected_ledger_balance - new."Amount";
+                                projected_available_balance := projected_available_balance - new."Amount";
                             end if;
                         end if;
 
-                        -- PendingClosure convergence check for all transactions
+                        -- Check minimum balance rule
+                        if (projected_available_balance < min_required_balance) then
+                            raise exception 'Transaction would reduce AvailableBalance below MinimumRequiredBalance. MinimumRequiredBalance=%, Projected AvailableBalance=%',
+                                min_required_balance, projected_available_balance;
+                        end if;
+
+                        -- PendingClosure rules
                         if (acc_status = 8) then
-                            -- net exposure before
-                            total_balance_before := abs(ledger_balance - pending_debit_balance - hold_balance + pending_credit_balance);
+                            total_before := abs(ledger_balance - pending_debit_balance - hold_balance + pending_credit_balance);
+                            total_after := abs(projected_ledger_balance - projected_pending_debit_balance - hold_balance + projected_pending_credit_balance);
 
-                            -- effect depending on status
-                            if (new."TransactionStatusId" = 2) then
-                                total_balance_after := abs(projected_available_balance + pending_credit_balance);
-                            else
-                                -- Draft affects PendingCredit / PendingDebit
-                                draft_effect := case
-                                                    when new."TransactionDirectionId" = 1 then new."Amount"
-                                                    when new."TransactionDirectionId" = 2 then new."Amount"
-                                                    else 0
-                                                end;
-
-                                if (new."TransactionDirectionId" = 1) then
-                                    total_balance_after := abs(ledger_balance - pending_debit_balance - hold_balance + (pending_credit_balance + draft_effect));
-                                else
-                                    total_balance_after := abs(ledger_balance - (pending_debit_balance + draft_effect) - hold_balance + pending_credit_balance);
-                                end if;
-                            end if;
-
-                            if (total_balance_after > total_balance_before) then
+                            if (total_after > total_before) then
                                 raise exception 'AccountStatus is PendingClosure, operation has increased balance exposure (before=%, after=%)',
-                                    total_balance_before, total_balance_after;
+                                    total_before, total_after;
                             end if;
 
-                            -- Auto-close if all balances zero after this transaction (only Posted)
-                            if (new."TransactionStatusId" = 2 and total_balance_after = 0) then
+                            -- Auto-close if all balances converge to zero
+                            if (new."TransactionStatusId" = 2
+                                and projected_ledger_balance = 0
+                                and projected_available_balance = 0
+                                and projected_pending_credit_balance = 0
+                                and projected_pending_debit_balance = 0
+                                and hold_balance = 0) then
                                 update "Accounts"
                                 set "AccountStatusId" = 3
                                 where "AccountId" = new."AccountId";
@@ -1515,6 +1522,7 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20250924211150_AccountBalanceValidationTrigger') THEN
 
+                    drop trigger if exists tr_validate_account_balance on "Transactions";
                     create trigger tr_validate_account_balance
                     before insert or update
                     on "Transactions"
