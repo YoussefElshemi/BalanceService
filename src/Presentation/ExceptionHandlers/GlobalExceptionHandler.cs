@@ -1,14 +1,21 @@
 using System.Net;
 using System.Net.Mime;
+using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 using ILogger = Serilog.ILogger;
 
 namespace Presentation.ExceptionHandlers;
 
-internal sealed class GlobalExceptionHandler(ILogger logger) : IExceptionHandler
+public class GlobalExceptionHandler(
+    IHostEnvironment env,
+    IOptions<JsonOptions>? jsonOptions,
+    ILogger logger) : IExceptionHandler
 {
+    private readonly JsonSerializerOptions _jsonSerializerOptions = jsonOptions?.Value.JsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
@@ -23,7 +30,7 @@ internal sealed class GlobalExceptionHandler(ILogger logger) : IExceptionHandler
         return true;
     }
 
-    private static Task WriteHttpResponseAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    private Task WriteHttpResponseAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
         httpContext.Response.ContentType = MediaTypeNames.Application.Json;
@@ -36,6 +43,12 @@ internal sealed class GlobalExceptionHandler(ILogger logger) : IExceptionHandler
             Instance = httpContext.Request.Path
         };
 
-        return httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+        if (env.IsDevelopment())
+        {
+            problemDetails.Extensions["exceptionMessage"] = exception.Message;
+            problemDetails.Extensions["stackTrace"] = exception.StackTrace;
+        }
+
+        return httpContext.Response.WriteAsJsonAsync(problemDetails, _jsonSerializerOptions, cancellationToken);
     }
 }

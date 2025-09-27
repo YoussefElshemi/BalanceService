@@ -1,14 +1,18 @@
 using System.Net;
 using System.Net.Mime;
+using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 
 namespace Presentation.ExceptionHandlers;
 
-internal sealed class ValidationExceptionHandler : IExceptionHandler
+public class ValidationExceptionHandler(IOptions<JsonOptions>? jsonOptions) : IExceptionHandler
 {
+    private readonly JsonSerializerOptions _jsonSerializerOptions = jsonOptions?.Value.JsonSerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
@@ -27,7 +31,7 @@ internal sealed class ValidationExceptionHandler : IExceptionHandler
         return true;
     }
 
-    private static Task WriteHttpResponseAsync(
+    private Task WriteHttpResponseAsync(
         HttpContext httpContext,
         ValidationException exception,
         CancellationToken cancellationToken)
@@ -48,7 +52,7 @@ internal sealed class ValidationExceptionHandler : IExceptionHandler
                     x.Select(y => y.ErrorMessage).ToArray())
         };
 
-        return httpContext.Response.WriteAsJsonAsync(validationProblemDetails, cancellationToken);
+        return httpContext.Response.WriteAsJsonAsync(validationProblemDetails, _jsonSerializerOptions, cancellationToken);
     }
 
 }
