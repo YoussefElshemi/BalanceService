@@ -66,10 +66,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             {
                 await operation(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
+
+                Activity.Current?.AddEvent(new ActivityEvent("Transaction Commit Successful", DateTimeOffset.UtcNow));
             }
-            catch
+            catch (Exception exception)
             {
                 await transaction.RollbackAsync(cancellationToken);
+
+                Activity.Current?.AddEvent(new ActivityEvent("Transaction Commit Failed", DateTimeOffset.UtcNow));
+                Activity.Current?.AddException(exception);
+                Activity.Current?.SetStatus(ActivityStatusCode.Error, exception.Message);
+
                 throw;
             }
         });
@@ -88,14 +95,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             try
             {
                 var result = await operation(cancellationToken);
-
                 await transaction.CommitAsync(cancellationToken);
+
+                Activity.Current?.AddEvent(new ActivityEvent("Transaction Commit Successful", DateTimeOffset.UtcNow));
 
                 return result;
             }
-            catch
+            catch (Exception exception)
             {
                 await transaction.RollbackAsync(cancellationToken);
+
+                Activity.Current?.AddEvent(new ActivityEvent("Transaction Commit Failed", DateTimeOffset.UtcNow));
+                Activity.Current?.AddException(exception);
+                Activity.Current?.SetStatus(ActivityStatusCode.Error, exception.Message);
+
                 throw;
             }
         });

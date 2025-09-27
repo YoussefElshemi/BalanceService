@@ -60,6 +60,7 @@ public class JobBackgroundService<TConfig, TExecutor>(
 
             var scheduledAt = new ScheduledAt(TimeZoneInfo.ConvertTime(nextOccurrence.Value, TimeZoneInfo.Utc));
             var (success, jobRun) = await jobService.TryCreateRunAsync(job.JobId, scheduledAt, cancellationToken);
+
             if (!success)
             {
                 continue;

@@ -4,7 +4,7 @@ using Npgsql;
 namespace Core.Exceptions;
 
 [Serializable]
-public class IdempotencyException<T>(PostgresException pgEx) : DomainException($"{typeof(T)} must be unique", pgEx)
+public class IdempotencyException<T>(PostgresException pgEx) : DomainException($"{typeof(T).Name} must be unique", pgEx)
 {
     public override HttpStatusCode GetStatusCode()
     {
