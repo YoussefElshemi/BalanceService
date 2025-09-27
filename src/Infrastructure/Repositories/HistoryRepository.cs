@@ -7,6 +7,8 @@ using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace Infrastructure.Repositories;
 
@@ -89,7 +91,7 @@ public class HistoryRepository<TEntity, TModel>(
             ""{nameof(ChangeEventEntity.HistoryTypeId)}"",
             ROW_NUMBER() OVER (PARTITION BY ""{idColumn}"" ORDER BY ""{nameof(ChangeEventEntity.Timestamp)}"") AS row_num
         FROM ""{tableName}""
-        WHERE ""{idColumn}"" = '{getHistoryRequest.EntityId}'
+        WHERE ""{idColumn}"" = @EntityId
     "));
 
         var sql = $@"
@@ -106,7 +108,12 @@ public class HistoryRepository<TEntity, TModel>(
           AND NOT (row_num = 1 AND ""{nameof(ChangeEventEntity.HistoryTypeId)}"" = {(int)HistoryType.Insert})";
         }
 
-        return dbContext.Database.SqlQueryRaw<ChangeEventEntity>(sql);
+        return dbContext.Database.SqlQueryRaw<ChangeEventEntity>(sql, [
+            new NpgsqlParameter("@EntityId", NpgsqlDbType.Uuid)
+            {
+                Value = getHistoryRequest.EntityId
+            },
+        ]);
     }
 
 }

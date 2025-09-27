@@ -34,13 +34,18 @@ public class InterestAccrualJobExecutor(
             var balanceRequest = new BalanceRequest
             {
                 AccountId = account.AccountId,
-                DateTime = utcDateTime
+                Timestamp = new Timestamp(utcDateTime)
             };
 
             var eligibleBalance = await balanceService.GetEligibleBalanceAsync(
                 balanceRequest,
                 _interestAccrualJobConfig.InterestEligibilityLag,
                 cancellationToken);
+
+            if (eligibleBalance < 0)
+            {
+                continue;
+            }
 
             var dailyInterestRate = interestProduct.AnnualInterestRate / interestProduct.AccrualBasis;
             var accruedAmount = currencyService.Round(account.CurrencyCode, eligibleBalance * dailyInterestRate);
@@ -66,8 +71,7 @@ public class InterestAccrualJobExecutor(
 
             await interestAccrualRepository.CreateAsync(accrual, cancellationToken);
 
-            if (interestProduct.InterestPayoutFrequency == InterestPayoutFrequency.Daily ||
-                ShouldPayoutToday(
+            if (ShouldPayoutToday(
                     interestProduct.InterestPayoutFrequency,
                     DateOnly.FromDateTime(utcDateTime.UtcDateTime)))
             {
@@ -131,6 +135,7 @@ public class InterestAccrualJobExecutor(
 
     private static bool ShouldPayoutToday(InterestPayoutFrequency frequency, DateOnly date) => frequency switch
     {
+        InterestPayoutFrequency.Daily => true,
         InterestPayoutFrequency.Weekly => date.DayOfWeek == DayOfWeek.Sunday,
         InterestPayoutFrequency.Monthly => date.Day == 1,
         InterestPayoutFrequency.Quarterly => date is { Day: 1, Month: 1 or 4 or 7 or 10 },

@@ -30,15 +30,11 @@ public class JobBackgroundService<TConfig, TExecutor>(
         using var scope = scopeFactory.CreateScope();
         var jobService = scope.ServiceProvider.GetRequiredService<IJobService>();
 
-        using var parentActivity = OpenTelemetry.OpenTelemetry.MyActivitySource.StartActivity(GetType().Name);
-
         var job = await jobService.GetOrCreateAsync(_config, cancellationToken);
         var cronSchedule = CronExpression.Parse(_config.CronExpression);
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            using var currentActivity = OpenTelemetry.OpenTelemetry.MyActivitySource.StartActivity(_config.JobName);
-
             var utcNow = timeProvider.GetUtcNow();
             var nextOccurrence = cronSchedule.GetNextOccurrence(utcNow.UtcDateTime, TimeZoneInfo.Utc);
 
@@ -58,8 +54,12 @@ public class JobBackgroundService<TConfig, TExecutor>(
                 break;
             }
 
+            using var currentActivity = OpenTelemetry.OpenTelemetry.MyActivitySource.StartActivity(_config.JobName);
+            currentActivity?.AddTag(OpenTelemetryTags.Service.JobScheduledAt, nextOccurrence.Value);
+
             var scheduledAt = new ScheduledAt(TimeZoneInfo.ConvertTime(nextOccurrence.Value, TimeZoneInfo.Utc));
             var (success, jobRun) = await jobService.TryCreateRunAsync(job.JobId, scheduledAt, cancellationToken);
+            currentActivity?.AddTag(OpenTelemetryTags.Service.JobRunCreated, success);
 
             if (!success)
             {
@@ -71,6 +71,8 @@ public class JobBackgroundService<TConfig, TExecutor>(
                 var jobExecutor = scope.ServiceProvider.GetRequiredService<TExecutor>();
                 await jobExecutor.ExecuteAsync(cancellationToken);
                 await jobService.ExecuteAsync(jobRun.JobRunId, SystemConstants.Username, cancellationToken);
+
+                currentActivity?.AddTag(OpenTelemetryTags.Service.JobSuccess, true);
             }
             catch (Exception exception)
             {
@@ -78,6 +80,7 @@ public class JobBackgroundService<TConfig, TExecutor>(
 
                 currentActivity?.AddException(exception);
                 currentActivity?.SetStatus(ActivityStatusCode.Error, exception.Message);
+                currentActivity?.AddTag(OpenTelemetryTags.Service.JobSuccess, false);
             }
             finally
             {

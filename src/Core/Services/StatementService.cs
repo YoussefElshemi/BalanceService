@@ -20,13 +20,13 @@ public class StatementService(
         var openingBalanceRequest = new BalanceRequest
         {
             AccountId = getStatementRequest.AccountId,
-            DateTime = getStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue)
+            Timestamp = new Timestamp(getStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue))
         };
 
         var closingBalanceRequest = new BalanceRequest
         {
             AccountId = getStatementRequest.AccountId,
-            DateTime = getStatementRequest.DateRange.To.ToDateTime(TimeOnly.MaxValue)
+            Timestamp = new Timestamp(getStatementRequest.DateRange.To.ToDateTime(TimeOnly.MaxValue))
         };
 
         var openingBalance = await balanceService.GetAvailableBalanceAsync(openingBalanceRequest, cancellationToken);
@@ -60,13 +60,13 @@ public class StatementService(
         var openingBalanceRequest = new BalanceRequest
         {
             AccountId = generateStatementRequest.AccountId,
-            DateTime = generateStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue)
+            Timestamp = new Timestamp(generateStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue))
         };
 
         var closingBalanceRequest = new BalanceRequest
         {
             AccountId = generateStatementRequest.AccountId,
-            DateTime = generateStatementRequest.DateRange.To.ToDateTime(TimeOnly.MaxValue)
+            Timestamp = new Timestamp(generateStatementRequest.DateRange.To.ToDateTime(TimeOnly.MaxValue))
         };
 
         var openingBalance = await balanceService.GetAvailableBalanceAsync(openingBalanceRequest, cancellationToken);

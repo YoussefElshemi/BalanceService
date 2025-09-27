@@ -1,10 +1,12 @@
-using Core.Constants;
 using Core.Enums;
 using Core.Interfaces;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Mappers;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using NpgsqlTypes;
+using StatementType = Core.Enums.StatementType;
 
 namespace Infrastructure.Repositories;
 
@@ -45,9 +47,6 @@ public class StatementRepository(ApplicationDbContext dbContext) : IStatementRep
 
     private IQueryable<StatementEntryEntity> BuildSearchQuery(GetStatementRequest getStatementRequest)
     {
-        var fromDate = getStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc).ToString(DateTimeConstants.DateTimeFormat);
-        var toDate = getStatementRequest.DateRange.To.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc).ToString(DateTimeConstants.DateTimeFormat);
-
         var sql = $@"
             SELECT
                 e.*,
@@ -71,8 +70,8 @@ public class StatementRepository(ApplicationDbContext dbContext) : IStatementRep
                     t.""{nameof(TransactionEntity.Description)}"" AS ""{nameof(StatementEntryEntity.Description)}"",
                     t.""{nameof(TransactionEntity.Reference)}"" AS ""{nameof(StatementEntryEntity.Reference)}""
                 FROM ""Transactions"" t
-                WHERE t.""{nameof(TransactionEntity.AccountId)}"" = '{getStatementRequest.AccountId}'
-                  AND t.""{nameof(TransactionEntity.PostedAt)}"" BETWEEN '{fromDate}' AND '{toDate}'
+                WHERE t.""{nameof(TransactionEntity.AccountId)}"" = @AccountId
+                  AND t.""{nameof(TransactionEntity.PostedAt)}"" BETWEEN @FromDate AND @ToDate
                   AND t.""{nameof(TransactionEntity.IsDeleted)}"" = false
                   AND t.""{nameof(TransactionEntity.TransactionStatusId)}"" in ({(int)TransactionStatus.Posted}, {(int)TransactionStatus.Reversed})
 
@@ -89,13 +88,26 @@ public class StatementRepository(ApplicationDbContext dbContext) : IStatementRep
                     h.""{nameof(HoldEntity.Description)}"" AS ""{nameof(StatementEntryEntity.Description)}"",
                     h.""{nameof(HoldEntity.Reference)}"" AS ""{nameof(StatementEntryEntity.Reference)}""
                 FROM ""Holds"" h
-                WHERE h.""{nameof(HoldEntity.AccountId)}"" = '{getStatementRequest.AccountId}'
-                  AND h.""{nameof(HoldEntity.CreatedAt)}"" BETWEEN '{fromDate}' AND '{toDate}'
+                WHERE h.""{nameof(HoldEntity.AccountId)}"" = @AccountId
+                  AND h.""{nameof(HoldEntity.CreatedAt)}"" BETWEEN @FromDate AND @ToDate
                   AND h.""{nameof(HoldEntity.IsDeleted)}"" = false
                   AND h.""{nameof(HoldEntity.HoldStatusId)}"" = {(int)HoldStatus.Active}
             ) e";
 
-        var query = dbContext.Database.SqlQueryRaw<StatementEntryEntity>(sql);
+        var query = dbContext.Database.SqlQueryRaw<StatementEntryEntity>(sql, [
+            new NpgsqlParameter("@AccountId", NpgsqlDbType.Uuid)
+            {
+                Value = (Guid)getStatementRequest.AccountId
+            },
+            new NpgsqlParameter("@FromDate", NpgsqlDbType.TimestampTz)
+            {
+                Value = getStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
+            },
+            new NpgsqlParameter("@ToDate", NpgsqlDbType.TimestampTz)
+            {
+                Value = getStatementRequest.DateRange.To.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)
+            }
+        ]);
 
         if (getStatementRequest.Direction.HasValue)
         {

@@ -46,8 +46,12 @@ public static class OpenTelemetryTags
         public const string ReversedTransactionId = $"{OpenTelemetryConstants.ServiceName}.reversed_transaction.id";
         public const string HoldId = $"{OpenTelemetryConstants.ServiceName}.hold.id";
         public const string InterestProductId = $"{OpenTelemetryConstants.ServiceName}.interest_product.id";
-        
+
         public const string HistoryPrimaryKey = $"{OpenTelemetryConstants.ServiceName}.history.primary_key";
         public const string HistoryKey = $"{OpenTelemetryConstants.ServiceName}.history.key";
+
+        public const string JobScheduledAt = $"{OpenTelemetryConstants.ServiceName}.job.scheduled_at";
+        public const string JobRunCreated = $"{OpenTelemetryConstants.ServiceName}.job_run.created";
+        public const string JobSuccess = $"{OpenTelemetryConstants.ServiceName}.job.success";
     }
 }
