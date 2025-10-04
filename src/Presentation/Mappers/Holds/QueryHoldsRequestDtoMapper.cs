@@ -34,7 +34,7 @@ public static class QueryHoldsRequestDtoMapper
                         : null,
                     To = queryHoldsRequestDto.ToCreatedAt.HasValue ?
                         new CreatedAt(queryHoldsRequestDto.ToCreatedAt.Value)
-                        : null,
+                        : null
                 }
                 : null,
             Type = queryHoldsRequestDto.Type,

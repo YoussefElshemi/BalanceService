@@ -15,7 +15,7 @@ public static class QueryInterestProductsRequestDtoMapper
             Name = !string.IsNullOrWhiteSpace(queryInterestProductsRequestDto.Name)
                 ? new InterestProductName(queryInterestProductsRequestDto.Name)
                 : null,
-            InterestPayoutFrequency = queryInterestProductsRequestDto.InterestPayoutFrequency,
+            InterestPayoutFrequency = queryInterestProductsRequestDto.InterestPayoutFrequency
         };
     }
 }

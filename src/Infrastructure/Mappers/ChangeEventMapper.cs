@@ -18,7 +18,7 @@ public static class ChangeEventMapper
                 : null,
             NewValue = changeEventEntity.NewValue != null
                 ? new ChangeEventValue(changeEventEntity.NewValue)
-                : null,
+                : null
         };
     }
 }

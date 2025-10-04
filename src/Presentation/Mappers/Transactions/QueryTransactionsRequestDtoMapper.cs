@@ -25,7 +25,7 @@ public static class QueryTransactionsRequestDtoMapper
                 ? new Range<DateOnly?>
                 {
                     From = queryTransactionsRequestDto.FromPostedDate,
-                    To = queryTransactionsRequestDto.ToPostedDate,
+                    To = queryTransactionsRequestDto.ToPostedDate
                 }
                 : null,
             Type = queryTransactionsRequestDto.Type,

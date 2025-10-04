@@ -32,7 +32,7 @@ public class JobService(
             UpdatedBy = SystemConstants.Username,
             IsDeleted = false,
             DeletedAt = null,
-            DeletedBy = null,
+            DeletedBy = null
         };
             
         await jobRepository.CreateAsync(job, cancellationToken);

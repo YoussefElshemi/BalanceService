@@ -1,3 +1,4 @@
+using System.Globalization;
 using Core.Configs;
 using Core.Enums;
 using Core.Interfaces;
@@ -28,5 +29,13 @@ public class CurrencyService(IOptions<AppConfig> appConfig) : ICurrencyService
         var rounded = Math.Round(amount, maxNumberOfDecimalPlaces);
 
         return rounded;
+    }
+
+    public string Format(CurrencyCode currencyCode, decimal amount)
+    {
+        var maxNumberOfDecimalPlaces = GetMaxNumberOfDecimalPlaces(currencyCode);
+        var formatted =  amount.ToString($"N{maxNumberOfDecimalPlaces}", CultureInfo.InvariantCulture);
+
+        return formatted;
     }
 }

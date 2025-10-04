@@ -13,6 +13,8 @@ namespace Core.Services;
 public class StatementService(
     IStatementRepository statementRepository,
     IBalanceService balanceService,
+    IAccountService accountService,
+    ICurrencyService currencyService,
     TimeProvider timeProvider) : IStatementService
 {
     public async Task<Statement> GetAsync(GetStatementRequest getStatementRequest, CancellationToken cancellationToken)
@@ -33,7 +35,7 @@ public class StatementService(
         var closingBalance = await balanceService.GetAvailableBalanceAsync(closingBalanceRequest, cancellationToken);
 
         var count = await statementRepository.CountAsync(getStatementRequest, cancellationToken);
-        var statementEntries = await statementRepository.QueryAsync(getStatementRequest, cancellationToken);
+        var statementEntries = await statementRepository.QueryAsync(getStatementRequest, openingBalance, cancellationToken);
 
         return new Statement
         {
@@ -57,6 +59,8 @@ public class StatementService(
 
     public async Task<byte[]> GeneratePdfAsync(GenerateStatementRequest generateStatementRequest, CancellationToken cancellationToken)
     {
+        var account = await accountService.GetByIdAsync(generateStatementRequest.AccountId, cancellationToken);
+
         var openingBalanceRequest = new BalanceRequest
         {
             AccountId = generateStatementRequest.AccountId,
@@ -78,15 +82,16 @@ public class StatementService(
             PageNumber = new PageNumber(0),
             AccountId = generateStatementRequest.AccountId,
             DateRange = generateStatementRequest.DateRange,
-            Direction = generateStatementRequest.Direction,
+            Direction = generateStatementRequest.Direction
         };
 
-        var allEntries = await statementRepository.QueryAllAsync(getStatementRequest, cancellationToken);
+        var allEntries = await statementRepository.QueryAllAsync(getStatementRequest, openingBalance, cancellationToken);
 
         var pdf = Document.Create(container =>
         {
             container.Page(page =>
             {
+                page.Size(PageSizes.A4.Landscape());
                 page.Margin(40);
 
                 page.Header().PaddingBottom(20).Row(row =>
@@ -133,7 +138,7 @@ public class StatementService(
                                 .FontColor(Colors.Grey.Darken2);
 
                             summary.Item()
-                                .Text($"{(decimal)openingBalance:0.00}")
+                                .Text($"{currencyService.Format(account.CurrencyCode, openingBalance)}")
                                 .FontSize(14)
                                 .SemiBold()
                                 .FontColor(Colors.Green.Darken2);
@@ -147,7 +152,7 @@ public class StatementService(
                                 .FontColor(Colors.Grey.Darken2);
            
                             summary.Item()
-                                .Text($"{(decimal)closingBalance:0.00}")
+                                .Text($"{currencyService.Format(account.CurrencyCode, closingBalance)}")
                                 .FontSize(14)
                                 .SemiBold()
                                 .FontColor(Colors.Red.Darken2);
@@ -165,6 +170,7 @@ public class StatementService(
                             columns.ConstantColumn(90);
                             columns.RelativeColumn(2);
                             columns.RelativeColumn(2);
+                            columns.RelativeColumn();
                             columns.RelativeColumn();
                             columns.RelativeColumn();
                         });
@@ -193,6 +199,13 @@ public class StatementService(
                                 .Background(Colors.Blue.Lighten3)
                                 .Padding(5)
                                 .AlignRight()
+                                .Text("Status")
+                                .SemiBold();
+
+                            header.Cell()
+                                .Background(Colors.Blue.Lighten3)
+                                .Padding(5)
+                                .AlignRight()
                                 .Text("Amount")
                                 .SemiBold();
 
@@ -207,9 +220,9 @@ public class StatementService(
                         foreach (var entry in allEntries)
                         {
                             var isCredit = entry.Direction == StatementDirection.Credit;
-                            var amount = (isCredit ? "+" : "-") + $"{(decimal)entry.Amount:0.00}";
+                            var amount = (isCredit ? "+" : "-") + currencyService.Format(entry.CurrencyCode, entry.Amount);
                             var amountColour = isCredit ? Colors.Green.Darken2 : Colors.Red.Darken2;
-                            var balance = $"{(decimal)entry.AvailableBalance:0.00}";
+                            var balance = currencyService.Format(entry.CurrencyCode, entry.AvailableBalance);
                
                             table.Cell()
                                 .Padding(5)
@@ -226,6 +239,11 @@ public class StatementService(
                                 .Text(entry.Reference)
                                 .FontSize(10);
                             
+                            table.Cell()
+                                .Padding(5)
+                                .Text(entry.Status.ToString())
+                                .FontSize(10);
+
                             table.Cell()
                                 .Padding(5)
                                 .AlignRight()
@@ -260,11 +278,19 @@ public class StatementService(
     
     public async Task<byte[]> GenerateCsvAsync(GenerateStatementRequest generateCsvStatementRequest, CancellationToken cancellationToken)
     {
-        var allEntries = await GetStatementEntriesAsync(generateCsvStatementRequest, cancellationToken);
+        var openingBalanceRequest = new BalanceRequest
+        {
+            AccountId = generateCsvStatementRequest.AccountId,
+            Timestamp = new Timestamp(generateCsvStatementRequest.DateRange.From.ToDateTime(TimeOnly.MinValue))
+        };
+
+        var openingBalance = await balanceService.GetAvailableBalanceAsync(openingBalanceRequest, cancellationToken);
+
+        var allEntries = await GetStatementEntriesAsync(generateCsvStatementRequest, openingBalance, cancellationToken);
 
         var csv = new StringBuilder();
 
-        csv.AppendLine("Date,Description,Reference,Direction,Type,Amount,Balance");
+        csv.AppendLine("Date,Description,Reference,Direction,Type,Status,Amount,Balance");
 
         foreach (var entry in allEntries)
         {
@@ -275,17 +301,21 @@ public class StatementService(
                 CsvEscape(entry.Reference),
                 entry.Direction.ToString(),
                 entry.Type.ToString(),
-                $"{(decimal)entry.Amount:0.00}",
-                $"{(decimal)entry.AvailableBalance:0.00}"
+                entry.Status.ToString(),
+                currencyService.Format(entry.CurrencyCode, entry.Amount),
+                currencyService.Format(entry.CurrencyCode, entry.AvailableBalance)
             };
-            
+
             csv.AppendLine(string.Join(',', values));
         }
 
         return Encoding.UTF8.GetBytes(csv.ToString());
     }
 
-    private  Task<List<StatementEntry>> GetStatementEntriesAsync(GenerateStatementRequest generateCsvStatementRequest, CancellationToken cancellationToken)
+    private Task<List<StatementEntry>> GetStatementEntriesAsync(
+        GenerateStatementRequest generateCsvStatementRequest,
+        AvailableBalance openingBalance,
+        CancellationToken cancellationToken)
     {
         var getStatementRequest = new GetStatementRequest
         {
@@ -293,10 +323,10 @@ public class StatementService(
             PageNumber = new PageNumber(0),
             AccountId = generateCsvStatementRequest.AccountId,
             DateRange = generateCsvStatementRequest.DateRange,
-            Direction = generateCsvStatementRequest.Direction,
+            Direction = generateCsvStatementRequest.Direction
         };
 
-        return statementRepository.QueryAllAsync(getStatementRequest, cancellationToken);
+        return statementRepository.QueryAllAsync(getStatementRequest, openingBalance, cancellationToken);
     }
 
     private static string CsvEscape(string? value)

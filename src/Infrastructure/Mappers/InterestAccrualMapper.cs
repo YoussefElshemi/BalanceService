@@ -24,7 +24,7 @@ public static class InterestAccrualMapper
             UpdatedBy = interestAccrual.UpdatedBy,
             IsDeleted = interestAccrual.IsDeleted,
             DeletedAt = interestAccrual.DeletedAt,
-            DeletedBy = interestAccrual.DeletedBy,
+            DeletedBy = interestAccrual.DeletedBy
         };
     }
     

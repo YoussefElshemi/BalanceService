@@ -112,7 +112,7 @@ public class HistoryRepository<TEntity, TModel>(
             new NpgsqlParameter("@EntityId", NpgsqlDbType.Uuid)
             {
                 Value = getHistoryRequest.EntityId
-            },
+            }
         ]);
     }
 

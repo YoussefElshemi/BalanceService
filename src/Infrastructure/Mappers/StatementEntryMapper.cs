@@ -7,13 +7,17 @@ namespace Infrastructure.Mappers;
 
 public static class StatementEntryMapper
 {
-    public static StatementEntry ToModel(this StatementEntryEntity statementEntryEntity)
+    public static StatementEntry ToModel(
+        this StatementEntryEntity statementEntryEntity,
+        AvailableBalance openingBalance)
     {
         return new StatementEntry
         {
             StatementEntryId = new StatementEntryId(statementEntryEntity.StatementEntryId),
-            Date = new StatementDate(DateOnly.FromDateTime(statementEntryEntity.ActionedAt.UtcDateTime)),
-            AvailableBalance = new AvailableBalance(statementEntryEntity.AvailableBalance),
+            Date = new StatementDate(DateOnly.FromDateTime(statementEntryEntity.CreatedAt.UtcDateTime)),
+            AvailableBalance = statementEntryEntity.AvailableBalance.HasValue
+                ? new AvailableBalance(openingBalance + statementEntryEntity.AvailableBalance.Value)
+                : openingBalance,
             Amount = new StatementAmount(statementEntryEntity.Amount),
             CurrencyCode = Enum.Parse<CurrencyCode>(statementEntryEntity.CurrencyCode),
             Type = (StatementType)statementEntryEntity.StatementTypeId,
@@ -24,7 +28,7 @@ public static class StatementEntryMapper
                 : null,
             Reference = !string.IsNullOrWhiteSpace(statementEntryEntity.Reference)
                 ? new StatementReference(statementEntryEntity.Reference)
-                : null,
+                : null
         };
     }
 }

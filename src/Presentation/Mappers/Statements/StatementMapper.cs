@@ -13,7 +13,7 @@ public static class StatementMapper
             DateRange = statement.DateRange.ToDto(),
             OpeningBalance = statement.OpeningBalance,
             ClosingBalance = statement.ClosingBalance,
-            StatementEntries = statement.StatementEntries.ToDto(x => x.ToDto()),
+            StatementEntries = statement.StatementEntries.ToDto(x => x.ToDto())
         };
     }
 }

@@ -40,7 +40,7 @@ public class AccountService(
             UpdatedBy = createAccountRequest.CreatedBy,
             IsDeleted = false,
             DeletedAt = null,
-            DeletedBy = null,
+            DeletedBy = null
         };
 
         Activity.Current?.AddTag(OpenTelemetryTags.Service.AccountId, account.AccountId.ToString());
