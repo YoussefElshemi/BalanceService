@@ -10,6 +10,7 @@ public record StatementEntryEntity
     public required string CurrencyCode { get; init; }
     public required int StatementTypeId { get; init; }
     public required int StatementDirectionId { get; init; }
+    public required int StatementStatusId { get; init; }
     public required string? Description { get; init; }
     public required string? Reference { get; init; }
 }

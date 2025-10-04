@@ -18,6 +18,7 @@ public static class StatementEntryMapper
             CurrencyCode = Enum.Parse<CurrencyCode>(statementEntryEntity.CurrencyCode),
             Type = (StatementType)statementEntryEntity.StatementTypeId,
             Direction = (StatementDirection)statementEntryEntity.StatementDirectionId,
+            Status = (StatementStatus)statementEntryEntity.StatementStatusId,
             Description = !string.IsNullOrWhiteSpace(statementEntryEntity.Description)
                 ? new StatementDescription(statementEntryEntity.Description)
                 : null,

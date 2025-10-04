@@ -52,28 +52,69 @@ public class StatementRepository(ApplicationDbContext dbContext) : IStatementRep
                 e.*,
                 SUM(
                     CASE
-                        WHEN e.""{nameof(StatementEntryEntity.StatementTypeId)}"" = {(int)StatementType.Transaction} AND e.""{nameof(StatementEntryEntity.StatementDirectionId)}"" = {(int)StatementDirection.Credit} THEN e.""{nameof(StatementEntryEntity.Amount)}""
-                        WHEN e.""{nameof(StatementEntryEntity.StatementTypeId)}"" = {(int)StatementType.Transaction} AND e.""{nameof(StatementEntryEntity.StatementDirectionId)}"" <> {(int)StatementDirection.Credit} THEN -e.""{nameof(StatementEntryEntity.Amount)}""
-                        WHEN e.""{nameof(StatementEntryEntity.StatementTypeId)}"" = {(int)StatementType.Hold} THEN -e.""{nameof(StatementEntryEntity.Amount)}""
+                        WHEN e.""{nameof(StatementEntryEntity.StatementTypeId)}"" = {(int)StatementType.Transaction}
+                             AND e.""{nameof(StatementEntryEntity.StatementDirectionId)}"" = {(int)StatementDirection.Credit}
+                        THEN e.""{nameof(StatementEntryEntity.Amount)}""
+
+                        WHEN e.""{nameof(StatementEntryEntity.StatementTypeId)}"" = {(int)StatementType.Transaction}
+                             AND e.""{nameof(StatementEntryEntity.StatementDirectionId)}"" = {(int)StatementDirection.Debit}
+                        THEN -e.""{nameof(StatementEntryEntity.Amount)}""
+
+                        WHEN e.""{nameof(StatementEntryEntity.StatementTypeId)}"" = {(int)StatementType.Hold}
+                        THEN -e.""{nameof(StatementEntryEntity.Amount)}""
                     END
-                ) OVER (PARTITION BY e.""{nameof(StatementEntryEntity.AccountId)}"" ORDER BY e.""{nameof(StatementEntryEntity.ActionedAt)}"", e.""{nameof(StatementEntryEntity.StatementEntryId)}"") AS ""{nameof(StatementEntryEntity.AvailableBalance)}""
+                ) OVER (
+                    PARTITION BY e.""{nameof(StatementEntryEntity.AccountId)}""
+                    ORDER BY e.""{nameof(StatementEntryEntity.ActionedAt)}"", e.""{nameof(StatementEntryEntity.StatementEntryId)}""
+                ) AS ""{nameof(StatementEntryEntity.AvailableBalance)}""
             FROM
             (
                 SELECT
                     t.""{nameof(TransactionEntity.TransactionId)}"" AS ""{nameof(StatementEntryEntity.StatementEntryId)}"",
                     t.""{nameof(TransactionEntity.AccountId)}"" AS ""{nameof(StatementEntryEntity.AccountId)}"",
                     t.""{nameof(TransactionEntity.CurrencyCode)}"" AS ""{nameof(StatementEntryEntity.CurrencyCode)}"",
-                    t.""{nameof(TransactionEntity.PostedAt)}"" as ""{nameof(StatementEntryEntity.ActionedAt)}"",
+                    t.""{nameof(TransactionEntity.PostedAt)}"" AS ""{nameof(StatementEntryEntity.ActionedAt)}"",
                     t.""{nameof(TransactionEntity.Amount)}"" AS ""{nameof(StatementEntryEntity.Amount)}"",
                     {(int)StatementType.Transaction} AS ""{nameof(StatementEntryEntity.StatementTypeId)}"",
                     t.""{nameof(TransactionEntity.TransactionDirectionId)}"" AS ""{nameof(StatementEntryEntity.StatementDirectionId)}"",
                     t.""{nameof(TransactionEntity.Description)}"" AS ""{nameof(StatementEntryEntity.Description)}"",
-                    t.""{nameof(TransactionEntity.Reference)}"" AS ""{nameof(StatementEntryEntity.Reference)}""
+                    t.""{nameof(TransactionEntity.Reference)}"" AS ""{nameof(StatementEntryEntity.Reference)}"",
+                    CASE t.""{nameof(TransactionEntity.TransactionStatusId)}""
+                        WHEN {(int)TransactionStatus.Draft} THEN {(int)StatementStatus.TransactiomDraft}
+                        WHEN {(int)TransactionStatus.Posted} THEN {(int)StatementStatus.TramsactiomPosted}
+                        WHEN {(int)TransactionStatus.Reversed} THEN {(int)StatementStatus.TransactionReversed}
+                        ELSE {(int)StatementStatus.Unknown}
+                    END AS ""{nameof(StatementEntryEntity.StatementStatusId)}""
                 FROM ""Transactions"" t
                 WHERE t.""{nameof(TransactionEntity.AccountId)}"" = @AccountId
                   AND t.""{nameof(TransactionEntity.PostedAt)}"" BETWEEN @FromDate AND @ToDate
                   AND t.""{nameof(TransactionEntity.IsDeleted)}"" = false
-                  AND t.""{nameof(TransactionEntity.TransactionStatusId)}"" in ({(int)TransactionStatus.Posted}, {(int)TransactionStatus.Reversed})
+                  AND t.""{nameof(TransactionEntity.TransactionDirectionId)}"" = {(int)StatementDirection.Credit}
+                  AND t.""{nameof(TransactionEntity.TransactionStatusId)}"" IN ({(int)TransactionStatus.Posted}, {(int)TransactionStatus.Reversed})
+
+                UNION ALL
+
+                SELECT
+                    t.""{nameof(TransactionEntity.TransactionId)}"" AS ""{nameof(StatementEntryEntity.StatementEntryId)}"",
+                    t.""{nameof(TransactionEntity.AccountId)}"" AS ""{nameof(StatementEntryEntity.AccountId)}"",
+                    t.""{nameof(TransactionEntity.CurrencyCode)}"" AS ""{nameof(StatementEntryEntity.CurrencyCode)}"",
+                    t.""{nameof(TransactionEntity.CreatedAt)}"" AS ""{nameof(StatementEntryEntity.ActionedAt)}"",
+                    t.""{nameof(TransactionEntity.Amount)}"" AS ""{nameof(StatementEntryEntity.Amount)}"",
+                    {(int)StatementType.Transaction} AS ""{nameof(StatementEntryEntity.StatementTypeId)}"",
+                    t.""{nameof(TransactionEntity.TransactionDirectionId)}"" AS ""{nameof(StatementEntryEntity.StatementDirectionId)}"",
+                    t.""{nameof(TransactionEntity.Description)}"" AS ""{nameof(StatementEntryEntity.Description)}"",
+                    t.""{nameof(TransactionEntity.Reference)}"" AS ""{nameof(StatementEntryEntity.Reference)}"",
+                    CASE t.""{nameof(TransactionEntity.TransactionStatusId)}""
+                        WHEN {(int)TransactionStatus.Draft} THEN {(int)StatementStatus.TransactiomDraft}
+                        WHEN {(int)TransactionStatus.Posted} THEN {(int)StatementStatus.TramsactiomPosted}
+                        WHEN {(int)TransactionStatus.Reversed} THEN {(int)StatementStatus.TransactionReversed}
+                        ELSE {(int)StatementStatus.Unknown}
+                    END AS ""{nameof(StatementEntryEntity.StatementStatusId)}""
+                FROM ""Transactions"" t
+                WHERE t.""{nameof(TransactionEntity.AccountId)}"" = @AccountId
+                  AND t.""{nameof(TransactionEntity.CreatedAt)}"" BETWEEN @FromDate AND @ToDate
+                  AND t.""{nameof(TransactionEntity.IsDeleted)}"" = false
+                  AND t.""{nameof(TransactionEntity.TransactionDirectionId)}"" = {(int)StatementDirection.Debit}
 
                 UNION ALL
 
@@ -81,12 +122,19 @@ public class StatementRepository(ApplicationDbContext dbContext) : IStatementRep
                     h.""{nameof(HoldEntity.HoldId)}"" AS ""{nameof(StatementEntryEntity.StatementEntryId)}"",
                     h.""{nameof(HoldEntity.AccountId)}"" AS ""{nameof(StatementEntryEntity.AccountId)}"",
                     h.""{nameof(HoldEntity.CurrencyCode)}"" AS ""{nameof(StatementEntryEntity.CurrencyCode)}"",
-                    h.""{nameof(HoldEntity.CreatedAt)}"" as ""{nameof(StatementEntryEntity.ActionedAt)}"",
+                    h.""{nameof(HoldEntity.CreatedAt)}"" AS ""{nameof(StatementEntryEntity.ActionedAt)}"",
                     h.""{nameof(HoldEntity.Amount)}"" AS ""{nameof(StatementEntryEntity.Amount)}"",
                     {(int)StatementType.Hold} AS ""{nameof(StatementEntryEntity.StatementTypeId)}"",
                     {(int)StatementDirection.Debit} AS ""{nameof(StatementEntryEntity.StatementDirectionId)}"",
                     h.""{nameof(HoldEntity.Description)}"" AS ""{nameof(StatementEntryEntity.Description)}"",
-                    h.""{nameof(HoldEntity.Reference)}"" AS ""{nameof(StatementEntryEntity.Reference)}""
+                    h.""{nameof(HoldEntity.Reference)}"" AS ""{nameof(StatementEntryEntity.Reference)}"",
+                    CASE h.""{nameof(HoldEntity.HoldStatusId)}""
+                        WHEN {(int)HoldStatus.Active}   THEN {(int)StatementStatus.HoldActive}
+                        WHEN {(int)HoldStatus.Released} THEN {(int)StatementStatus.HoldReleased}
+                        WHEN {(int)HoldStatus.Settled}  THEN {(int)StatementStatus.HoldSettled}
+                        WHEN {(int)HoldStatus.Expired}  THEN {(int)StatementStatus.HoldExpired}
+                        ELSE {(int)StatementStatus.Unknown}
+                    END AS ""{nameof(StatementEntryEntity.StatementStatusId)}""
                 FROM ""Holds"" h
                 WHERE h.""{nameof(HoldEntity.AccountId)}"" = @AccountId
                   AND h.""{nameof(HoldEntity.CreatedAt)}"" BETWEEN @FromDate AND @ToDate

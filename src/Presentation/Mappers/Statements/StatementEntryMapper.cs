@@ -16,6 +16,7 @@ public static class StatementEntryMapper
             CurrencyCode = statementEntry.CurrencyCode,
             Type = statementEntry.Type,
             Direction = statementEntry.Direction,
+            Status = statementEntry.Status,
             Description = statementEntry.Description,
             Reference = statementEntry.Reference
         };

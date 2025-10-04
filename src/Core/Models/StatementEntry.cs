@@ -12,6 +12,7 @@ public record StatementEntry
     public required CurrencyCode CurrencyCode { get; init; }
     public required StatementType Type { get; init; }
     public required StatementDirection Direction { get; init; }
+    public required StatementStatus Status { get; init; }
     public required StatementDescription? Description { get; init; }
     public required StatementReference? Reference { get; init; }
 }
